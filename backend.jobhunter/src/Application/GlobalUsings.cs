@@ -4,3 +4,4 @@ global using AutoMapper.QueryableExtensions;
 global using Microsoft.EntityFrameworkCore;
 global using FluentValidation;
 global using MediatR;
+global using NotFoundException = backend.jobhunter.Application.Common.Exceptions.NotFoundException;

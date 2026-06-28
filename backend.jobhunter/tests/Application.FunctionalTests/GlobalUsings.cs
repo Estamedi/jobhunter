@@ -4,3 +4,4 @@ global using backend.jobhunter.Shared;
 global using Moq;
 global using NUnit.Framework;
 global using Shouldly;
+global using NotFoundException = backend.jobhunter.Application.Common.Exceptions.NotFoundException;

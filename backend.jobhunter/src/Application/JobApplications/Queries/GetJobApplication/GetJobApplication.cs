@@ -1,0 +1,59 @@
+using backend.jobhunter.Application.Common.Exceptions;
+using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.Common.Security;
+
+namespace backend.jobhunter.Application.JobApplications.Queries.GetJobApplication;
+
+public record JobApplicationDetailDto(
+    int Id,
+    int CandidateId, string CandidateName,
+    int JobRoleId, string JobRoleTitle,
+    int CompanyId, string CompanyName,
+    int? MainContactId, string? MainContactName,
+    string Status, string Priority,
+    DateTimeOffset? AppliedDate, DateTimeOffset? LastActivityDate, DateTimeOffset? NextFollowUpDate,
+    string FollowUpStatus,
+    string? ResumeVersion, string? CoverLetterVersion,
+    decimal? ExpectedSalary, decimal? ActualOfferSalary, string? Currency,
+    string? RejectionReason, string? Notes,
+    string? JobRoleCountry, string? JobRoleWorkType, string? JobRoleSource,
+    DateTimeOffset Created, DateTimeOffset LastModified
+);
+
+[Authorize]
+public record GetJobApplicationQuery(int Id) : IRequest<JobApplicationDetailDto>;
+
+public class GetJobApplicationQueryHandler(IApplicationDbContext context)
+    : IRequestHandler<GetJobApplicationQuery, JobApplicationDetailDto>
+{
+    public async Task<JobApplicationDetailDto> Handle(GetJobApplicationQuery request, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var weekEnd = now.AddDays(7);
+
+        var a = await context.Applications.AsNoTracking()
+            .Where(a => a.Id == request.Id)
+            .Select(a => new JobApplicationDetailDto(
+                a.Id,
+                a.CandidateId, a.Candidate.FullName,
+                a.JobRoleId, a.JobRole.Title,
+                a.CompanyId, a.Company.Name,
+                a.MainContactId, a.MainContact != null ? a.MainContact.FullName : null,
+                a.Status, a.Priority,
+                a.AppliedDate, a.LastActivityDate, a.NextFollowUpDate,
+                a.NextFollowUpDate == null ? "NotNeeded"
+                    : a.NextFollowUpDate.Value.Date == now.Date ? "DueToday"
+                    : a.NextFollowUpDate.Value < now ? "Overdue"
+                    : a.NextFollowUpDate.Value <= weekEnd ? "ThisWeek"
+                    : "NotNeeded",
+                a.ResumeVersion, a.CoverLetterVersion,
+                a.ExpectedSalary, a.ActualOfferSalary, a.Currency,
+                a.RejectionReason, a.Notes,
+                a.JobRole.Country, a.JobRole.WorkType, a.JobRole.Source,
+                a.Created, a.LastModified))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("JobApplication", request.Id);
+
+        return a;
+    }
+}

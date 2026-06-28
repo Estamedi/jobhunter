@@ -12,8 +12,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     public DbSet<TodoList> TodoLists => Set<TodoList>();
-
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
+
+    public DbSet<Candidate> Candidates => Set<Candidate>();
+    public DbSet<JobCompany> Companies => Set<JobCompany>();
+    public DbSet<JobContact> Contacts => Set<JobContact>();
+    public DbSet<JobRole> JobRoles => Set<JobRole>();
+    public DbSet<JobApplication> Applications => Set<JobApplication>();
+    public DbSet<JobActivity> Activities => Set<JobActivity>();
+    public DbSet<JobInterview> Interviews => Set<JobInterview>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
