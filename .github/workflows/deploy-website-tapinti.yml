@@ -32,8 +32,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.GHCR_USERNAME || github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Tapinti website image
         uses: docker/build-push-action@v6
@@ -106,7 +106,7 @@ jobs:
             printf 'TAPINTI_SITE_IMAGE=%s\n' "$IMAGE" >> "$tmp_env"
             mv "$tmp_env" .env
 
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME || github.actor }}" --password-stdin
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
             echo "Deploying Tapinti website..."
             docker compose pull tapinti-site
@@ -148,7 +148,7 @@ jobs:
               rm -rf /opt/jobhunter/website.tapinti
               mv /opt/jobhunter/website.tapinti.previous /opt/jobhunter/website.tapinti
               cd /opt/jobhunter/website.tapinti
-              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME || github.actor }}" --password-stdin
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
               docker compose pull tapinti-site || true
               docker compose up -d --no-build
             else
