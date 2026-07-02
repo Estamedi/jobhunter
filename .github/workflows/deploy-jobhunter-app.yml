@@ -1,0 +1,132 @@
+name: Deploy JobHunter App to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend.jobhunter/**"
+      - "ui.jobhunter/**"
+      - "docker-compose.yml"
+      - "docker-compose.prod.yml"
+      - ".env.example"
+      - ".github/scripts/deploy-jobhunter-app.sh"
+      - ".github/workflows/deploy-jobhunter-app.yml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/estamedi/jobhunter
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend.jobhunter
+          file: ./backend.jobhunter/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/backend:latest
+            ${{ env.IMAGE_PREFIX }}/backend:${{ github.sha }}
+          cache-from: type=gha,scope=jobhunter-backend
+          cache-to: type=gha,scope=jobhunter-backend,mode=max
+
+      - name: Build and push UI
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ui.jobhunter
+          file: ./ui.jobhunter/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL || format('http://{0}:5290', secrets.VPS_HOST) }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/ui:latest
+            ${{ env.IMAGE_PREFIX }}/ui:${{ github.sha }}
+          cache-from: type=gha,scope=jobhunter-ui
+          cache-to: type=gha,scope=jobhunter-ui,mode=max
+
+  deploy:
+    name: Deploy to VPS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy
+          cp docker-compose.yml deploy/docker-compose.yml
+          cp docker-compose.prod.yml deploy/docker-compose.prod.yml
+          cp .env.example deploy/.env.example
+          cp .github/scripts/deploy-jobhunter-app.sh deploy/deploy-jobhunter-app.sh
+          tar -czf jobhunter-app.tar.gz -C deploy .
+
+          ls -lh jobhunter-app.tar.gz
+
+      - name: Copy deployment package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 4444
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "jobhunter-app.tar.gz"
+          target: "/tmp/"
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 4444
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            mkdir -p /opt/jobhunter
+            tar -xzf /tmp/jobhunter-app.tar.gz -C /opt/jobhunter
+            chmod +x /opt/jobhunter/deploy-jobhunter-app.sh
+
+            GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
+            GIT_ACTOR='${{ github.actor }}' \
+            BACKEND_IMAGE='${{ env.IMAGE_PREFIX }}/backend:${{ github.sha }}' \
+            UI_IMAGE='${{ env.IMAGE_PREFIX }}/ui:${{ github.sha }}' \
+            BACKEND_PORT='5290' \
+            UI_PORT='8091' \
+            POSTGRES_PORT='5434' \
+            POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
+            VITE_API_BASE_URL='${{ secrets.VITE_API_BASE_URL || format('http://{0}:5290', secrets.VPS_HOST) }}' \
+            /opt/jobhunter/deploy-jobhunter-app.sh
+
+            rm -f /tmp/jobhunter-app.tar.gz
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "JobHunter backend and UI deployed successfully to VPS"
+          echo "Backend: http://${{ secrets.VPS_HOST }}:5290"
+          echo "UI: http://${{ secrets.VPS_HOST }}:8091"

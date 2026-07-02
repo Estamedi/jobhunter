@@ -58,6 +58,7 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
+          port: 4444
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "website-tapinti.tar.gz"
@@ -67,6 +68,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
+          port: 4444
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
@@ -99,11 +101,13 @@ jobs:
               while IFS= read -r line || [ -n "$line" ]; do
                 case "$line" in
                   TAPINTI_SITE_IMAGE=*) ;;
+                  TAPINTI_SITE_PORT=*) ;;
                   *) printf '%s\n' "$line" >> "$tmp_env" ;;
                 esac
               done < .env
             fi
             printf 'TAPINTI_SITE_IMAGE=%s\n' "$IMAGE" >> "$tmp_env"
+            printf 'TAPINTI_SITE_PORT=8092\n' >> "$tmp_env"
             mv "$tmp_env" .env
 
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
@@ -133,13 +137,14 @@ jobs:
         if: success()
         run: |
           echo "Tapinti website deployed successfully to VPS"
-          echo "Website port: ${{ secrets.VPS_HOST }}:${TAPINTI_SITE_PORT:-3000}"
+          echo "Website: http://${{ secrets.VPS_HOST }}:8092"
 
       - name: Rollback on failure
         if: failure()
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
+          port: 4444
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |

@@ -11,7 +11,7 @@ services:
     image: ${TAPINTI_SITE_IMAGE:-ghcr.io/estamedi/website.tapinti:latest}
     restart: unless-stopped
     ports:
-      - "${TAPINTI_SITE_PORT:-3000}:3000"
+      - "${TAPINTI_SITE_PORT:-8092}:3000"
     environment:
       - NODE_ENV=production
       - HOSTNAME=0.0.0.0

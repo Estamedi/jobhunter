@@ -1,0 +1,11 @@
+bin/
+obj/
+artifacts/
+.git/
+.github/
+.vs/
+.vscode/
+*.user
+*.suo
+*.log
+.DS_Store
