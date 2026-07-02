@@ -1,0 +1,33 @@
+name: tapinti-site
+
+networks:
+  monitoring-network:
+    external: true
+    name: monitoring-network
+
+services:
+  tapinti-site:
+    container_name: tapinti-site
+    image: tapinti-site:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${TAPINTI_SITE_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    labels:
+      - "logging=promtail"
+      - "com.docker.compose.project=jobhunter"
+      - "com.docker.compose.service=tapinti-site"
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

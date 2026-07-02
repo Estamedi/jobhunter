@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* Dark mode driven by next-themes (attribute="class") */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Brand palette */
+  --brand-primary: #4f46e5; /* indigo  */
+  --brand-secondary: #06b6d4; /* cyan    */
+  --brand-accent: #8b5cf6; /* violet  */
+
+  /* Light theme surfaces */
+  --background: #ffffff;
+  --background-subtle: #f8fafc;
+  --foreground: #0b1120;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --ring: #4f46e5;
+}
+
+.dark {
+  --background: #05060f;
+  --background-subtle: #0a0d1c;
+  --foreground: #f8fafc;
+  --muted: #131829;
+  --muted-foreground: #94a3b8;
+  --card: #0c1022;
+  --border: #1e2438;
+  --ring: #6366f1;
+}
+
+@theme inline {
+  --color-brand: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-accent: var(--brand-accent);
+
+  --color-background: var(--background);
+  --color-background-subtle: var(--background-subtle);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-app), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-4xl: 2rem;
+
+  --animate-marquee: marquee 32s linear infinite;
+  --animate-blob: blob 16s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 1rem));
+  }
+}
+
+@keyframes blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Respect reduced motion for all the scroll/entrance animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Utility: brand gradient text */
+.text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--brand-primary),
+    var(--brand-accent) 45%,
+    var(--brand-secondary)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Thin brand scrollbar accent (progressive enhancement) */
+::selection {
+  background: color-mix(in oklab, var(--brand-primary) 28%, transparent);
+}

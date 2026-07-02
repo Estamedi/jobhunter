@@ -1,0 +1,311 @@
+{
+  "meta": {
+    "title": "Tapinti — Organize Your Career. Land Your Next Job.",
+    "description": "Tapinti is the Personal Career CRM. Track every company, recruiter, application, resume version, interview and follow-up in one calm, connected place.",
+    "ogAlt": "Tapinti — the Personal Career CRM dashboard"
+  },
+  "common": {
+    "startFree": "Start Free",
+    "startFreeToday": "Start Free Today",
+    "watchDemo": "Watch Demo",
+    "getStarted": "Get Started",
+    "category": "The Personal Career CRM"
+  },
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "testimonials": "Stories",
+    "faq": "FAQ",
+    "signIn": "Sign in",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "language": "Language",
+    "theme": "Toggle theme"
+  },
+  "hero": {
+    "badge": "The Personal Career CRM",
+    "titleLead": "Your career.",
+    "titleHighlight": "Organized.",
+    "subtitle": "You've applied to dozens of jobs across spreadsheets, tabs, inboxes and sticky notes. Tapinti brings every company, recruiter, application and interview into one calm place — so nothing slips, and every follow-up lands on time.",
+    "primaryCta": "Start Free",
+    "secondaryCta": "Watch Demo",
+    "noCard": "No credit card required",
+    "freeForever": "Free plan forever",
+    "mock": {
+      "appName": "Tapinti",
+      "pipeline": "Pipeline",
+      "companies": "Companies",
+      "recruiters": "Recruiters",
+      "interviews": "Interviews",
+      "analytics": "Analytics",
+      "stageWishlist": "Wishlist",
+      "stageApplied": "Applied",
+      "stageInterview": "Interview",
+      "stageOffer": "Offer",
+      "responseRate": "Response rate",
+      "activeApps": "Active applications",
+      "nextInterview": "Next interview",
+      "tomorrow": "Tomorrow, 2:00 PM",
+      "followUp": "Follow up with Nadia",
+      "due": "Due today"
+    }
+  },
+  "problem": {
+    "eyebrow": "Sound familiar?",
+    "title": "Somewhere around application #40, everything becomes chaos.",
+    "subtitle": "The job search starts organized. Then it multiplies — and the tools you started with quietly give up.",
+    "quotes": {
+      "q1": "Which resume did I even send them?",
+      "q2": "Wait… did this company already reject me?",
+      "q3": "I forgot to follow up. Again.",
+      "q4": "Which recruiter reached out last week?",
+      "q5": "Where did I apply? I genuinely can't remember.",
+      "q6": "I've applied to 120 jobs and everything is a mess."
+    }
+  },
+  "disconnected": {
+    "eyebrow": "The patchwork",
+    "title": "You're managing a career across seven apps that don't talk to each other.",
+    "subtitle": "Each one holds a piece of the story. None of them holds the whole thing.",
+    "tools": {
+      "excel": "Excel",
+      "notes": "Notes",
+      "notion": "Notion",
+      "gmail": "Gmail",
+      "linkedin": "LinkedIn",
+      "calendar": "Calendar",
+      "pdfs": "PDFs"
+    },
+    "punchline": "They were never designed to work together.",
+    "punchlineSub": "Tapinti is."
+  },
+  "connected": {
+    "eyebrow": "One connected system",
+    "title": "Everything about your search, finally in one thread.",
+    "subtitle": "From the company you're eyeing to the offer you sign — every step links to the last. Nothing floats alone.",
+    "nodes": {
+      "company": "Company",
+      "recruiters": "Recruiters",
+      "jobs": "Jobs",
+      "resume": "Resume",
+      "interview": "Interview",
+      "offer": "Offer",
+      "career": "Career"
+    },
+    "captions": {
+      "company": "Every company you've researched or applied to.",
+      "recruiters": "The people, linked to the roles they own.",
+      "jobs": "Each application, with its status and history.",
+      "resume": "The exact version you sent, attached.",
+      "interview": "Rounds, notes, and questions in a timeline.",
+      "offer": "Compensation, deadlines, decisions.",
+      "career": "A record that compounds, search after search."
+    }
+  },
+  "features": {
+    "eyebrow": "Everything you need",
+    "title": "Built for people who apply seriously.",
+    "subtitle": "Nine tools that used to live in nine apps — now working as one.",
+    "items": {
+      "companies": {
+        "title": "Manage Companies",
+        "desc": "Store every company you've ever applied to, with notes, links and the full history in one profile."
+      },
+      "recruiters": {
+        "title": "Recruiter CRM",
+        "desc": "Never lose track of a recruiter again. Every contact linked to the roles and conversations they own."
+      },
+      "pipeline": {
+        "title": "Job Pipeline",
+        "desc": "Move roles through Wishlist, Preparing, Applied, HR, Technical, Offer, Accepted and Rejected — at a glance."
+      },
+      "resumes": {
+        "title": "Resume Versions",
+        "desc": "Know exactly which resume you sent to which company. Version it, tag it, never guess again."
+      },
+      "interviews": {
+        "title": "Interview Timeline",
+        "desc": "Every interview, every note, every question — captured on a timeline you can actually revisit."
+      },
+      "followups": {
+        "title": "Follow-up Reminders",
+        "desc": "Never miss another follow-up. Tapinti nudges you the moment a thread goes quiet."
+      },
+      "attachments": {
+        "title": "Attachments",
+        "desc": "Resumes, cover letters, certificates and portfolios — attached where they belong, not lost in email."
+      },
+      "analytics": {
+        "title": "Career Analytics",
+        "desc": "Application, response, interview and offer rates — see what's actually working and adjust."
+      },
+      "ai": {
+        "title": "AI Assistant",
+        "desc": "Resume optimization, interview prep, tailored cover letters and career insights, on demand."
+      }
+    }
+  },
+  "mindset": {
+    "eyebrow": "A different way to search",
+    "title": "Stop tracking jobs. Start managing your career.",
+    "subtitle": "It isn't about more features. It's about a better loop.",
+    "oldWay": "The old way",
+    "newWay": "The Tapinti way",
+    "old": {
+      "apply": "Apply",
+      "forget": "Forget",
+      "repeat": "Repeat"
+    },
+    "new": {
+      "research": "Research",
+      "prepare": "Prepare",
+      "apply": "Apply",
+      "track": "Track",
+      "learn": "Learn",
+      "improve": "Improve",
+      "getHired": "Get hired"
+    }
+  },
+  "stats": {
+    "eyebrow": "Trusted by serious job seekers",
+    "title": "A calmer search, by the numbers.",
+    "items": {
+      "applications": "Applications tracked",
+      "companies": "Companies organized",
+      "countries": "Countries",
+      "organized": "of users feel more organized"
+    }
+  },
+  "testimonials": {
+    "eyebrow": "Stories",
+    "title": "It finally feels like someone gets it.",
+    "items": {
+      "t1": {
+        "quote": "I was juggling three spreadsheets and a Notion board. Tapinti replaced all of it in an afternoon. I actually know where I stand now.",
+        "name": "Elena Fischer",
+        "role": "Software Engineer"
+      },
+      "t2": {
+        "quote": "The recruiter CRM alone is worth it. I never walk into a call without the full history in front of me anymore.",
+        "name": "Marcus Ade",
+        "role": "Product Manager"
+      },
+      "t3": {
+        "quote": "As a designer I care how tools feel. Tapinti is the first job-search app that doesn't make the process more stressful.",
+        "name": "Priya Nair",
+        "role": "UX Designer"
+      },
+      "t4": {
+        "quote": "Fresh out of university with 90 applications out. Tapinti kept me from missing follow-ups that would've cost me interviews.",
+        "name": "Tomás Rivera",
+        "role": "Recent Graduate"
+      }
+    }
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Start free. Upgrade when it pays for itself.",
+    "subtitle": "No credit card to begin. Cancel anytime.",
+    "perMonth": "/mo",
+    "mostPopular": "Most popular",
+    "comingSoon": "Coming soon",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "tagline": "Everything you need to get organized.",
+        "cta": "Start Free",
+        "features": {
+          "f1": "Up to 25 active applications",
+          "f2": "Company & recruiter profiles",
+          "f3": "Job pipeline & interview timeline",
+          "f4": "1 resume version"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$9",
+        "tagline": "For a serious, high-volume search.",
+        "cta": "Start Pro",
+        "features": {
+          "f1": "Unlimited applications",
+          "f2": "Unlimited resume versions",
+          "f3": "Follow-up reminders & analytics",
+          "f4": "AI assistant & cover letters",
+          "f5": "Priority support"
+        }
+      },
+      "team": {
+        "name": "Team",
+        "price": "—",
+        "tagline": "For career coaches & bootcamps.",
+        "cta": "Join waitlist",
+        "features": {
+          "f1": "Everything in Pro",
+          "f2": "Shared candidate pipelines",
+          "f3": "Coach dashboards",
+          "f4": "Cohort analytics"
+        }
+      }
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Questions, answered.",
+    "items": {
+      "free": {
+        "q": "Is it really free?",
+        "a": "Yes. The Free plan covers everything you need to organize a real search, with no credit card and no time limit. Upgrade to Pro only when you want unlimited applications and the AI tools."
+      },
+      "notion": {
+        "q": "Can I import from Notion or a spreadsheet?",
+        "a": "Yes. You can import companies and applications from a CSV or Notion export, so you don't start from scratch."
+      },
+      "resumes": {
+        "q": "Can I upload and track multiple resumes?",
+        "a": "Absolutely. Store every resume version, tag it, and Tapinti records exactly which one you sent to each company."
+      },
+      "linkedin": {
+        "q": "Does it support LinkedIn?",
+        "a": "You can save roles and recruiters you find on LinkedIn into Tapinti in a couple of clicks, and keep the conversation history alongside them."
+      },
+      "privacy": {
+        "q": "Is my data private?",
+        "a": "Your career data is yours. It's encrypted, never sold, and you can export or delete everything at any time."
+      },
+      "devices": {
+        "q": "Does it work on my phone?",
+        "a": "Tapinti is fully responsive and works beautifully on phone, tablet and desktop — your search stays in sync everywhere."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Ready to organize your career?",
+    "subtitle": "Stop tracking jobs. Start managing your career.",
+    "cta": "Start Free Today",
+    "reassure": "Free forever plan · No credit card · Set up in minutes"
+  },
+  "footer": {
+    "tagline": "The Personal Career CRM. Organize your search, land your next job.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "connect": "Connect",
+    "links": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "roadmap": "Roadmap",
+      "blog": "Blog",
+      "about": "About",
+      "contact": "Contact",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter"
+    },
+    "rights": "All rights reserved.",
+    "builtWith": "Manage your career like sales teams manage customers."
+  }
+}

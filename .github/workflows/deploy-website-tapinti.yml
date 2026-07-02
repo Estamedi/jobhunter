@@ -1,0 +1,115 @@
+name: Deploy Tapinti Website to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "website.tapinti/**"
+      - ".github/workflows/deploy-website-tapinti.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deployment package
+        run: |
+          tar -czf website-tapinti.tar.gz \
+            --exclude='website.tapinti/node_modules' \
+            --exclude='website.tapinti/.next' \
+            --exclude='website.tapinti/out' \
+            --exclude='website.tapinti/.env' \
+            --exclude='website.tapinti/.env.local' \
+            --exclude='website.tapinti/.env.development.local' \
+            --exclude='website.tapinti/.env.test.local' \
+            --exclude='website.tapinti/.env.production.local' \
+            website.tapinti/
+
+          ls -lh website-tapinti.tar.gz
+
+      - name: Copy website package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "website-tapinti.tar.gz"
+          target: "/tmp/"
+
+      - name: Deploy website on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            mkdir -p /opt/jobhunter
+
+            rm -rf /opt/jobhunter/website.tapinti.previous
+            if [ -d /opt/jobhunter/website.tapinti ]; then
+              cp -a /opt/jobhunter/website.tapinti /opt/jobhunter/website.tapinti.previous
+            fi
+
+            rm -rf /opt/jobhunter/website.tapinti
+            tar -xzf /tmp/website-tapinti.tar.gz -C /opt/jobhunter
+
+            if [ -f /opt/jobhunter/website.tapinti.previous/.env ]; then
+              cp /opt/jobhunter/website.tapinti.previous/.env /opt/jobhunter/website.tapinti/.env
+            fi
+
+            cd /opt/jobhunter/website.tapinti
+
+            if [ ! -f .env ] && [ -f .env.example ]; then
+              cp .env.example .env
+            fi
+
+            echo "Deploying Tapinti website..."
+            docker compose up -d --build
+
+            echo "Waiting for Tapinti website to become healthy..."
+            for attempt in $(seq 1 12); do
+              if docker compose exec -T tapinti-site node -e "fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
+                echo "Tapinti website is healthy"
+                rm -f /tmp/website-tapinti.tar.gz
+                rm -rf /opt/jobhunter/website.tapinti.previous
+                docker image prune -f
+                exit 0
+              fi
+
+              echo "Health check attempt ${attempt}/12 failed; retrying..."
+              sleep 5
+            done
+
+            docker compose logs --tail=100 tapinti-site
+            exit 1
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "Tapinti website deployed successfully to VPS"
+          echo "Website port: ${{ secrets.VPS_HOST }}:${TAPINTI_SITE_PORT:-3000}"
+
+      - name: Rollback on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "Deployment failed. Attempting to restart the previous Tapinti website container..."
+            if [ -d /opt/jobhunter/website.tapinti.previous ]; then
+              rm -rf /opt/jobhunter/website.tapinti
+              mv /opt/jobhunter/website.tapinti.previous /opt/jobhunter/website.tapinti
+              cd /opt/jobhunter/website.tapinti
+              docker compose up -d --build
+            else
+              echo "No previous Tapinti website deployment found."
+            fi
