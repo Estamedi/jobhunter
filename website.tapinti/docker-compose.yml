@@ -8,10 +8,7 @@ networks:
 services:
   tapinti-site:
     container_name: tapinti-site
-    image: tapinti-site:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${TAPINTI_SITE_IMAGE:-ghcr.io/estamedi/website.tapinti:latest}
     restart: unless-stopped
     ports:
       - "${TAPINTI_SITE_PORT:-3000}:3000"

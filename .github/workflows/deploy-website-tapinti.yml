@@ -9,6 +9,14 @@ on:
       - ".github/workflows/deploy-website-tapinti.yml"
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: estamedi/website.tapinti
+
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,18 +25,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push Tapinti website image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./website.tapinti
+          file: ./website.tapinti/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
       - name: Create deployment package
         run: |
-          tar -czf website-tapinti.tar.gz \
-            --exclude='website.tapinti/node_modules' \
-            --exclude='website.tapinti/.next' \
-            --exclude='website.tapinti/out' \
-            --exclude='website.tapinti/.env' \
-            --exclude='website.tapinti/.env.local' \
-            --exclude='website.tapinti/.env.development.local' \
-            --exclude='website.tapinti/.env.test.local' \
-            --exclude='website.tapinti/.env.production.local' \
-            website.tapinti/
+          mkdir -p deploy/website.tapinti
+          cp website.tapinti/docker-compose.yml deploy/website.tapinti/docker-compose.yml
+          cp website.tapinti/.env.example deploy/website.tapinti/.env.example
+          tar -czf website-tapinti.tar.gz -C deploy website.tapinti/
 
           ls -lh website-tapinti.tar.gz
 
@@ -50,6 +72,8 @@ jobs:
           script: |
             set -e
 
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+
             mkdir -p /opt/jobhunter
 
             rm -rf /opt/jobhunter/website.tapinti.previous
@@ -70,8 +94,23 @@ jobs:
               cp .env.example .env
             fi
 
+            tmp_env="$(mktemp)"
+            if [ -f .env ]; then
+              while IFS= read -r line || [ -n "$line" ]; do
+                case "$line" in
+                  TAPINTI_SITE_IMAGE=*) ;;
+                  *) printf '%s\n' "$line" >> "$tmp_env" ;;
+                esac
+              done < .env
+            fi
+            printf 'TAPINTI_SITE_IMAGE=%s\n' "$IMAGE" >> "$tmp_env"
+            mv "$tmp_env" .env
+
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME || github.actor }}" --password-stdin
+
             echo "Deploying Tapinti website..."
-            docker compose up -d --build
+            docker compose pull tapinti-site
+            docker compose up -d --no-build
 
             echo "Waiting for Tapinti website to become healthy..."
             for attempt in $(seq 1 12); do
@@ -109,7 +148,9 @@ jobs:
               rm -rf /opt/jobhunter/website.tapinti
               mv /opt/jobhunter/website.tapinti.previous /opt/jobhunter/website.tapinti
               cd /opt/jobhunter/website.tapinti
-              docker compose up -d --build
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME || github.actor }}" --password-stdin
+              docker compose pull tapinti-site || true
+              docker compose up -d --no-build
             else
               echo "No previous Tapinti website deployment found."
             fi
