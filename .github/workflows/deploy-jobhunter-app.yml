@@ -7,7 +7,6 @@ on:
     paths:
       - "backend.jobhunter/**"
       - "ui.jobhunter/**"
-      - "docker-compose.yml"
       - "docker-compose.prod.yml"
       - ".env.example"
       - ".github/scripts/deploy-jobhunter-app.sh"
@@ -79,7 +78,6 @@ jobs:
       - name: Create deployment package
         run: |
           mkdir -p deploy
-          cp docker-compose.yml deploy/docker-compose.yml
           cp docker-compose.prod.yml deploy/docker-compose.prod.yml
           cp .env.example deploy/.env.example
           cp .github/scripts/deploy-jobhunter-app.sh deploy/deploy-jobhunter-app.sh
@@ -117,7 +115,9 @@ jobs:
             UI_IMAGE='${{ env.IMAGE_PREFIX }}/ui:${{ github.sha }}' \
             BACKEND_PORT='5290' \
             UI_PORT='8091' \
-            POSTGRES_PORT='5434' \
+            POSTGRES_HOST='shared_postgres' \
+            POSTGRES_DB='jobhunterdb' \
+            POSTGRES_USER='jobhunter_user' \
             POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
             VITE_API_BASE_URL='https://api.tapinti.com' \
             /opt/jobhunter/deploy-jobhunter-app.sh

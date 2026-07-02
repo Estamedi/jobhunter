@@ -1,30 +1,11 @@
 name: jobhunter
 
 # Standalone production Compose file for VPS deploys.
+# Prerequisite: shared_postgres container must be running on pg_network.
 # Usage:
 #   docker compose -f docker-compose.prod.yml up -d
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-jobhunterdb}
-    ports:
-      - "${POSTGRES_PORT:-5434}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-jobhunterdb}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    labels:
-      - "logging=promtail"
-      - "com.docker.compose.project=jobhunter"
-      - "com.docker.compose.service=postgres"
 
   backend:
     image: ${BACKEND_IMAGE:-ghcr.io/estamedi/jobhunter/backend:latest}
@@ -32,12 +13,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__backend.jobhunterDb=Server=postgres;Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-password}
+      - ConnectionStrings__backend.jobhunterDb=Host=${POSTGRES_HOST:-shared_postgres};Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-jobhunter_user};Password=${POSTGRES_PASSWORD}
     ports:
       - "${BACKEND_PORT:-5290}:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    networks:
+      - default
+      - pg_network
     labels:
       - "logging=promtail"
       - "com.docker.compose.project=jobhunter"
@@ -55,5 +36,7 @@ services:
       - "com.docker.compose.project=jobhunter"
       - "com.docker.compose.service=ui"
 
-volumes:
-  postgres_data:
+networks:
+  pg_network:
+    external: true
+    name: pg_network
