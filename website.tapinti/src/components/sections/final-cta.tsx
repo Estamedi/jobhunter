@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";
 import { ButtonLink } from "@/components/ui/button";
+import { SIGN_UP_URL } from "@/lib/links";
 
 export function FinalCta() {
   const t = useTranslations("finalCta");
@@ -24,7 +25,7 @@ export function FinalCta() {
             </p>
             <div className="mt-9 flex justify-center">
               <ButtonLink
-                href="#top"
+                href={SIGN_UP_URL}
                 size="lg"
                 className="bg-white text-brand shadow-lg hover:bg-white hover:text-brand"
               >

@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
 import { ButtonLink } from "@/components/ui/button";
+import { SIGN_UP_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 const plans = [
@@ -78,7 +79,7 @@ export function Pricing() {
                 </p>
 
                 <ButtonLink
-                  href="#top"
+                  href={SIGN_UP_URL}
                   variant={plan.highlight ? "primary" : "secondary"}
                   className="mt-6 w-full"
                 >

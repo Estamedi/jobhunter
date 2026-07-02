@@ -7,6 +7,7 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button";
+import { SIGN_IN_URL, SIGN_UP_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
@@ -63,12 +64,16 @@ export function SiteHeader() {
           </div>
           <ThemeToggle />
           <a
-            href="#top"
+            href={SIGN_IN_URL}
             className="hidden rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground lg:inline-block"
           >
             {t("signIn")}
           </a>
-          <ButtonLink href="#top" size="sm" className="hidden sm:inline-flex">
+          <ButtonLink
+            href={SIGN_UP_URL}
+            size="sm"
+            className="hidden sm:inline-flex"
+          >
             {c("startFree")}
           </ButtonLink>
           <button
@@ -100,7 +105,7 @@ export function SiteHeader() {
             ))}
             <li className="mt-2 flex items-center justify-between gap-2">
               <LanguageSwitcher />
-              <ButtonLink href="#top" size="sm" className="flex-1">
+              <ButtonLink href={SIGN_UP_URL} size="sm" className="flex-1">
                 {c("startFree")}
               </ButtonLink>
             </li>

@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, Play, ShieldCheck, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { DashboardMockup } from "@/components/dashboard-mockup";
+import { SIGN_UP_URL } from "@/lib/links";
 
 const container: Variants = {
   hidden: {},
@@ -101,7 +102,7 @@ export function Hero() {
             variants={item}
             className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start"
           >
-            <ButtonLink href="#top" size="lg" className="w-full sm:w-auto">
+            <ButtonLink href={SIGN_UP_URL} size="lg" className="w-full sm:w-auto">
               {t("primaryCta")}
               <ArrowRight className="size-4 rtl:rotate-180" />
             </ButtonLink>

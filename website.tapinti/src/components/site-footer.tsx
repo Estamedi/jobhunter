@@ -17,6 +17,11 @@ const columns = [
   },
 ] as const;
 
+const linkHrefs: Record<string, string> = {
+  features: "#features",
+  pricing: "#pricing",
+};
+
 const socials = [
   { key: "github", icon: GithubIcon, href: "https://github.com" },
   { key: "linkedin", icon: LinkedinIcon, href: "https://linkedin.com" },
@@ -62,7 +67,7 @@ export function SiteFooter() {
                 {col.links.map((link) => (
                   <li key={link}>
                     <a
-                      href="#top"
+                      href={linkHrefs[link] ?? "#top"}
                       className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {t(`links.${link}`)}
