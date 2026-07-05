@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tapinti Job Saver</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <h1>Tapinti <span>Job Saver</span></h1>
+    <button id="btn-settings" class="icon-btn" title="Settings">&#9881;</button>
+  </header>
+
+  <!-- LOGIN VIEW -->
+  <section id="view-login" class="view hidden">
+    <p class="hint">Sign in with your Tapinti portal account.</p>
+    <label>Email
+      <input type="email" id="login-email" autocomplete="username" />
+    </label>
+    <label>Password
+      <input type="password" id="login-password" autocomplete="current-password" />
+    </label>
+    <button id="btn-login" class="primary">Sign in</button>
+    <p id="login-error" class="error hidden"></p>
+  </section>
+
+  <!-- SETTINGS VIEW -->
+  <section id="view-settings" class="view hidden">
+    <label>Portal API base URL
+      <input type="url" id="set-api-base" placeholder="https://api.tapinti.com" />
+    </label>
+    <label>Anthropic API key <small>(for AI page extraction)</small>
+      <input type="password" id="set-anthropic-key" placeholder="sk-ant-..." />
+    </label>
+    <p class="hint">Without an Anthropic key the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
+    <div class="row">
+      <button id="btn-save-settings" class="primary">Save settings</button>
+      <button id="btn-logout" class="danger">Sign out</button>
+    </div>
+  </section>
+
+  <!-- MAIN VIEW -->
+  <section id="view-main" class="view hidden">
+    <div id="extract-status" class="status">Reading page…</div>
+
+    <form id="job-form" class="hidden">
+      <label>Candidate
+        <select id="f-candidate"></select>
+      </label>
+      <label>Job title *
+        <input type="text" id="f-title" required />
+      </label>
+      <label>Company *
+        <input type="text" id="f-company" required />
+      </label>
+      <div class="row">
+        <label>Country
+          <input type="text" id="f-country" />
+        </label>
+        <label>City
+          <input type="text" id="f-city" />
+        </label>
+      </div>
+      <div class="row">
+        <label>Work type
+          <select id="f-worktype">
+            <option>Remote</option><option>Hybrid</option><option>Onsite</option>
+          </select>
+        </label>
+        <label>Employment
+          <select id="f-employment">
+            <option>FullTime</option><option>PartTime</option><option>Contract</option><option>Internship</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Salary min
+          <input type="number" id="f-salmin" />
+        </label>
+        <label>Salary max
+          <input type="number" id="f-salmax" />
+        </label>
+        <label>Currency
+          <input type="text" id="f-currency" maxlength="6" />
+        </label>
+      </div>
+      <div class="row">
+        <label>Status
+          <select id="f-status">
+            <option>Wishlist</option><option>Applied</option><option>PhoneScreen</option>
+            <option>HRInterview</option><option>TechnicalInterview</option><option>FinalInterview</option>
+            <option>Offer</option>
+          </select>
+        </label>
+        <label>Priority
+          <select id="f-priority">
+            <option>Low</option><option selected>Medium</option><option>High</option>
+          </select>
+        </label>
+      </div>
+      <label>Job link
+        <input type="url" id="f-link" />
+      </label>
+      <details>
+        <summary>Description / requirements</summary>
+        <textarea id="f-description" rows="4" placeholder="Description"></textarea>
+        <textarea id="f-requirements" rows="3" placeholder="Requirements"></textarea>
+      </details>
+      <label>Notes
+        <textarea id="f-notes" rows="2"></textarea>
+      </label>
+      <button type="submit" id="btn-save" class="primary">Save to portal</button>
+    </form>
+
+    <p id="main-error" class="error hidden"></p>
+    <p id="main-success" class="success hidden"></p>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>
