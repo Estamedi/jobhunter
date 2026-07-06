@@ -16,6 +16,7 @@ internal sealed class IdentityApiOperationTransformer : IOpenApiOperationTransfo
     {
         ["api/Users/register"]                  = ("Register", "Creates a new user account."),
         ["api/Users/login"]                     = ("Log in", "Authenticates a user. Use ?useCookies=true for cookie-based authentication."),
+        ["api/Users/google-login"]              = ("Log in with Google", "Exchanges a Google ID token for the application's bearer token."),
         ["api/Users/refresh"]                   = ("Refresh token", "Returns a new access token using a valid refresh token."),
         ["api/Users/confirmEmail"]              = ("Confirm email", "Confirms a user's email address using the token sent by email."),
         ["api/Users/resendConfirmationEmail"]   = ("Resend confirmation email", "Sends a new email confirmation link to the specified address."),

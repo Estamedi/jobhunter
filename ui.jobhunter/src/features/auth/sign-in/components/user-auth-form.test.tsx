@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, type RenderResult } from 'vitest-browser-react'
 import { type Locator, userEvent } from 'vitest/browser'
+import axios from 'axios'
 import { UserAuthForm } from './user-auth-form'
 
 const FORM_MESSAGES = {
@@ -9,9 +10,21 @@ const FORM_MESSAGES = {
   passwordShort: 'Password must be at least 7 characters long.',
 } as const
 
-const navigate = vi.fn()
-const setUserMock = vi.fn()
-const setAccessTokenMock = vi.fn()
+const { navigate, setUserMock, setAccessTokenMock, axiosPostMock } = vi.hoisted(
+  () => ({
+    navigate: vi.fn(),
+    setUserMock: vi.fn(),
+    setAccessTokenMock: vi.fn(),
+    axiosPostMock: vi.fn(),
+  })
+)
+
+vi.mock('axios', () => ({
+  default: {
+    post: axiosPostMock,
+    isAxiosError: vi.fn(() => false),
+  },
+}))
 
 vi.mock('@/stores/auth-store', () => ({
   useAuthStore: () => ({
@@ -59,6 +72,9 @@ describe('UserAuthForm', () => {
 
     beforeEach(async () => {
       vi.clearAllMocks()
+      axiosPostMock.mockResolvedValue({
+        data: { accessToken: 'mock-access-token', tokenType: 'Bearer' },
+      })
       screen = await render(<UserAuthForm />)
       emailInput = screen.getByRole('textbox', { name: /^Email$/i })
       passwordInput = screen.getByLabelText(/^Password$/i)
@@ -110,6 +126,9 @@ describe('UserAuthForm', () => {
 
   it('navigates to redirectTo when provided', async () => {
     vi.clearAllMocks()
+    axiosPostMock.mockResolvedValue({
+      data: { accessToken: 'mock-access-token', tokenType: 'Bearer' },
+    })
 
     const { getByRole, getByLabelText } = await render(
       <UserAuthForm redirectTo='/settings' />
@@ -128,6 +147,40 @@ describe('UserAuthForm', () => {
         to: '/settings',
         replace: true,
       })
+    )
+  })
+
+  it('exchanges the Google token and navigates on success', async () => {
+    vi.clearAllMocks()
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'google-client-id')
+    axiosPostMock.mockResolvedValue({
+      data: { accessToken: 'google-access-token', tokenType: 'Bearer' },
+    })
+    window.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: vi.fn((options) => ({
+            requestAccessToken: vi.fn(() => {
+              options.callback({ access_token: 'google-id-token' })
+            }),
+          })),
+        },
+      },
+    }
+
+    const { getByRole } = await render(<UserAuthForm />)
+
+    await userEvent.click(getByRole('button', { name: /Continue with Google/i }))
+
+    await vi.waitFor(() => expect(axios.post).toHaveBeenCalledOnce())
+    expect(axios.post).toHaveBeenCalledWith(
+      'undefined/api/Users/google-login',
+      { idToken: 'google-id-token' },
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    expect(setAccessTokenMock).toHaveBeenCalledWith('google-access-token')
+    await vi.waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
     )
   })
 })
