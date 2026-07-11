@@ -24,14 +24,35 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
 
-  --sidebar: var(--background);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
+  --sidebar: #0f0f11;
+  --sidebar-foreground: rgb(255 255 255 / 50%);
+  --sidebar-primary: #7f22fe;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(255 255 255 / 10%);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: #7f22fe;
+  --sidebar-muted-foreground: rgb(255 255 255 / 40%);
+  --sidebar-brand-foreground: #ffffff;
+  --sidebar-size: 14rem;
+  --sidebar-size-mobile: 18rem;
+  --sidebar-size-icon: 3rem;
+  --sidebar-header-height: 3.8125rem;
+  --sidebar-brand-height: 1.75rem;
+  --sidebar-brand-padding-x: 1rem;
+  --sidebar-brand-padding-y: 1rem;
+  --sidebar-brand-icon-size: 1.75rem;
+  --sidebar-brand-icon-inner-size: 0.875rem;
+  --sidebar-brand-letter-spacing: -0.025em;
+  --sidebar-section-padding-x: 0.5rem;
+  --sidebar-section-padding-y: 0.75rem;
+  --sidebar-item-height: 2.25rem;
+  --sidebar-item-height-sm: 2rem;
+  --sidebar-sub-item-height: 2rem;
+  --sidebar-item-radius: 0.625rem;
+  --sidebar-item-padding-x: 0.625rem;
+  --sidebar-item-gap: 0.625rem;
+  --sidebar-item-stack-gap: 0.125rem;
 }
 
 .dark {
@@ -99,4 +120,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
+  --color-sidebar-brand-foreground: var(--sidebar-brand-foreground);
 }
