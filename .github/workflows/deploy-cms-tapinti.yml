@@ -1,0 +1,173 @@
+name: Deploy Tapinti CMS to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "CMS/**"
+      - ".github/workflows/deploy-cms-tapinti.yml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: estamedi/cms.tapinti
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Tapinti CMS image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./CMS
+          file: ./CMS/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy/cms.tapinti
+          cp CMS/docker-compose.yml deploy/cms.tapinti/docker-compose.yml
+          cp CMS/.env.example deploy/cms.tapinti/.env.example
+          tar -czf cms-tapinti.tar.gz -C deploy cms.tapinti/
+
+          ls -lh cms-tapinti.tar.gz
+
+      - name: Copy CMS package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 4444
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "cms-tapinti.tar.gz"
+          target: "/tmp/"
+
+      - name: Deploy CMS on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 4444
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+
+            mkdir -p /opt/jobhunter
+
+            rm -rf /opt/jobhunter/cms.tapinti.previous
+            if [ -d /opt/jobhunter/cms.tapinti ]; then
+              cp -a /opt/jobhunter/cms.tapinti /opt/jobhunter/cms.tapinti.previous
+            fi
+
+            rm -rf /opt/jobhunter/cms.tapinti
+            tar -xzf /tmp/cms-tapinti.tar.gz -C /opt/jobhunter
+
+            if [ -f /opt/jobhunter/cms.tapinti.previous/.env ]; then
+              cp /opt/jobhunter/cms.tapinti.previous/.env /opt/jobhunter/cms.tapinti/.env
+            fi
+
+            cd /opt/jobhunter/cms.tapinti
+
+            if [ ! -f .env ] && [ -f .env.example ]; then
+              cp .env.example .env
+            fi
+
+            # First deploy: replace placeholder secrets with random values.
+            # Strapi refuses weak defaults and these must stay stable between
+            # deploys (they encrypt sessions/tokens), so only generate once.
+            if grep -q "tobemodified" .env; then
+              gen() { openssl rand -base64 32 | tr -d '\n'; }
+              sed -i "s|^APP_KEYS=.*|APP_KEYS=$(gen),$(gen),$(gen),$(gen)|" .env
+              for key in API_TOKEN_SALT ADMIN_JWT_SECRET TRANSFER_TOKEN_SALT JWT_SECRET ENCRYPTION_KEY; do
+                sed -i "s|^${key}=.*|${key}=$(gen)|" .env
+              done
+              echo "Generated Strapi secrets for first deploy"
+            fi
+
+            tmp_env="$(mktemp)"
+            if [ -f .env ]; then
+              while IFS= read -r line || [ -n "$line" ]; do
+                case "$line" in
+                  CMS_IMAGE=*) ;;
+                  CMS_PORT=*) ;;
+                  *) printf '%s\n' "$line" >> "$tmp_env" ;;
+                esac
+              done < .env
+            fi
+            printf 'CMS_IMAGE=%s\n' "$IMAGE" >> "$tmp_env"
+            printf 'CMS_PORT=8093\n' >> "$tmp_env"
+            mv "$tmp_env" .env
+
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            echo "Deploying Tapinti CMS..."
+            docker compose pull tapinti-cms
+            docker compose up -d --no-build
+
+            echo "Waiting for Tapinti CMS to become healthy..."
+            for attempt in $(seq 1 18); do
+              if docker compose exec -T tapinti-cms node -e "fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
+                echo "Tapinti CMS is healthy"
+                rm -f /tmp/cms-tapinti.tar.gz
+                rm -rf /opt/jobhunter/cms.tapinti.previous
+                docker image prune -f
+                exit 0
+              fi
+
+              echo "Health check attempt ${attempt}/18 failed; retrying..."
+              sleep 5
+            done
+
+            docker compose logs --tail=100 tapinti-cms
+            exit 1
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "Tapinti CMS deployed successfully to VPS"
+          echo "Admin panel: http://${{ secrets.VPS_HOST }}:8093/admin"
+
+      - name: Rollback on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 4444
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "Deployment failed. Attempting to restart the previous Tapinti CMS container..."
+            if [ -d /opt/jobhunter/cms.tapinti.previous ]; then
+              rm -rf /opt/jobhunter/cms.tapinti
+              mv /opt/jobhunter/cms.tapinti.previous /opt/jobhunter/cms.tapinti
+              cd /opt/jobhunter/cms.tapinti
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+              docker compose pull tapinti-cms || true
+              docker compose up -d --no-build
+            else
+              echo "No previous Tapinti CMS deployment found."
+            fi

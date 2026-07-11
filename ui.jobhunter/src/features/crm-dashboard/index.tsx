@@ -1,46 +1,96 @@
+import { type ElementType } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { dashboardApi } from './api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Users,
+  Check,
+  CircleDot,
   FileText,
-  Calendar,
-  Building2,
+  Heart,
+  Plus,
   Trophy,
-  AlertCircle,
-  Clock,
-  TrendingUp,
+  Users,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { dashboardApi } from './api'
 
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  sub,
-  urgent,
-}: {
-  title: string
-  value: number
-  icon: React.ElementType
-  sub?: string
-  urgent?: boolean
-}) {
-  return (
-    <Card>
-      <CardHeader className='flex flex-row items-center justify-between pb-2'>
-        <CardTitle className='text-sm font-medium text-muted-foreground'>{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${urgent ? 'text-destructive' : 'text-muted-foreground'}`} />
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold ${urgent && value > 0 ? 'text-destructive' : ''}`}>{value}</div>
-        {sub && <p className='text-xs text-muted-foreground mt-1'>{sub}</p>}
-      </CardContent>
-    </Card>
-  )
-}
+const statCards = [
+  {
+    label: 'Interviewing',
+    value: 'interviewing',
+    icon: Users,
+  },
+  {
+    label: 'Applied',
+    value: 'applied',
+    icon: FileText,
+  },
+  {
+    label: 'Wishlist',
+    value: 'wishlist',
+    icon: Heart,
+  },
+  {
+    label: 'Offer',
+    value: 'offer',
+    icon: Trophy,
+  },
+] as const
+
+const applications = [
+  {
+    initials: 'NO',
+    company: 'Notion',
+    role: 'Frontend Engineer',
+    date: 'Jul 9',
+    status: 'Interviewing',
+  },
+  {
+    initials: 'LI',
+    company: 'Linear',
+    role: 'Frontend Engineer',
+    date: 'Jul 7',
+    status: 'Applied',
+  },
+  {
+    initials: 'FI',
+    company: 'Figma',
+    role: 'Product Designer',
+    date: 'Jul 5',
+    status: 'Wishlist',
+  },
+  {
+    initials: 'ST',
+    company: 'Stripe',
+    role: 'Frontend Engineer',
+    date: 'Jul 1',
+    status: 'Rejected',
+  },
+] as const
+
+const cvs = [
+  { title: 'Frontend Engineer', version: 'v3', date: 'Jul 8, 2026' },
+  {
+    title: 'Frontend Engineer (duplicate)',
+    version: 'v2',
+    date: 'Jul 2, 2026',
+  },
+  { title: 'Product Manager', version: 'v1', date: 'Jun 20, 2026' },
+] as const
+
+const notes = [
+  {
+    text: 'Follow up with Notion recruiter by Friday.',
+    date: 'Jul 9, 2026',
+  },
+  {
+    text: 'Prep system design questions for Linear interview.',
+    date: 'Jul 7, 2026',
+  },
+] as const
+
+type StatValue = (typeof statCards)[number]['value']
+type Status = (typeof applications)[number]['status']
 
 export function CrmDashboard() {
   const { data, isLoading } = useQuery({
@@ -49,79 +99,280 @@ export function CrmDashboard() {
   })
 
   if (isLoading) {
-    return (
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className='h-28' />
-        ))}
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
-  if (!data) return null
+  const values: Record<StatValue, number> = {
+    interviewing: data?.upcomingInterviews ?? 1,
+    applied: data?.activeApplications ?? 1,
+    wishlist: Math.max(
+      (data?.totalCompanies ?? 1) - (data?.activeApplications ?? 0),
+      1
+    ),
+    offer: data?.offersReceived ?? 0,
+  }
+
+  const activeApplications = data?.activeApplications ?? 3
 
   return (
-    <div className='space-y-6'>
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <StatCard title='Active Candidates' value={data.activeCandidates} icon={Users} sub={`${data.totalCandidates} total`} />
-        <StatCard title='Active Applications' value={data.activeApplications} icon={FileText} sub={`${data.totalApplications} total`} />
-        <StatCard title='Upcoming Interviews' value={data.upcomingInterviews} icon={Calendar} sub={`${data.totalInterviews} total`} />
-        <StatCard title='Companies Tracked' value={data.totalCompanies} icon={Building2} />
-        <StatCard title='Offers Received' value={data.offersReceived} icon={Trophy} />
-        <StatCard title='Follow-Ups Today' value={data.followUpsDueToday} icon={Clock} urgent />
-        <StatCard title='Overdue Follow-Ups' value={data.followUpsOverdue} icon={AlertCircle} urgent />
-        <StatCard title='Response Rate' value={0} icon={TrendingUp} sub='See Reports page' />
-      </div>
+    <div className='mx-auto max-w-[1016px] space-y-4 font-inter text-tapinti-foreground'>
+      <header className='space-y-0.5'>
+        <h1 className='text-xl leading-7 font-bold'>Good evening, Alex.</h1>
+        <p className='text-xs leading-4 text-tapinti-muted-foreground'>
+          {activeApplications} active applications · {cvs.length} CV versions
+        </p>
+      </header>
 
-      <div className='grid gap-4 md:grid-cols-2'>
-        <Card>
-          <CardHeader>
-            <CardTitle className='text-base'>Recent Activities</CardTitle>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            {data.recentActivities.length === 0 && (
-              <p className='text-sm text-muted-foreground'>No recent activities.</p>
-            )}
-            {data.recentActivities.map((a) => (
-              <div key={a.id} className='flex items-start gap-3 text-sm'>
-                <Badge variant='outline' className='shrink-0 text-xs'>{a.type}</Badge>
-                <div className='min-w-0'>
-                  <p className='font-medium truncate'>{a.candidateName}</p>
-                  {a.companyName && <p className='text-muted-foreground text-xs'>{a.companyName}</p>}
-                  {a.notes && <p className='text-muted-foreground text-xs truncate'>{a.notes}</p>}
-                </div>
-                <span className='text-xs text-muted-foreground shrink-0 ml-auto'>
-                  {format(new Date(a.activityDate), 'MMM d')}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+      <section className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+        {statCards.map((stat) => (
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={values[stat.value]}
+            icon={stat.icon}
+          />
+        ))}
+      </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className='text-base'>Upcoming Interviews</CardTitle>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            {data.upcomingInterviewsList.length === 0 && (
-              <p className='text-sm text-muted-foreground'>No upcoming interviews.</p>
-            )}
-            {data.upcomingInterviewsList.map((iv) => (
-              <div key={iv.id} className='flex items-start gap-3 text-sm'>
-                <Badge variant='secondary' className='shrink-0 text-xs'>{iv.round}</Badge>
-                <div className='min-w-0'>
-                  <p className='font-medium truncate'>{iv.candidateName}</p>
-                  <p className='text-muted-foreground text-xs'>{iv.companyName}</p>
-                  {iv.jobRoleTitle && <p className='text-muted-foreground text-xs truncate'>{iv.jobRoleTitle}</p>}
-                </div>
-                <span className='text-xs text-muted-foreground shrink-0 ml-auto'>
-                  {format(new Date(iv.interviewDate), 'MMM d, HH:mm')}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+      <section className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_338px]'>
+        <ApplicationsPanel />
+        <aside className='space-y-4'>
+          <CvPanel />
+          <NotesPanel />
+        </aside>
+      </section>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className='mx-auto max-w-[1016px] space-y-4'>
+      <div className='space-y-1'>
+        <Skeleton className='h-7 w-48 bg-black/10' />
+        <Skeleton className='h-4 w-52 bg-black/10' />
       </div>
+      <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton
+            key={index}
+            className='h-[58px] rounded-[10px] bg-black/10'
+          />
+        ))}
+      </div>
+      <div className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_338px]'>
+        <Skeleton className='h-[678px] rounded-[14px] bg-black/10' />
+        <div className='space-y-4'>
+          <Skeleton className='h-[202px] rounded-[14px] bg-black/10' />
+          <Skeleton className='h-[460px] rounded-[14px] bg-black/10' />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string
+  value: number
+  icon: ElementType
+}) {
+  return (
+    <Card className='h-[58px] gap-0 rounded-[10px] border-tapinti-border bg-tapinti-surface px-4 py-3 text-tapinti-foreground shadow-none'>
+      <div className='flex h-full items-center justify-between gap-3'>
+        <div className='flex items-center gap-2.5'>
+          <span className='flex size-8 items-center justify-center rounded-[10px] bg-tapinti-primary-soft text-tapinti-primary'>
+            <Icon className='size-4' />
+          </span>
+          <span className='text-xs leading-4 text-tapinti-muted-foreground'>
+            {label}
+          </span>
+        </div>
+        <span className='text-xl leading-7 font-bold'>{value}</span>
+      </div>
+    </Card>
+  )
+}
+
+function ApplicationsPanel() {
+  return (
+    <Card className='min-h-[420px] gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:min-h-[678px]'>
+      <PanelHeader title='Recent Applications' action='Add applicant' />
+      <CardContent className='px-0'>
+        {applications.map((application) => (
+          <ApplicationRow
+            key={`${application.company}-${application.date}`}
+            {...application}
+          />
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
+function PanelHeader({ title, action }: { title: string; action?: string }) {
+  return (
+    <CardHeader className='flex h-[45px] flex-row items-center justify-between gap-3 border-b border-tapinti-border px-4 py-3'>
+      <CardTitle className='text-sm leading-5 font-semibold text-tapinti-foreground'>
+        {title}
+      </CardTitle>
+      {action && (
+        <button className='inline-flex items-center gap-1 text-xs leading-4 font-semibold text-tapinti-primary'>
+          <Plus className='size-3.5' />
+          {action}
+        </button>
+      )}
+    </CardHeader>
+  )
+}
+
+function ApplicationRow({
+  initials,
+  company,
+  role,
+  date,
+  status,
+}: (typeof applications)[number]) {
+  return (
+    <div className='flex min-h-[61px] items-center justify-between gap-4 border-b border-tapinti-border px-4 py-3 last:border-b-0'>
+      <div className='flex min-w-0 items-center gap-3'>
+        <span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-tapinti-surface-muted text-xs leading-4 font-semibold text-tapinti-muted-foreground'>
+          {initials}
+        </span>
+        <div className='min-w-0'>
+          <p className='truncate text-sm leading-5 font-medium text-tapinti-foreground'>
+            {company}
+          </p>
+          <p className='truncate text-xs leading-4 text-tapinti-muted-foreground'>
+            {role} · {date}
+          </p>
+        </div>
+      </div>
+      <StatusBadge status={status} />
+    </div>
+  )
+}
+
+function StatusBadge({ status }: { status: Status }) {
+  const statusClass = {
+    Interviewing:
+      'bg-tapinti-status-interview-bg text-tapinti-status-interview-fg',
+    Applied: 'bg-tapinti-status-applied-bg text-tapinti-status-applied-fg',
+    Wishlist: 'bg-tapinti-status-wishlist-bg text-tapinti-status-wishlist-fg',
+    Rejected: 'bg-tapinti-status-rejected-bg text-tapinti-status-rejected-fg',
+  }[status]
+
+  return (
+    <span
+      className={cn(
+        'shrink-0 rounded-full px-2 py-0.5 text-[11px] leading-[16.5px] font-semibold',
+        statusClass
+      )}
+    >
+      {status}
+    </span>
+  )
+}
+
+function CvPanel() {
+  return (
+    <Card className='h-auto gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:h-[202px]'>
+      <PanelHeader title='CVs' action='Add CV' />
+      <CardContent className='px-0'>
+        {cvs.map((cv, index) => (
+          <CvRow
+            key={`${cv.version}-${cv.title}`}
+            cv={cv}
+            bordered={index < cvs.length - 1}
+          />
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
+function CvRow({
+  cv,
+  bordered,
+}: {
+  cv: (typeof cvs)[number]
+  bordered: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'flex min-h-[51px] items-center gap-3 px-4 py-2.5',
+        bordered && 'border-b border-tapinti-border'
+      )}
+    >
+      <span className='flex size-7 shrink-0 items-center justify-center rounded-[10px] bg-tapinti-primary-soft text-tapinti-primary-icon'>
+        <FileText className='size-3.5' />
+      </span>
+      <div className='min-w-0'>
+        <p className='truncate text-xs leading-4 font-medium text-tapinti-foreground'>
+          {cv.title}
+        </p>
+        <p className='truncate text-[10px] leading-[15px] text-tapinti-muted-foreground'>
+          {cv.version} · {cv.date}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function NotesPanel() {
+  return (
+    <Card className='h-auto gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:h-[460px]'>
+      <PanelHeader title='Notes' />
+      <CardContent className='px-0'>
+        <div className='flex min-h-[55px] items-center gap-2 border-b border-tapinti-border px-3 py-2.5'>
+          <div className='flex h-[34px] min-w-0 flex-1 items-center rounded-[10px] border border-tapinti-border bg-tapinti-surface-muted px-3 text-xs leading-[14.5px] text-tapinti-muted-foreground/50'>
+            Jot something down...
+          </div>
+          <button className='flex size-7 shrink-0 items-center justify-center rounded-[10px] bg-tapinti-control text-tapinti-primary-foreground'>
+            <Check className='size-4' />
+          </button>
+        </div>
+        <div>
+          {notes.map((note, index) => (
+            <NoteRow
+              key={note.date}
+              note={note}
+              bordered={index < notes.length - 1}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function NoteRow({
+  note,
+  bordered,
+}: {
+  note: (typeof notes)[number]
+  bordered: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'min-h-[78px] px-3 py-2.5',
+        bordered && 'border-b border-tapinti-border'
+      )}
+    >
+      <div className='flex gap-2'>
+        <p className='max-w-[191px] text-xs leading-[19.5px] text-tapinti-foreground'>
+          {note.text}
+        </p>
+        <CircleDot className='mt-0.5 size-4 shrink-0 text-tapinti-muted-foreground/30' />
+      </div>
+      <p className='mt-1 text-[10px] leading-[15px] text-tapinti-muted-foreground'>
+        {note.date}
+      </p>
     </div>
   )
 }

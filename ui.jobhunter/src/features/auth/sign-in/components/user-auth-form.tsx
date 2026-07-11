@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { z } from 'zod'
+import axios from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from '@tanstack/react-router'
@@ -109,11 +110,14 @@ export function UserAuthForm({
         { email: data.email, password: data.password },
         { headers: { 'Content-Type': 'application/json' } }
       )
-      const { accessToken } = res.data as { accessToken: string; tokenType: string }
+      const { accessToken } = res.data as {
+        accessToken: string
+        tokenType: string
+      }
       auth.setUser({ accountNo: '', email: data.email, role: ['user'], exp: 0 })
       auth.setAccessToken(accessToken)
       toast.success(`Welcome back, ${data.email}!`)
-      navigate({ to: redirectTo || '/', replace: true })
+      navigate({ to: redirectTo || '/onboarding', replace: true })
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         toast.error('Invalid email or password.')

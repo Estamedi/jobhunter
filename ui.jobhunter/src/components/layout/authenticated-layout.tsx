@@ -1,4 +1,4 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useLocation } from '@tanstack/react-router'
 import { getCookie } from '@/lib/cookies'
 import { cn } from '@/lib/utils'
 import { LayoutProvider } from '@/context/layout-provider'
@@ -13,6 +13,20 @@ type AuthenticatedLayoutProps = {
 
 export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const defaultOpen = getCookie('sidebar_state') !== 'false'
+  const location = useLocation()
+  const content = children ?? <Outlet />
+
+  if (
+    location.pathname === '/onboarding' ||
+    location.pathname === '/onboarding/'
+  ) {
+    return (
+      <SearchProvider>
+        <LayoutProvider>{content}</LayoutProvider>
+      </SearchProvider>
+    )
+  }
+
   return (
     <SearchProvider>
       <LayoutProvider>
@@ -33,7 +47,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
               'peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]'
             )}
           >
-            {children ?? <Outlet />}
+            {content}
           </SidebarInset>
         </SidebarProvider>
       </LayoutProvider>
