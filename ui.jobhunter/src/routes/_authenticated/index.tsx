@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CrmDashboard } from '@/features/crm-dashboard'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { CrmDashboard } from '@/features/crm-dashboard'
 
 function DashboardPage() {
   return (
@@ -14,11 +14,10 @@ function DashboardPage() {
           <ProfileDropdown />
         </div>
       </Header>
-      <Main>
-        <div className='mb-4'>
-          <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-          <p className='text-muted-foreground text-sm'>Job search overview across all candidates</p>
-        </div>
+      <Main
+        fluid
+        className='min-h-[calc(100svh-4rem)] bg-tapinti-page px-5 py-5'
+      >
         <CrmDashboard />
       </Main>
     </>
