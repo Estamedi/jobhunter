@@ -53,6 +53,26 @@
   --sidebar-item-padding-x: 0.625rem;
   --sidebar-item-gap: 0.625rem;
   --sidebar-item-stack-gap: 0.125rem;
+
+  --tapinti-page: #f7f7f8;
+  --tapinti-surface: #ffffff;
+  --tapinti-surface-muted: #f3f3f5;
+  --tapinti-border: rgb(0 0 0 / 10%);
+  --tapinti-foreground: #0a0a0a;
+  --tapinti-muted-foreground: #717182;
+  --tapinti-primary: #7f22fe;
+  --tapinti-primary-foreground: #ffffff;
+  --tapinti-primary-soft: #f5f3ff;
+  --tapinti-primary-icon: #8e51ff;
+  --tapinti-control: #ececf0;
+  --tapinti-status-interview-bg: #ede9fe;
+  --tapinti-status-interview-fg: #7008e7;
+  --tapinti-status-applied-bg: #dbeafe;
+  --tapinti-status-applied-fg: #1447e6;
+  --tapinti-status-wishlist-bg: #fef3c7;
+  --tapinti-status-wishlist-fg: #bb4d00;
+  --tapinti-status-rejected-bg: #ffe2e2;
+  --tapinti-status-rejected-fg: #e7000b;
 }
 
 .dark {
@@ -122,4 +142,23 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-brand-foreground: var(--sidebar-brand-foreground);
+  --color-tapinti-page: var(--tapinti-page);
+  --color-tapinti-surface: var(--tapinti-surface);
+  --color-tapinti-surface-muted: var(--tapinti-surface-muted);
+  --color-tapinti-border: var(--tapinti-border);
+  --color-tapinti-foreground: var(--tapinti-foreground);
+  --color-tapinti-muted-foreground: var(--tapinti-muted-foreground);
+  --color-tapinti-primary: var(--tapinti-primary);
+  --color-tapinti-primary-foreground: var(--tapinti-primary-foreground);
+  --color-tapinti-primary-soft: var(--tapinti-primary-soft);
+  --color-tapinti-primary-icon: var(--tapinti-primary-icon);
+  --color-tapinti-control: var(--tapinti-control);
+  --color-tapinti-status-interview-bg: var(--tapinti-status-interview-bg);
+  --color-tapinti-status-interview-fg: var(--tapinti-status-interview-fg);
+  --color-tapinti-status-applied-bg: var(--tapinti-status-applied-bg);
+  --color-tapinti-status-applied-fg: var(--tapinti-status-applied-fg);
+  --color-tapinti-status-wishlist-bg: var(--tapinti-status-wishlist-bg);
+  --color-tapinti-status-wishlist-fg: var(--tapinti-status-wishlist-fg);
+  --color-tapinti-status-rejected-bg: var(--tapinti-status-rejected-bg);
+  --color-tapinti-status-rejected-fg: var(--tapinti-status-rejected-fg);
 }
