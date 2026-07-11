@@ -12,6 +12,7 @@ import {
   UserCog,
   Palette,
   Bell,
+  ClipboardCheck,
   Monitor,
   Wrench,
   AlertCircle,
@@ -39,6 +40,11 @@ export const sidebarData: SidebarData = {
           title: 'Dashboard',
           url: '/',
           icon: LayoutDashboard,
+        },
+        {
+          title: 'Onboarding',
+          url: '/onboarding',
+          icon: ClipboardCheck,
         },
         {
           title: 'Reports',

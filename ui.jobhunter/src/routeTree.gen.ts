@@ -29,6 +29,7 @@ import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
+import { Route as AuthenticatedOnboardingIndexRouteImport } from './routes/_authenticated/onboarding/index'
 import { Route as AuthenticatedJobRolesIndexRouteImport } from './routes/_authenticated/job-roles/index'
 import { Route as AuthenticatedInterviewsIndexRouteImport } from './routes/_authenticated/interviews/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
@@ -147,6 +148,12 @@ const AuthenticatedReportsIndexRoute =
   AuthenticatedReportsIndexRouteImport.update({
     id: '/reports/',
     path: '/reports/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOnboardingIndexRoute =
+  AuthenticatedOnboardingIndexRouteImport.update({
+    id: '/onboarding/',
+    path: '/onboarding/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedJobRolesIndexRoute =
@@ -293,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/interviews/': typeof AuthenticatedInterviewsIndexRoute
   '/job-roles/': typeof AuthenticatedJobRolesIndexRoute
+  '/onboarding/': typeof AuthenticatedOnboardingIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -330,6 +338,7 @@ export interface FileRoutesByTo {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/interviews': typeof AuthenticatedInterviewsIndexRoute
   '/job-roles': typeof AuthenticatedJobRolesIndexRoute
+  '/onboarding': typeof AuthenticatedOnboardingIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -372,6 +381,7 @@ export interface FileRoutesById {
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/interviews/': typeof AuthenticatedInterviewsIndexRoute
   '/_authenticated/job-roles/': typeof AuthenticatedJobRolesIndexRoute
+  '/_authenticated/onboarding/': typeof AuthenticatedOnboardingIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/help-center/'
     | '/interviews/'
     | '/job-roles/'
+    | '/onboarding/'
     | '/reports/'
     | '/settings/'
     | '/tasks/'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/interviews'
     | '/job-roles'
+    | '/onboarding'
     | '/reports'
     | '/settings'
     | '/tasks'
@@ -490,6 +502,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help-center/'
     | '/_authenticated/interviews/'
     | '/_authenticated/job-roles/'
+    | '/_authenticated/onboarding/'
     | '/_authenticated/reports/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
@@ -651,6 +664,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports/'
       preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/onboarding/': {
+      id: '/_authenticated/onboarding/'
+      path: '/onboarding'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof AuthenticatedOnboardingIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/job-roles/': {
@@ -827,6 +847,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInterviewsIndexRoute: typeof AuthenticatedInterviewsIndexRoute
   AuthenticatedJobRolesIndexRoute: typeof AuthenticatedJobRolesIndexRoute
+  AuthenticatedOnboardingIndexRoute: typeof AuthenticatedOnboardingIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -847,6 +868,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInterviewsIndexRoute: AuthenticatedInterviewsIndexRoute,
   AuthenticatedJobRolesIndexRoute: AuthenticatedJobRolesIndexRoute,
+  AuthenticatedOnboardingIndexRoute: AuthenticatedOnboardingIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
