@@ -1,0 +1,56 @@
+name: tapinti-cms
+
+networks:
+  monitoring-network:
+    external: true
+    name: monitoring-network
+  pg_network:
+    external: true
+    name: pg_network
+
+services:
+  tapinti-cms:
+    container_name: tapinti-cms
+    image: ${CMS_IMAGE:-ghcr.io/estamedi/cms.tapinti:latest}
+    restart: unless-stopped
+    ports:
+      - "${CMS_PORT:-8093}:1337"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=1337
+      - APP_KEYS=${APP_KEYS}
+      - API_TOKEN_SALT=${API_TOKEN_SALT}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - TRANSFER_TOKEN_SALT=${TRANSFER_TOKEN_SALT}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # sqlite by default; set DATABASE_CLIENT=postgres in .env to use shared_postgres
+      - DATABASE_CLIENT=${DATABASE_CLIENT:-sqlite}
+      - DATABASE_FILENAME=${DATABASE_FILENAME:-.tmp/data.db}
+      - DATABASE_HOST=${DATABASE_HOST:-shared_postgres}
+      - DATABASE_PORT=${DATABASE_PORT:-5432}
+      - DATABASE_NAME=${DATABASE_NAME:-tapinti_cms}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-}
+      - DATABASE_SSL=${DATABASE_SSL:-false}
+    volumes:
+      - cms_data:/app/.tmp
+      - cms_uploads:/app/public/uploads
+    networks:
+      - monitoring-network
+      - pg_network
+    labels:
+      - "logging=promtail"
+      - "com.docker.compose.project=jobhunter"
+      - "com.docker.compose.service=tapinti-cms"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  cms_data:
+  cms_uploads:
