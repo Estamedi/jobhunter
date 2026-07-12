@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>backend.jobhunter.Web</RootNamespace>
     <AssemblyName>backend.jobhunter.Web</AssemblyName>
+    <UserSecretsId>5d49333f-f499-495c-a6f9-4dbe5190558a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
