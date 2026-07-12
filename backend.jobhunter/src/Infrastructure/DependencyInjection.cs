@@ -2,6 +2,7 @@
 using backend.jobhunter.Infrastructure.Data;
 using backend.jobhunter.Infrastructure.Data.Interceptors;
 using backend.jobhunter.Infrastructure.Identity;
+using backend.jobhunter.Infrastructure.Notification;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -46,5 +47,10 @@ public static class DependencyInjection
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
+
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSender"));
+        builder.Services.AddSingleton<EmailService>();
+        builder.Services.AddSingleton<IEmailNotificationService>(sp => sp.GetRequiredService<EmailService>());
+        builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
     }
 }

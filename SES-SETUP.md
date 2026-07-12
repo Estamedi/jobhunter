@@ -1,5 +1,7 @@
 # Amazon SES Setup for tapinti.com
 
+GUID: 6e7c4a8e-4699-4c61-afe1-f4e6d9eb5c3a
+
 Goal: send transactional email from `noreply@tapinti.com` via Amazon SES, with DNS managed in Route 53.
 
 ## 1. Verify the domain in SES

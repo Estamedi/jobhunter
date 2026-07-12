@@ -22,8 +22,10 @@ import { Route as errors401RouteImport } from './routes/(errors)/401'
 import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
 import { Route as authSignIn2RouteImport } from './routes/(auth)/sign-in-2'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as authRegisterCompleteRouteImport } from './routes/(auth)/register-complete'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
+import { Route as authConfirmEmailRouteImport } from './routes/(auth)/confirm-email'
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
@@ -116,6 +118,11 @@ const authSignInRoute = authSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authRegisterCompleteRoute = authRegisterCompleteRouteImport.update({
+  id: '/(auth)/register-complete',
+  path: '/register-complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authOtpRoute = authOtpRouteImport.update({
   id: '/(auth)/otp',
   path: '/otp',
@@ -124,6 +131,11 @@ const authOtpRoute = authOtpRouteImport.update({
 const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
   id: '/(auth)/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authConfirmEmailRoute = authConfirmEmailRouteImport.update({
+  id: '/(auth)/confirm-email',
+  path: '/confirm-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClerkAuthenticatedRouteRoute = ClerkAuthenticatedRouteRouteImport.update({
@@ -285,8 +297,10 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
+  '/confirm-email': typeof authConfirmEmailRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
+  '/register-complete': typeof authRegisterCompleteRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
   '/sign-up': typeof authSignUpRoute
@@ -324,8 +338,10 @@ export interface FileRoutesByTo {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/confirm-email': typeof authConfirmEmailRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
+  '/register-complete': typeof authRegisterCompleteRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
   '/sign-up': typeof authSignUpRoute
@@ -369,8 +385,10 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
   '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/(auth)/confirm-email': typeof authConfirmEmailRoute
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
+  '/(auth)/register-complete': typeof authRegisterCompleteRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sign-in-2': typeof authSignIn2Route
   '/(auth)/sign-up': typeof authSignUpRoute
@@ -413,8 +431,10 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/settings'
+    | '/confirm-email'
     | '/forgot-password'
     | '/otp'
+    | '/register-complete'
     | '/sign-in'
     | '/sign-in-2'
     | '/sign-up'
@@ -452,8 +472,10 @@ export interface FileRouteTypes {
     | '/clerk'
     | '/privacy'
     | '/terms'
+    | '/confirm-email'
     | '/forgot-password'
     | '/otp'
+    | '/register-complete'
     | '/sign-in'
     | '/sign-in-2'
     | '/sign-up'
@@ -496,8 +518,10 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/clerk/(auth)'
     | '/clerk/_authenticated'
+    | '/(auth)/confirm-email'
     | '/(auth)/forgot-password'
     | '/(auth)/otp'
+    | '/(auth)/register-complete'
     | '/(auth)/sign-in'
     | '/(auth)/sign-in-2'
     | '/(auth)/sign-up'
@@ -538,8 +562,10 @@ export interface RootRouteChildren {
   ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  authConfirmEmailRoute: typeof authConfirmEmailRoute
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
+  authRegisterCompleteRoute: typeof authRegisterCompleteRoute
   authSignInRoute: typeof authSignInRoute
   authSignIn2Route: typeof authSignIn2Route
   authSignUpRoute: typeof authSignUpRoute
@@ -643,6 +669,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(auth)/register-complete': {
+      id: '/(auth)/register-complete'
+      path: '/register-complete'
+      fullPath: '/register-complete'
+      preLoaderRoute: typeof authRegisterCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/otp': {
       id: '/(auth)/otp'
       path: '/otp'
@@ -655,6 +688,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof authForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/confirm-email': {
+      id: '/(auth)/confirm-email'
+      path: '/confirm-email'
+      fullPath: '/confirm-email'
+      preLoaderRoute: typeof authConfirmEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clerk/_authenticated': {
@@ -965,8 +1005,10 @@ const rootRouteChildren: RootRouteChildren = {
   ClerkRouteRoute: ClerkRouteRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  authConfirmEmailRoute: authConfirmEmailRoute,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
+  authRegisterCompleteRoute: authRegisterCompleteRoute,
   authSignInRoute: authSignInRoute,
   authSignIn2Route: authSignIn2Route,
   authSignUpRoute: authSignUpRoute,

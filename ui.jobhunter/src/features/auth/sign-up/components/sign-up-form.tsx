@@ -7,7 +7,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconFacebook, IconGithub } from '@/assets/brand-icons'
-import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -71,7 +70,6 @@ export function SignUpForm({
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { auth } = useAuthStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,7 +82,6 @@ export function SignUpForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    let accountCreated = false
 
     try {
       await axios.post(
@@ -92,31 +89,17 @@ export function SignUpForm({
         { email: data.email, password: data.password },
         { headers: { 'Content-Type': 'application/json' } }
       )
-      accountCreated = true
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/Users/login?useCookies=false&useSessionCookies=false`,
-        { email: data.email, password: data.password },
-        { headers: { 'Content-Type': 'application/json' } }
-      )
-      const { accessToken } = res.data as {
-        accessToken?: string
-        tokenType?: string
-      }
-
-      if (!accessToken) {
-        throw new Error('No access token received from server.')
-      }
-
-      auth.setUser({ accountNo: '', email: data.email, role: ['user'], exp: 0 })
-      auth.setAccessToken(accessToken)
       toast.success(`Account created for ${data.email}.`)
-      navigate({ to: '/onboarding', replace: true })
+      navigate({
+        to: '/register-complete',
+        search: { email: data.email },
+        replace: true,
+      })
     } catch (err) {
-      const fallback = accountCreated
-        ? 'Account created, but we could not sign you in. Please sign in.'
-        : 'Failed to create account. Please try again.'
-      toast.error(getAuthErrorMessage(err, fallback))
+      toast.error(
+        getAuthErrorMessage(err, 'Failed to create account. Please try again.')
+      )
     } finally {
       setIsLoading(false)
     }
