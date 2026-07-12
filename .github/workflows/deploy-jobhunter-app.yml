@@ -60,7 +60,7 @@ jobs:
           push: true
           build-args: |
             VITE_API_BASE_URL=https://api.tapinti.com
-            VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           tags: |
             ${{ env.IMAGE_PREFIX }}/ui:latest
             ${{ env.IMAGE_PREFIX }}/ui:${{ github.sha }}
@@ -121,8 +121,8 @@ jobs:
             POSTGRES_USER='jobhunter_user' \
             POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
             VITE_API_BASE_URL='https://api.tapinti.com' \
-            VITE_GOOGLE_CLIENT_ID='${{ vars.VITE_GOOGLE_CLIENT_ID }}' \
-            AUTHENTICATION__GOOGLE__CLIENTID='${{ vars.AUTHENTICATION__GOOGLE__CLIENTID }}' \
+            VITE_GOOGLE_CLIENT_ID='${{ secrets.VITE_GOOGLE_CLIENT_ID }}' \
+            AUTHENTICATION__GOOGLE__CLIENTID='${{ secrets.AUTHENTICATION__GOOGLE__CLIENTID }}' \
             /opt/jobhunter/deploy-jobhunter-app.sh
 
             rm -f /tmp/jobhunter-app.tar.gz
