@@ -1,6 +1,24 @@
-import { useRef, useState, type ChangeEvent, type DragEvent } from 'react'
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+} from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { ArrowRight, CheckCircle2, FileText, Upload, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  BriefcaseBusiness,
+  CheckCircle2,
+  FileText,
+  Mail,
+  MapPin,
+  Sparkles,
+  Upload,
+  UserRound,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -9,6 +27,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'doc', 'docx', 'md']
@@ -32,9 +53,21 @@ function validateResumeFile(file: File) {
   return null
 }
 
+function nameFromResume(fileName: string) {
+  const name = fileName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b(cv|resume)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return name.replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
 export function Onboarding() {
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
+  const [view, setView] = useState<'upload' | 'manual' | 'review'>('upload')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -71,7 +104,253 @@ export function Onboarding() {
 
   function continueToDashboard() {
     if (!selectedFile) return
+    setView('review')
+  }
+
+  function submitManualProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     navigate({ to: '/', replace: true })
+  }
+
+  if (view === 'review' && selectedFile) {
+    const parsedName = nameFromResume(selectedFile.name)
+
+    return (
+      <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
+        <Card className='w-full max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
+          <CardHeader className='border-b px-8 py-7'>
+            <button
+              type='button'
+              onClick={() => setView('upload')}
+              className='mb-5 inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
+            >
+              <ArrowLeft className='size-4' />
+              Back to CV upload
+            </button>
+            <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
+              <span className='size-2 rounded-full bg-violet-500' />
+              Step 2 of 3
+            </div>
+            <CardTitle className='text-3xl font-bold tracking-tight'>
+              Review your profile
+            </CardTitle>
+            <CardDescription className='text-base'>
+              We filled this in from your resume. Check the details before you
+              continue.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className='px-8 py-7'>
+            <div className='mb-6 flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4'>
+              <div className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'>
+                <CheckCircle2 className='size-5' />
+              </div>
+              <div className='min-w-0 flex-1'>
+                <p className='font-semibold'>Resume processed successfully</p>
+                <p className='truncate text-sm text-muted-foreground'>
+                  {selectedFile.name}
+                </p>
+              </div>
+            </div>
+
+            <form className='space-y-6' onSubmit={submitManualProfile}>
+              <div className='grid gap-5 sm:grid-cols-2'>
+                <div className='space-y-2'>
+                  <Label htmlFor='parsed-full-name'>Full name</Label>
+                  <div className='relative'>
+                    <UserRound className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Input
+                      id='parsed-full-name'
+                      name='fullName'
+                      defaultValue={parsedName || 'Your name'}
+                      className='h-11 rounded-xl pl-10'
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='parsed-email'>Email</Label>
+                  <div className='relative'>
+                    <Mail className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Input
+                      id='parsed-email'
+                      name='email'
+                      type='email'
+                      defaultValue='candidate@example.com'
+                      className='h-11 rounded-xl pl-10'
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='parsed-job-title'>Current job title</Label>
+                  <div className='relative'>
+                    <BriefcaseBusiness className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Input
+                      id='parsed-job-title'
+                      name='jobTitle'
+                      defaultValue='Product Designer'
+                      className='h-11 rounded-xl pl-10'
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='parsed-location'>Location</Label>
+                  <div className='relative'>
+                    <MapPin className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Input
+                      id='parsed-location'
+                      name='location'
+                      defaultValue='Muscat, Oman'
+                      className='h-11 rounded-xl pl-10'
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='parsed-summary'>Professional summary</Label>
+                <Textarea
+                  id='parsed-summary'
+                  name='summary'
+                  defaultValue='Product designer experienced in turning complex problems into clear, user-friendly digital experiences.'
+                  className='min-h-24 resize-none rounded-xl'
+                  required
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='parsed-skills'>Skills</Label>
+                <div className='relative'>
+                  <Sparkles className='pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground' />
+                  <Textarea
+                    id='parsed-skills'
+                    name='skills'
+                    defaultValue='Product design, User research, Figma, Prototyping, Design systems'
+                    className='min-h-20 resize-none rounded-xl pl-10'
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button size='lg' className='w-full rounded-2xl' type='submit'>
+                Confirm and continue
+                <ArrowRight className='size-4' />
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <p className='mt-6 text-sm text-muted-foreground'>
+          You can edit any information extracted from your resume.
+        </p>
+      </main>
+    )
+  }
+
+  if (view === 'manual') {
+    return (
+      <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
+        <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
+          <CardHeader className='border-b px-8 py-7'>
+            <button
+              type='button'
+              onClick={() => setView('upload')}
+              className='mb-5 inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
+            >
+              <ArrowLeft className='size-4' />
+              Back to CV upload
+            </button>
+            <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
+              <span className='size-2 rounded-full bg-violet-500' />
+              Step 1 of 3
+            </div>
+            <CardTitle className='text-3xl font-bold tracking-tight'>
+              Build your profile
+            </CardTitle>
+            <CardDescription className='text-base'>
+              Tell us what you are looking for and we’ll personalize your job
+              search.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className='px-8 py-7'>
+            <form className='space-y-5' onSubmit={submitManualProfile}>
+              <div className='space-y-2'>
+                <Label htmlFor='full-name'>Full name</Label>
+                <div className='relative'>
+                  <UserRound className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                  <Input
+                    id='full-name'
+                    name='fullName'
+                    placeholder='Your full name'
+                    className='h-11 rounded-xl pl-10'
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='job-title'>Desired job title</Label>
+                <div className='relative'>
+                  <BriefcaseBusiness className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                  <Input
+                    id='job-title'
+                    name='jobTitle'
+                    placeholder='e.g. Product Designer'
+                    className='h-11 rounded-xl pl-10'
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='location'>Location</Label>
+                <div className='relative'>
+                  <MapPin className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                  <Input
+                    id='location'
+                    name='location'
+                    placeholder='City, country or Remote'
+                    className='h-11 rounded-xl pl-10'
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='skills'>Skills</Label>
+                <div className='relative'>
+                  <Sparkles className='pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground' />
+                  <Textarea
+                    id='skills'
+                    name='skills'
+                    placeholder='Add your key skills, separated by commas'
+                    className='min-h-24 resize-none rounded-xl pl-10'
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button size='lg' className='w-full rounded-2xl' type='submit'>
+                Save and continue
+                <ArrowRight className='size-4' />
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <p className='mt-6 text-sm text-muted-foreground'>
+          You can update your profile anytime.
+        </p>
+      </main>
+    )
   }
 
   return (
@@ -170,7 +449,12 @@ export function Onboarding() {
             <div className='h-px flex-1 bg-border' />
           </div>
 
-          <Button variant='outline' size='lg' className='w-full rounded-2xl'>
+          <Button
+            variant='outline'
+            size='lg'
+            className='w-full rounded-2xl'
+            onClick={() => setView('manual')}
+          >
             Fill in manually
           </Button>
 
@@ -180,7 +464,7 @@ export function Onboarding() {
             disabled={!selectedFile}
             onClick={continueToDashboard}
           >
-            Continue to dashboard
+            Continue
             <ArrowRight className='size-4' />
           </Button>
         </CardContent>
