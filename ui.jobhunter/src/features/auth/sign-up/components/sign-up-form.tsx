@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { z } from 'zod'
+import axios from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconFacebook, IconGithub } from '@/assets/brand-icons'
-import { sleep, cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -35,11 +38,40 @@ const formSchema = z
     path: ['confirmPassword'],
   })
 
+interface ErrorResponse {
+  title?: string
+  detail?: string
+  errors?: Record<string, string | string[] | undefined>
+}
+
+function getAuthErrorMessage(err: unknown, fallback: string) {
+  if (axios.isAxiosError(err)) {
+    const data = err.response?.data as ErrorResponse | undefined
+    const firstError = data?.errors
+      ? Object.values(data.errors)
+          .flatMap((messages) =>
+            Array.isArray(messages) ? messages : [messages]
+          )
+          .find(Boolean)
+      : undefined
+
+    return firstError ?? data?.detail ?? data?.title ?? fallback
+  }
+
+  if (err instanceof Error) {
+    return err.message
+  }
+
+  return fallback
+}
+
 export function SignUpForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const { auth } = useAuthStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,17 +82,44 @@ export function SignUpForm({
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
+    let accountCreated = false
 
-    toast.promise(sleep(2000), {
-      loading: 'Creating account...',
-      success: () => {
-        setIsLoading(false)
-        return `Account created for ${data.email}.`
-      },
-      error: 'Error',
-    })
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/Users/register`,
+        { email: data.email, password: data.password },
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+      accountCreated = true
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/Users/login?useCookies=false&useSessionCookies=false`,
+        { email: data.email, password: data.password },
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+      const { accessToken } = res.data as {
+        accessToken?: string
+        tokenType?: string
+      }
+
+      if (!accessToken) {
+        throw new Error('No access token received from server.')
+      }
+
+      auth.setUser({ accountNo: '', email: data.email, role: ['user'], exp: 0 })
+      auth.setAccessToken(accessToken)
+      toast.success(`Account created for ${data.email}.`)
+      navigate({ to: '/onboarding', replace: true })
+    } catch (err) {
+      const fallback = accountCreated
+        ? 'Account created, but we could not sign you in. Please sign in.'
+        : 'Failed to create account. Please try again.'
+      toast.error(getAuthErrorMessage(err, fallback))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
