@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 namespace backend.jobhunter.Web.Endpoints;
@@ -16,7 +17,28 @@ public class Users : IEndpointGroup
 
         groupBuilder.MapPost(GoogleLogin, "google-login");
         groupBuilder.MapPost(Logout, "logout").RequireAuthorization();
+        groupBuilder.MapGet(GetCurrentUser, "me").RequireAuthorization();
     }
+
+    [EndpointSummary("Get the current user")]
+    [EndpointDescription("Returns the authenticated user's id, email, and roles.")]
+    public static async Task<Results<Ok<CurrentUserResponse>, UnauthorizedHttpResult>> GetCurrentUser(
+        ClaimsPrincipal claimsPrincipal,
+        UserManager<ApplicationUser> userManager)
+    {
+        var user = await userManager.GetUserAsync(claimsPrincipal);
+
+        if (user is null)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var roles = await userManager.GetRolesAsync(user);
+
+        return TypedResults.Ok(new CurrentUserResponse(user.Id, user.Email ?? user.UserName ?? string.Empty, [.. roles]));
+    }
+
+    public sealed record CurrentUserResponse(string Id, string Email, string[] Roles);
 
     [EndpointSummary("Log in with Google")]
     [EndpointDescription("Exchanges a Google ID token for the application's bearer token.")]

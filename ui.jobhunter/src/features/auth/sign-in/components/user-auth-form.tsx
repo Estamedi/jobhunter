@@ -7,6 +7,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconGmail } from '@/assets/brand-icons'
+import { authApi } from '@/features/auth/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -101,6 +102,20 @@ export function UserAuthForm({
     defaultValues: { email: '', password: '' },
   })
 
+  async function loadCurrentUser(fallbackEmail: string) {
+    try {
+      const me = await authApi.me()
+      auth.setUser({
+        accountNo: me.id,
+        email: me.email,
+        role: me.roles,
+        exp: 0,
+      })
+    } catch {
+      auth.setUser({ accountNo: '', email: fallbackEmail, role: [], exp: 0 })
+    }
+  }
+
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
@@ -113,8 +128,8 @@ export function UserAuthForm({
         accessToken: string
         tokenType: string
       }
-      auth.setUser({ accountNo: '', email: data.email, role: ['user'], exp: 0 })
       auth.setAccessToken(accessToken)
+      await loadCurrentUser(data.email)
       toast.success(`Welcome back, ${data.email}!`)
       navigate({ to: redirectTo || '/onboarding', replace: true })
     } catch (err) {
@@ -180,8 +195,8 @@ export function UserAuthForm({
       )
       const { accessToken } = res.data as { accessToken: string; tokenType: string }
 
-      auth.setUser({ accountNo: '', email: '', role: ['user'], exp: 0 })
       auth.setAccessToken(accessToken)
+      await loadCurrentUser('')
       toast.success('Signed in with Google.')
       navigate({ to: redirectTo || '/', replace: true })
     } catch {
