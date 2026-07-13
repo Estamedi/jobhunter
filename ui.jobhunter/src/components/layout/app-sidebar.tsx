@@ -1,4 +1,5 @@
 import { useLayout } from '@/context/layout-provider'
+import { useAuthStore } from '@/stores/auth-store'
 import {
   Sidebar,
   SidebarContent,
@@ -7,13 +8,15 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 // import { AppTitle } from './app-title'
-import { sidebarData } from './data/sidebar-data'
+import { getNavGroups, sidebarData } from './data/sidebar-data'
 import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
+  const role = useAuthStore((state) => state.auth.user?.role)
+  const navGroups = getNavGroups(role)
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader className='h-[var(--sidebar-header-height)] shrink-0 justify-center border-b border-sidebar-border px-[var(--sidebar-brand-padding-x)] py-[var(--sidebar-brand-padding-y)] group-data-[collapsible=icon]:px-[var(--sidebar-section-padding-x)]'>
@@ -24,7 +27,7 @@ export function AppSidebar() {
         {/* <AppTitle /> */}
       </SidebarHeader>
       <SidebarContent className='gap-0 px-[var(--sidebar-section-padding-x)] py-[var(--sidebar-section-padding-y)]'>
-        {sidebarData.navGroups.map((props) => (
+        {navGroups.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>

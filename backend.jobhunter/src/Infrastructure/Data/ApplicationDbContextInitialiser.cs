@@ -83,6 +83,7 @@ public class ApplicationDbContextInitialiser
             if (!string.IsNullOrWhiteSpace(administratorRole.Name))
             {
                 await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
+                await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
             }
         }
 

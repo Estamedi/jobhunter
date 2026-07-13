@@ -10,20 +10,24 @@ const FORM_MESSAGES = {
   passwordShort: 'Password must be at least 7 characters long.',
 } as const
 
-const { navigate, setUserMock, setAccessTokenMock, axiosPostMock } = vi.hoisted(
-  () => ({
+const { navigate, setUserMock, setAccessTokenMock, axiosPostMock, meMock } =
+  vi.hoisted(() => ({
     navigate: vi.fn(),
     setUserMock: vi.fn(),
     setAccessTokenMock: vi.fn(),
     axiosPostMock: vi.fn(),
-  })
-)
+    meMock: vi.fn(),
+  }))
 
 vi.mock('axios', () => ({
   default: {
     post: axiosPostMock,
     isAxiosError: vi.fn(() => false),
   },
+}))
+
+vi.mock('@/features/auth/api', () => ({
+  authApi: { me: meMock },
 }))
 
 vi.mock('@/stores/auth-store', () => ({
@@ -74,6 +78,11 @@ describe('UserAuthForm', () => {
       vi.clearAllMocks()
       axiosPostMock.mockResolvedValue({
         data: { accessToken: 'mock-access-token', tokenType: 'Bearer' },
+      })
+      meMock.mockResolvedValue({
+        id: 'mock-user-id',
+        email: 'a@b.com',
+        roles: ['JobSeeker'],
       })
       screen = await render(<UserAuthForm />)
       emailInput = screen.getByRole('textbox', { name: /^Email$/i })
@@ -129,6 +138,11 @@ describe('UserAuthForm', () => {
     axiosPostMock.mockResolvedValue({
       data: { accessToken: 'mock-access-token', tokenType: 'Bearer' },
     })
+    meMock.mockResolvedValue({
+      id: 'mock-user-id',
+      email: 'a@b.com',
+      roles: ['JobSeeker'],
+    })
 
     const { getByRole, getByLabelText } = await render(
       <UserAuthForm redirectTo='/settings' />
@@ -155,6 +169,11 @@ describe('UserAuthForm', () => {
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'google-client-id')
     axiosPostMock.mockResolvedValue({
       data: { accessToken: 'google-access-token', tokenType: 'Bearer' },
+    })
+    meMock.mockResolvedValue({
+      id: 'mock-user-id',
+      email: 'google-user@example.com',
+      roles: ['JobSeeker'],
     })
     window.google = {
       accounts: {

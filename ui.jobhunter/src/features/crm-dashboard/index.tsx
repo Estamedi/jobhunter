@@ -9,6 +9,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -92,7 +93,16 @@ const notes = [
 type StatValue = (typeof statCards)[number]['value']
 type Status = (typeof applications)[number]['status']
 
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export function CrmDashboard() {
+  const email = useAuthStore((state) => state.auth.user?.email)
+  const name = email?.split('@')[0] || 'there'
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'overall'],
     queryFn: dashboardApi.overall,
@@ -117,7 +127,9 @@ export function CrmDashboard() {
   return (
     <div className='mx-auto max-w-[1016px] space-y-4 font-inter text-tapinti-foreground'>
       <header className='space-y-0.5'>
-        <h1 className='text-xl leading-7 font-bold'>Good evening, Alex.</h1>
+        <h1 className='text-xl leading-7 font-bold'>
+          {getGreeting()}, {name}.
+        </h1>
         <p className='text-xs leading-4 text-tapinti-muted-foreground'>
           {activeApplications} active applications · {cvs.length} CV versions
         </p>

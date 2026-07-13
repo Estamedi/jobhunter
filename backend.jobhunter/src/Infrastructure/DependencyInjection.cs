@@ -42,6 +42,7 @@ public static class DependencyInjection
         builder.Services
             .AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
+            .AddUserManager<ApplicationUserManager>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddApiEndpoints();
 
