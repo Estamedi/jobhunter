@@ -4,9 +4,6 @@ namespace backend.jobhunter.Application.Common.Interfaces;
 
 public interface IApplicationDbContext
 {
-    DbSet<TodoList> TodoLists { get; }
-    DbSet<TodoItem> TodoItems { get; }
-
     DbSet<Candidate> Candidates { get; }
     DbSet<JobCompany> Companies { get; }
     DbSet<JobContact> Contacts { get; }

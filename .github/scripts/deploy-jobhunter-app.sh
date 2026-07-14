@@ -86,7 +86,7 @@ SQL
 bootstrap_shared_postgres
 
 docker compose -f docker-compose.prod.yml pull backend ui
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 docker image prune -f
 
 echo "--- Running services ---"

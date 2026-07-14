@@ -1,6 +1,6 @@
 namespace backend.jobhunter.Domain.Entities;
 
-public class JobInterview : BaseAuditableEntity
+public class JobInterview : OwnedEntity
 {
     public int ApplicationId { get; set; }
     public int CandidateId { get; set; }

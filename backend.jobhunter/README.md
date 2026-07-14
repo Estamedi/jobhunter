@@ -44,6 +44,28 @@ If you encounter the error *"No templates or subcommands found matching: 'ca-use
 dotnet new install Clean.Architecture.Solution.Template::10.8.0
 ```
 
+## Migrations
+
+The template includes support to create and apply Entity Framework Core migrations. Migrations live in `src/Infrastructure/Migrations`, with `src/Web` as the startup project.
+
+Add a new migration:
+
+```bash
+dotnet ef migrations add <Name> --project src/Infrastructure --startup-project src/Web
+```
+
+Apply migrations to the database:
+
+```bash
+dotnet ef database update --project src/Infrastructure --startup-project src/Web
+```
+
+Drop the database (dev reset):
+
+```bash
+dotnet ef database drop --project src/Infrastructure --startup-project src/Web --force
+```
+
 ## Test
 
 The solution contains unit, integration, and functional tests.

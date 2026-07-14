@@ -87,23 +87,7 @@ public class ApplicationDbContextInitialiser
                 await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
             }
         }
-
-        // Default data
-        if (!_context.TodoLists.Any())
-        {
-            _context.TodoLists.Add(new TodoList
-            {
-                Title = "Tasks",
-                Colour = Colour.Green,
-                Items =
-                {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                }
-            });
-            await _context.SaveChangesAsync();
-        }
-
+        
         // CRM seed data
         if (!_context.Candidates.Any())
         {

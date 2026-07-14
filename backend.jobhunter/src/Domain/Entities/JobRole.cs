@@ -1,6 +1,6 @@
 namespace backend.jobhunter.Domain.Entities;
 
-public class JobRole : BaseAuditableEntity
+public class JobRole : OwnedEntity
 {
     public int CompanyId { get; set; }
     public string Title { get; set; } = string.Empty;
