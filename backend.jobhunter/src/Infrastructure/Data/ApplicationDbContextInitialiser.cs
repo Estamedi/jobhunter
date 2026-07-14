@@ -1,5 +1,6 @@
 ﻿using backend.jobhunter.Domain.Constants;
 using backend.jobhunter.Domain.Entities;
+using backend.jobhunter.Domain.Enums;
 using backend.jobhunter.Domain.ValueObjects;
 using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
@@ -167,29 +168,29 @@ public class ApplicationDbContextInitialiser
         // Applications (20 across 4 candidates)
         var applications = new[]
         {
-            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[0].Id, CompanyId = companies[0].Id, Status = "Applied", Priority = "High", AppliedDate = now.AddDays(-14), LastActivityDate = now.AddDays(-10), NextFollowUpDate = now.AddDays(-3), MainContactId = contacts[0].Id },
-            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[2].Id, CompanyId = companies[1].Id, Status = "HRInterview", Priority = "High", AppliedDate = now.AddDays(-20), LastActivityDate = now.AddDays(-7), NextFollowUpDate = now.AddDays(2) },
-            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[3].Id, CompanyId = companies[2].Id, Status = "TechnicalInterview", Priority = "Medium", AppliedDate = now.AddDays(-30), LastActivityDate = now.AddDays(-5), NextFollowUpDate = now.AddDays(1), MainContactId = contacts[2].Id },
-            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[8].Id, CompanyId = companies[1].Id, Status = "Wishlist", Priority = "Low", NextFollowUpDate = null },
-            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[7].Id, CompanyId = companies[4].Id, Status = "Rejected", Priority = "Low", AppliedDate = now.AddDays(-45), LastActivityDate = now.AddDays(-40), RejectionReason = "Position filled internally" },
+            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[0].Id, CompanyId = companies[0].Id, Status = "Applied", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-14), LastActivityDate = now.AddDays(-10), NextFollowUpDate = now.AddDays(-3), MainContactId = contacts[0].Id },
+            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[2].Id, CompanyId = companies[1].Id, Status = "HRInterview", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-20), LastActivityDate = now.AddDays(-7), NextFollowUpDate = now.AddDays(2) },
+            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[3].Id, CompanyId = companies[2].Id, Status = "TechnicalInterview", Priority = PriorityLevel.Medium, AppliedDate = now.AddDays(-30), LastActivityDate = now.AddDays(-5), NextFollowUpDate = now.AddDays(1), MainContactId = contacts[2].Id },
+            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[8].Id, CompanyId = companies[1].Id, Status = "Wishlist", Priority = PriorityLevel.Low, NextFollowUpDate = null },
+            new JobApplication { CandidateId = candidates[0].Id, JobRoleId = roles[7].Id, CompanyId = companies[4].Id, Status = "Rejected", Priority = PriorityLevel.Low, AppliedDate = now.AddDays(-45), LastActivityDate = now.AddDays(-40), RejectionReason = "Position filled internally" },
 
-            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[0].Id, CompanyId = companies[0].Id, Status = "Applied", Priority = "High", AppliedDate = now.AddDays(-7), LastActivityDate = now.AddDays(-7), NextFollowUpDate = now },
-            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[5].Id, CompanyId = companies[3].Id, Status = "FinalInterview", Priority = "High", AppliedDate = now.AddDays(-40), LastActivityDate = now.AddDays(-2) },
-            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[6].Id, CompanyId = companies[3].Id, Status = "Offer", Priority = "High", AppliedDate = now.AddDays(-60), LastActivityDate = now.AddDays(-1), ActualOfferSalary = 85000, Currency = "EUR" },
-            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[2].Id, CompanyId = companies[1].Id, Status = "Applied", Priority = "Medium", AppliedDate = now.AddDays(-3), LastActivityDate = now.AddDays(-3) },
-            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[9].Id, CompanyId = companies[4].Id, Status = "Withdrawn", Priority = "Low", AppliedDate = now.AddDays(-50), LastActivityDate = now.AddDays(-50) },
+            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[0].Id, CompanyId = companies[0].Id, Status = "Applied", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-7), LastActivityDate = now.AddDays(-7), NextFollowUpDate = now },
+            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[5].Id, CompanyId = companies[3].Id, Status = "FinalInterview", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-40), LastActivityDate = now.AddDays(-2) },
+            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[6].Id, CompanyId = companies[3].Id, Status = "Offer", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-60), LastActivityDate = now.AddDays(-1), ActualOfferSalary = 85000, Currency = "EUR" },
+            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[2].Id, CompanyId = companies[1].Id, Status = "Applied", Priority = PriorityLevel.Medium, AppliedDate = now.AddDays(-3), LastActivityDate = now.AddDays(-3) },
+            new JobApplication { CandidateId = candidates[1].Id, JobRoleId = roles[9].Id, CompanyId = companies[4].Id, Status = "Withdrawn", Priority = PriorityLevel.Low, AppliedDate = now.AddDays(-50), LastActivityDate = now.AddDays(-50) },
 
-            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[4].Id, CompanyId = companies[2].Id, Status = "HRInterview", Priority = "High", AppliedDate = now.AddDays(-10), LastActivityDate = now.AddDays(-3), NextFollowUpDate = now.AddDays(4), MainContactId = contacts[2].Id },
-            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[1].Id, CompanyId = companies[0].Id, Status = "Applied", Priority = "High", AppliedDate = now.AddDays(-5), LastActivityDate = now.AddDays(-5), NextFollowUpDate = now.AddDays(-1), MainContactId = contacts[0].Id },
-            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[8].Id, CompanyId = companies[1].Id, Status = "Rejected", Priority = "Medium", AppliedDate = now.AddDays(-25), LastActivityDate = now.AddDays(-20), RejectionReason = "Culture fit concerns" },
-            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[5].Id, CompanyId = companies[3].Id, Status = "Wishlist", Priority = "Low" },
-            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[3].Id, CompanyId = companies[2].Id, Status = "TechnicalInterview", Priority = "Medium", AppliedDate = now.AddDays(-15), LastActivityDate = now.AddDays(-8) },
+            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[4].Id, CompanyId = companies[2].Id, Status = "HRInterview", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-10), LastActivityDate = now.AddDays(-3), NextFollowUpDate = now.AddDays(4), MainContactId = contacts[2].Id },
+            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[1].Id, CompanyId = companies[0].Id, Status = "Applied", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-5), LastActivityDate = now.AddDays(-5), NextFollowUpDate = now.AddDays(-1), MainContactId = contacts[0].Id },
+            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[8].Id, CompanyId = companies[1].Id, Status = "Rejected", Priority = PriorityLevel.Medium, AppliedDate = now.AddDays(-25), LastActivityDate = now.AddDays(-20), RejectionReason = "Culture fit concerns" },
+            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[5].Id, CompanyId = companies[3].Id, Status = "Wishlist", Priority = PriorityLevel.Low },
+            new JobApplication { CandidateId = candidates[2].Id, JobRoleId = roles[3].Id, CompanyId = companies[2].Id, Status = "TechnicalInterview", Priority = PriorityLevel.Medium, AppliedDate = now.AddDays(-15), LastActivityDate = now.AddDays(-8) },
 
-            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[9].Id, CompanyId = companies[4].Id, Status = "Applied", Priority = "High", AppliedDate = now.AddDays(-3), LastActivityDate = now.AddDays(-3), NextFollowUpDate = now.AddDays(4) },
-            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[6].Id, CompanyId = companies[3].Id, Status = "HRInterview", Priority = "High", AppliedDate = now.AddDays(-18), LastActivityDate = now.AddDays(-14), NextFollowUpDate = now },
-            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[2].Id, CompanyId = companies[1].Id, Status = "Offer", Priority = "High", AppliedDate = now.AddDays(-55), LastActivityDate = now.AddDays(-3), ActualOfferSalary = 155000, Currency = "USD" },
-            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[5].Id, CompanyId = companies[3].Id, Status = "Rejected", Priority = "Medium", AppliedDate = now.AddDays(-35), LastActivityDate = now.AddDays(-30), RejectionReason = "Skills mismatch" },
-            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[8].Id, CompanyId = companies[1].Id, Status = "Wishlist", Priority = "Low" },
+            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[9].Id, CompanyId = companies[4].Id, Status = "Applied", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-3), LastActivityDate = now.AddDays(-3), NextFollowUpDate = now.AddDays(4) },
+            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[6].Id, CompanyId = companies[3].Id, Status = "HRInterview", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-18), LastActivityDate = now.AddDays(-14), NextFollowUpDate = now },
+            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[2].Id, CompanyId = companies[1].Id, Status = "Offer", Priority = PriorityLevel.High, AppliedDate = now.AddDays(-55), LastActivityDate = now.AddDays(-3), ActualOfferSalary = 155000, Currency = "USD" },
+            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[5].Id, CompanyId = companies[3].Id, Status = "Rejected", Priority = PriorityLevel.Medium, AppliedDate = now.AddDays(-35), LastActivityDate = now.AddDays(-30), RejectionReason = "Skills mismatch" },
+            new JobApplication { CandidateId = candidates[3].Id, JobRoleId = roles[8].Id, CompanyId = companies[1].Id, Status = "Wishlist", Priority = PriorityLevel.Low },
         };
         _context.Applications.AddRange(applications);
         await _context.SaveChangesAsync();

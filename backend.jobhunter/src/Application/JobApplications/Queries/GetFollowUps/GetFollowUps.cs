@@ -39,7 +39,7 @@ public class GetFollowUpsQueryHandler(IApplicationDbContext context)
             .Select(a => new FollowUpApplicationDto(
                 a.Id, a.CandidateId, a.Candidate.FullName,
                 a.CompanyId, a.Company.Name, a.JobRole.Title,
-                a.Status, a.Priority,
+                a.Status, a.Priority.ToString(),
                 a.NextFollowUpDate, a.AppliedDate))
             .ToListAsync(cancellationToken);
     }

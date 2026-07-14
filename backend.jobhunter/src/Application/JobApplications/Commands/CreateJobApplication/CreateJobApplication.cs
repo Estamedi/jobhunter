@@ -1,6 +1,7 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
 using backend.jobhunter.Domain.Entities;
+using backend.jobhunter.Domain.Enums;
 
 namespace backend.jobhunter.Application.JobApplications.Commands.CreateJobApplication;
 
@@ -34,7 +35,7 @@ public class CreateJobApplicationCommandHandler(IApplicationDbContext context)
             CompanyId = request.CompanyId,
             MainContactId = request.MainContactId,
             Status = request.Status,
-            Priority = request.Priority,
+            Priority = Enum.Parse<PriorityLevel>(request.Priority),
             AppliedDate = request.AppliedDate,
             LastActivityDate = DateTimeOffset.UtcNow,
             NextFollowUpDate = request.NextFollowUpDate,
