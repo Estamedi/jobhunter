@@ -1,5 +1,6 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
+using backend.jobhunter.Domain.Enums;
 
 namespace backend.jobhunter.Application.JobApplications.Queries.GetJobApplications;
 
@@ -51,8 +52,8 @@ public class GetJobApplicationsQueryHandler(IApplicationDbContext context)
             query = query.Where(a => a.CompanyId == request.CompanyId.Value);
         if (!string.IsNullOrWhiteSpace(request.Status))
             query = query.Where(a => a.Status == request.Status);
-        if (!string.IsNullOrWhiteSpace(request.Priority))
-            query = query.Where(a => a.Priority == request.Priority);
+        if (!string.IsNullOrWhiteSpace(request.Priority) && Enum.TryParse<PriorityLevel>(request.Priority, out var priority))
+            query = query.Where(a => a.Priority == priority);
         if (!string.IsNullOrWhiteSpace(request.Country))
             query = query.Where(a => a.JobRole.Country == request.Country);
         if (!string.IsNullOrWhiteSpace(request.WorkType))
@@ -83,7 +84,7 @@ public class GetJobApplicationsQueryHandler(IApplicationDbContext context)
                 a.JobRoleId, a.JobRole.Title,
                 a.CompanyId, a.Company.Name,
                 a.MainContactId, a.MainContact != null ? a.MainContact.FullName : null,
-                a.Status, a.Priority,
+                a.Status, a.Priority.ToString(),
                 a.AppliedDate, a.LastActivityDate, a.NextFollowUpDate,
                 a.NextFollowUpDate == null ? "NotNeeded"
                     : a.NextFollowUpDate.Value.Date == now.Date ? "DueToday"

@@ -7,7 +7,7 @@ public class JobApplication : BaseAuditableEntity
     public int CompanyId { get; set; }
     public int? MainContactId { get; set; }
     public string Status { get; set; } = "Wishlist";
-    public string Priority { get; set; } = "Medium";
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Medium;
     public DateTimeOffset? AppliedDate { get; set; }
     public DateTimeOffset? LastActivityDate { get; set; }
     public DateTimeOffset? NextFollowUpDate { get; set; }

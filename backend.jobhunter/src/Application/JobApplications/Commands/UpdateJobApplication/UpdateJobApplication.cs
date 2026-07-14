@@ -1,6 +1,7 @@
 using backend.jobhunter.Application.Common.Exceptions;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
+using backend.jobhunter.Domain.Enums;
 
 namespace backend.jobhunter.Application.JobApplications.Commands.UpdateJobApplication;
 
@@ -32,7 +33,7 @@ public class UpdateJobApplicationCommandHandler(IApplicationDbContext context)
 
         entity.MainContactId = request.MainContactId;
         entity.Status = request.Status;
-        entity.Priority = request.Priority;
+        entity.Priority = Enum.Parse<PriorityLevel>(request.Priority);
         entity.AppliedDate = request.AppliedDate;
         entity.NextFollowUpDate = request.NextFollowUpDate;
         entity.ResumeVersion = request.ResumeVersion;

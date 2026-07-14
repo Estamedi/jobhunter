@@ -9,7 +9,6 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
     public void Configure(EntityTypeBuilder<JobApplication> builder)
     {
         builder.Property(a => a.Status).HasMaxLength(50).IsRequired();
-        builder.Property(a => a.Priority).HasMaxLength(50).IsRequired();
         builder.Property(a => a.ResumeVersion).HasMaxLength(200);
         builder.Property(a => a.CoverLetterVersion).HasMaxLength(200);
         builder.Property(a => a.Currency).HasMaxLength(10);

@@ -39,7 +39,7 @@ public class GetJobApplicationQueryHandler(IApplicationDbContext context)
                 a.JobRoleId, a.JobRole.Title,
                 a.CompanyId, a.Company.Name,
                 a.MainContactId, a.MainContact != null ? a.MainContact.FullName : null,
-                a.Status, a.Priority,
+                a.Status, a.Priority.ToString(),
                 a.AppliedDate, a.LastActivityDate, a.NextFollowUpDate,
                 a.NextFollowUpDate == null ? "NotNeeded"
                     : a.NextFollowUpDate.Value.Date == now.Date ? "DueToday"
