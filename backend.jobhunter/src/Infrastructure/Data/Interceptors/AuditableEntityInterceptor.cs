@@ -46,7 +46,12 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 {
                     entry.Entity.CreatedBy = _user.Id;
                     entry.Entity.Created = utcNow;
-                } 
+
+                    if (entry.Entity is OwnedEntity ownedEntity && Guid.TryParse(_user.Id, out var ownerId))
+                    {
+                        ownedEntity.OwnerId = ownerId;
+                    }
+                }
                 entry.Entity.LastModifiedBy = _user.Id;
                 entry.Entity.LastModified = utcNow;
             }

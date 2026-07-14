@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Domain.Common;
 using backend.jobhunter.Domain.Entities;
 using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,7 +10,13 @@ namespace backend.jobhunter.Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    private readonly IUser _user;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IUser user) : base(options)
+    {
+        _user = user;
+    }
+
     public DbSet<Candidate> Candidates => Set<Candidate>();
     public DbSet<JobCompany> Companies => Set<JobCompany>();
     public DbSet<JobContact> Contacts => Set<JobContact>();
@@ -18,9 +25,29 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<JobActivity> Activities => Set<JobActivity>();
     public DbSet<JobInterview> Interviews => Set<JobInterview>();
 
+    private Guid? CurrentOwnerId => Guid.TryParse(_user.Id, out var id) ? id : null;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        foreach (var entityType in builder.Model.GetEntityTypes())
+        {
+            if (entityType.IsOwned() || entityType.ClrType is null || !typeof(OwnedEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                continue;
+            }
+
+            ApplyOwnedEntityQueryFilterMethod.MakeGenericMethod(entityType.ClrType).Invoke(this, [builder]);
+        }
+    }
+
+    private static readonly MethodInfo ApplyOwnedEntityQueryFilterMethod =
+        typeof(ApplicationDbContext).GetMethod(nameof(ApplyOwnedEntityQueryFilter), BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+    private void ApplyOwnedEntityQueryFilter<TEntity>(ModelBuilder builder) where TEntity : OwnedEntity
+    {
+        builder.Entity<TEntity>().HasQueryFilter(e => e.OwnerId == CurrentOwnerId);
     }
 }
