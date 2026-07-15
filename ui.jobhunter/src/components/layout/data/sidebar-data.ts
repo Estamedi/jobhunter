@@ -95,6 +95,11 @@ const defaultNavGroups: NavGroup[] = [
         icon: FileText,
       },
       {
+        title: 'CVs',
+        url: '/cvs',
+        icon: Files,
+      },
+      {
         title: 'Follow-Ups',
         url: '/follow-ups',
         icon: AlertCircle,

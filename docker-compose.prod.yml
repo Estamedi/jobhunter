@@ -15,8 +15,11 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__backend.jobhunterDb=Host=${POSTGRES_HOST:-shared_postgres};Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-jobhunter_user};Password=${POSTGRES_PASSWORD}
       - Authentication__Google__ClientId=${AUTHENTICATION__GOOGLE__CLIENTID}
+      - FileStorage__RootPath=/app/uploads/cvs
     ports:
       - "${BACKEND_PORT:-5290}:8080"
+    volumes:
+      - cv_uploads:/app/uploads
     networks:
       - default
       - pg_network
@@ -36,6 +39,9 @@ services:
       - "logging=promtail"
       - "com.docker.compose.project=jobhunter"
       - "com.docker.compose.service=ui"
+
+volumes:
+  cv_uploads:
 
 networks:
   pg_network:

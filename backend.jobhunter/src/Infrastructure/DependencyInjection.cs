@@ -1,6 +1,7 @@
 ﻿using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Infrastructure.Data;
 using backend.jobhunter.Infrastructure.Data.Interceptors;
+using backend.jobhunter.Infrastructure.Files;
 using backend.jobhunter.Infrastructure.Identity;
 using backend.jobhunter.Infrastructure.Notification;
 using Microsoft.AspNetCore.Identity;
@@ -53,5 +54,8 @@ public static class DependencyInjection
         builder.Services.AddSingleton<EmailService>();
         builder.Services.AddSingleton<IEmailNotificationService>(sp => sp.GetRequiredService<EmailService>());
         builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
+
+        builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
+        builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
     }
 }

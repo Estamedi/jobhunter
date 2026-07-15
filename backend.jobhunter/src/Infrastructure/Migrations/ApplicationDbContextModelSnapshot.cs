@@ -221,6 +221,62 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.ToTable("Candidates");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.Cv", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasIndex("CandidateId");
+
+                    b.ToTable("Cvs");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.Property<int>("Id")
@@ -804,6 +860,24 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.Cv", b =>
+                {
+                    b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "Application")
+                        .WithMany("Cvs")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.jobhunter.Domain.Entities.Candidate", "Candidate")
+                        .WithMany("Cvs")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Candidate");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "Application")
@@ -925,12 +999,16 @@ namespace backend.jobhunter.Infrastructure.Migrations
 
                     b.Navigation("Applications");
 
+                    b.Navigation("Cvs");
+
                     b.Navigation("Interviews");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobApplication", b =>
                 {
                     b.Navigation("Activities");
+
+                    b.Navigation("Cvs");
 
                     b.Navigation("Interviews");
                 });

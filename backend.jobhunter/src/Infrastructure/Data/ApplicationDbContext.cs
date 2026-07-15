@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<JobApplication> Applications => Set<JobApplication>();
     public DbSet<JobActivity> Activities => Set<JobActivity>();
     public DbSet<JobInterview> Interviews => Set<JobInterview>();
+    public DbSet<Cv> Cvs => Set<Cv>();
 
     private Guid? CurrentOwnerId => Guid.TryParse(_user.Id, out var id) ? id : null;
 
