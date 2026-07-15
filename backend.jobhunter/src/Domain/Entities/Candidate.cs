@@ -1,6 +1,6 @@
 namespace backend.jobhunter.Domain.Entities;
 
-public class Candidate : BaseAuditableEntity
+public class Candidate : OwnedEntity
 {
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -15,4 +15,5 @@ public class Candidate : BaseAuditableEntity
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
     public ICollection<JobActivity> Activities { get; set; } = new List<JobActivity>();
     public ICollection<JobInterview> Interviews { get; set; } = new List<JobInterview>();
+    public ICollection<Cv> Cvs { get; set; } = new List<Cv>();
 }

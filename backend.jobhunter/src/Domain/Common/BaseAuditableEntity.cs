@@ -10,3 +10,9 @@ public abstract class BaseAuditableEntity : BaseEntity
 
     public string? LastModifiedBy { get; set; }
 }
+
+
+public abstract class OwnedEntity :BaseAuditableEntity
+{
+    public Guid OwnerId { get; set; }
+}

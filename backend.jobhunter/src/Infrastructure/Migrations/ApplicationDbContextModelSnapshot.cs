@@ -194,6 +194,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -216,6 +219,62 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.HasIndex("IsActive");
 
                     b.ToTable("Candidates");
+                });
+
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.Cv", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasIndex("CandidateId");
+
+                    b.ToTable("Cvs");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
@@ -259,6 +318,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<string>("Outcome")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -339,6 +401,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
@@ -422,6 +487,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -480,6 +548,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
@@ -555,6 +626,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("PreparationNotes")
                         .HasColumnType("text");
 
@@ -628,6 +702,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Requirements")
                         .HasColumnType("text");
 
@@ -666,80 +743,6 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.HasIndex("RoleStatus");
 
                     b.ToTable("JobRoles");
-                });
-
-            modelBuilder.Entity("backend.jobhunter.Domain.Entities.TodoItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("Done")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("ListId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ListId");
-
-                    b.ToTable("TodoItems");
-                });
-
-            modelBuilder.Entity("backend.jobhunter.Domain.Entities.TodoList", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TodoLists");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Infrastructure.Identity.ApplicationUser", b =>
@@ -857,6 +860,24 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.Cv", b =>
+                {
+                    b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "Application")
+                        .WithMany("Cvs")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.jobhunter.Domain.Entities.Candidate", "Candidate")
+                        .WithMany("Cvs")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Candidate");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "Application")
@@ -972,45 +993,13 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("backend.jobhunter.Domain.Entities.TodoItem", b =>
-                {
-                    b.HasOne("backend.jobhunter.Domain.Entities.TodoList", "List")
-                        .WithMany("Items")
-                        .HasForeignKey("ListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("List");
-                });
-
-            modelBuilder.Entity("backend.jobhunter.Domain.Entities.TodoList", b =>
-                {
-                    b.OwnsOne("backend.jobhunter.Domain.ValueObjects.Colour", "Colour", b1 =>
-                        {
-                            b1.Property<int>("TodoListId")
-                                .HasColumnType("integer");
-
-                            b1.Property<string>("Code")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.HasKey("TodoListId");
-
-                            b1.ToTable("TodoLists");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TodoListId");
-                        });
-
-                    b.Navigation("Colour")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.Candidate", b =>
                 {
                     b.Navigation("Activities");
 
                     b.Navigation("Applications");
+
+                    b.Navigation("Cvs");
 
                     b.Navigation("Interviews");
                 });
@@ -1018,6 +1007,8 @@ namespace backend.jobhunter.Infrastructure.Migrations
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobApplication", b =>
                 {
                     b.Navigation("Activities");
+
+                    b.Navigation("Cvs");
 
                     b.Navigation("Interviews");
                 });
@@ -1043,11 +1034,6 @@ namespace backend.jobhunter.Infrastructure.Migrations
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobRole", b =>
                 {
                     b.Navigation("Applications");
-                });
-
-            modelBuilder.Entity("backend.jobhunter.Domain.Entities.TodoList", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

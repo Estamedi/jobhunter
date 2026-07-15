@@ -1,6 +1,6 @@
 namespace backend.jobhunter.Domain.Entities;
 
-public class JobApplication : BaseAuditableEntity
+public class JobApplication : OwnedEntity
 {
     public int CandidateId { get; set; }
     public int JobRoleId { get; set; }
@@ -25,4 +25,5 @@ public class JobApplication : BaseAuditableEntity
     public JobContact? MainContact { get; set; }
     public ICollection<JobActivity> Activities { get; set; } = new List<JobActivity>();
     public ICollection<JobInterview> Interviews { get; set; } = new List<JobInterview>();
+    public ICollection<Cv> Cvs { get; set; } = new List<Cv>();
 }
