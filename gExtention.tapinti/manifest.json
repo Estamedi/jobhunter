@@ -7,7 +7,7 @@
     "default_popup": "popup.html",
     "default_title": "Save this job to Tapinti"
   },
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "identity"],
   "host_permissions": [
     "https://api.tapinti.com/*",
     "https://api.anthropic.com/*",

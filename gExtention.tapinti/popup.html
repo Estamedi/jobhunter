@@ -21,6 +21,16 @@
       <input type="password" id="login-password" autocomplete="current-password" />
     </label>
     <button id="btn-login" class="primary">Sign in</button>
+    <div class="divider"><span>or</span></div>
+    <button id="btn-google-login" type="button" class="google">
+      <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"/>
+        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 7.1 29.6 5 24 5 16.3 5 9.7 9.3 6.3 14.7z"/>
+        <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.1-5.1l-6.5-5.5c-2 1.4-4.6 2.2-7.6 2.2-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z"/>
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.4l6.5 5.5c-.5.4 7.2-5.3 7.2-15.4 0-1.2-.1-2.4-.4-3.5z"/>
+      </svg>
+      Continue with Google
+    </button>
     <p id="login-error" class="error hidden"></p>
   </section>
 
@@ -33,6 +43,10 @@
       <input type="password" id="set-anthropic-key" placeholder="sk-ant-..." />
     </label>
     <p class="hint">Without an Anthropic key the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
+    <label>Google client ID <small>(for "Continue with Google")</small>
+      <input type="text" id="set-google-client-id" placeholder="xxxxx.apps.googleusercontent.com" />
+    </label>
+    <p class="hint">Reuses the portal's OAuth client. Its Google Cloud Console entry must include <code id="redirect-uri-hint"></code> as an authorized redirect URI.</p>
     <div class="row">
       <button id="btn-save-settings" class="primary">Save settings</button>
       <button id="btn-logout" class="danger">Sign out</button>
