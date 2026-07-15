@@ -96,7 +96,7 @@ export function EntityCombobox({
           disabled={disabled}
           className='w-full justify-between font-normal'
         >
-          <span className={cn('truncate', !value && 'text-muted-foreground')}>
+          <span className={cn('min-w-0 flex-1 truncate text-left', !value && 'text-muted-foreground')}>
             {value?.label ?? (disabled ? (disabledPlaceholder ?? placeholder) : placeholder)}
           </span>
           <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />

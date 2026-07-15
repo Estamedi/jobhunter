@@ -8,7 +8,6 @@ namespace backend.jobhunter.Application.Cvs.Commands.UploadCv;
 public record UploadCvCommand : IRequest<int>
 {
     public required int CandidateId { get; init; }
-    public int? ApplicationId { get; init; }
     public required string FileName { get; init; }
     public required string ContentType { get; init; }
     public required long FileSizeBytes { get; init; }
@@ -26,21 +25,11 @@ public class UploadCvCommandHandler(IApplicationDbContext context, IFileStorage 
             throw new NotFoundException(nameof(Candidate), request.CandidateId);
         }
 
-        if (request.ApplicationId is int applicationId)
-        {
-            var applicationExists = await context.Applications.AnyAsync(a => a.Id == applicationId, cancellationToken);
-            if (!applicationExists)
-            {
-                throw new NotFoundException(nameof(JobApplication), applicationId);
-            }
-        }
-
         var storageKey = await fileStorage.SaveAsync(request.Content, request.FileName, cancellationToken);
 
         var entity = new Cv
         {
             CandidateId = request.CandidateId,
-            ApplicationId = request.ApplicationId,
             FileName = request.FileName,
             ContentType = request.ContentType,
             FileSizeBytes = request.FileSizeBytes,

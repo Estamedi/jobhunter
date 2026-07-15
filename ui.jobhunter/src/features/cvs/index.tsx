@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { Plus, MoreHorizontal, Download, Trash2, FileText, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cvsApi, type Cv } from './api'
+import { downloadCvFile, viewCvFile } from './lib/cv-file'
 import { candidatesApi } from '@/features/candidates/api'
-import { applicationsApi } from '@/features/applications/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,32 +39,8 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
-async function triggerDownload(cv: Cv) {
-  const blob = await cvsApi.download(cv.id)
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = cv.fileName
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
-async function triggerView(cv: Cv) {
-  const blob = await cvsApi.download(cv.id)
-  const url = URL.createObjectURL(blob)
-  window.open(url, '_blank', 'noopener,noreferrer')
-  setTimeout(() => URL.revokeObjectURL(url), 60_000)
-}
-
-function UploadCvForm({
-  applications,
-  onSubmit,
-}: {
-  applications: { id: number; label: string }[]
-  onSubmit: (data: { file: File; applicationId?: number }) => void
-}) {
+function UploadCvForm({ onSubmit }: { onSubmit: (data: { file: File }) => void }) {
   const [file, setFile] = useState<File | null>(null)
-  const [applicationId, setApplicationId] = useState('')
 
   return (
     <form
@@ -73,7 +49,7 @@ function UploadCvForm({
       onSubmit={(e) => {
         e.preventDefault()
         if (!file) return
-        onSubmit({ file, applicationId: applicationId ? Number(applicationId) : undefined })
+        onSubmit({ file })
       }}
     >
       <div className='space-y-1'>
@@ -84,19 +60,6 @@ function UploadCvForm({
           required
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
-      </div>
-      <div className='space-y-1'>
-        <Label>Link to Application</Label>
-        <select
-          value={applicationId}
-          onChange={(e) => setApplicationId(e.target.value)}
-          className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'
-        >
-          <option value=''>None</option>
-          {applications.map((a) => (
-            <option key={a.id} value={a.id}>{a.label}</option>
-          ))}
-        </select>
       </div>
     </form>
   )
@@ -116,12 +79,6 @@ export function Cvs() {
   })
   const candidate = candidatesResult?.items[0]
 
-  const { data: applicationsResult } = useQuery({
-    queryKey: ['applications', candidate?.id],
-    queryFn: () => applicationsApi.list({ candidateId: candidate?.id }),
-    enabled: !!candidate,
-  })
-
   const { data: cvsResult, isLoading: cvsLoading } = useQuery({
     queryKey: ['cvs', candidate?.id, page],
     queryFn: () => cvsApi.list({ candidateId: candidate?.id, page, pageSize: PAGE_SIZE }),
@@ -132,16 +89,8 @@ export function Cvs() {
   const total = cvsResult?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const applicationLabels = new Map(
-    (applicationsResult?.items ?? []).map((a) => [
-      a.id,
-      `${a.companyName ?? 'Company'} — ${a.jobRoleTitle ?? 'Role'}`,
-    ])
-  )
-
   const upload = useMutation({
-    mutationFn: (data: { file: File; applicationId?: number }) =>
-      cvsApi.upload({ candidateId: candidate!.id, applicationId: data.applicationId, file: data.file }),
+    mutationFn: (data: { file: File }) => cvsApi.upload({ candidateId: candidate!.id, file: data.file }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cvs'] })
       toast.success('CV uploaded')
@@ -185,7 +134,6 @@ export function Cvs() {
           <TableHeader>
             <TableRow>
               <TableHead>File</TableHead>
-              <TableHead>Linked Application</TableHead>
               <TableHead>Size</TableHead>
               <TableHead>Uploaded</TableHead>
               <TableHead className='w-20' />
@@ -194,12 +142,12 @@ export function Cvs() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={5}><Skeleton className='h-8 w-full' /></TableCell>
+                <TableCell colSpan={4}><Skeleton className='h-8 w-full' /></TableCell>
               </TableRow>
             )}
             {!isLoading && cvs?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className='text-center text-muted-foreground py-8'>No CVs uploaded yet.</TableCell>
+                <TableCell colSpan={4} className='text-center text-muted-foreground py-8'>No CVs uploaded yet.</TableCell>
               </TableRow>
             )}
             {cvs?.map((cv) => (
@@ -210,9 +158,6 @@ export function Cvs() {
                     {cv.fileName}
                   </div>
                 </TableCell>
-                <TableCell className='text-sm text-muted-foreground'>
-                  {cv.applicationId ? applicationLabels.get(cv.applicationId) ?? `#${cv.applicationId}` : '—'}
-                </TableCell>
                 <TableCell className='text-sm text-muted-foreground'>{formatFileSize(cv.fileSizeBytes)}</TableCell>
                 <TableCell className='text-sm text-muted-foreground'>{format(new Date(cv.uploadedDate), 'MMM d, yyyy')}</TableCell>
                 <TableCell>
@@ -222,7 +167,7 @@ export function Cvs() {
                       size='icon'
                       className='h-8 w-8'
                       title='View'
-                      onClick={() => triggerView(cv)}
+                      onClick={() => viewCvFile(cv)}
                     >
                       <Eye className='h-4 w-4' />
                     </Button>
@@ -233,10 +178,10 @@ export function Cvs() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align='end'>
-                        <DropdownMenuItem onClick={() => triggerView(cv)}>
+                        <DropdownMenuItem onClick={() => viewCvFile(cv)}>
                           <Eye className='h-4 w-4 mr-2' /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => triggerDownload(cv)}>
+                        <DropdownMenuItem onClick={() => downloadCvFile(cv)}>
                           <Download className='h-4 w-4 mr-2' /> Download
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -284,10 +229,7 @@ export function Cvs() {
           <DialogHeader>
             <DialogTitle>Upload CV</DialogTitle>
           </DialogHeader>
-          <UploadCvForm
-            applications={[...applicationLabels.entries()].map(([id, label]) => ({ id, label }))}
-            onSubmit={(data) => upload.mutate(data)}
-          />
+          <UploadCvForm onSubmit={(data) => upload.mutate(data)} />
           <DialogFooter>
             <Button variant='outline' onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button type='submit' form='cv-upload-form' disabled={upload.isPending}>

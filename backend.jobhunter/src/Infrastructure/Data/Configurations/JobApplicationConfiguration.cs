@@ -35,10 +35,16 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
             .HasForeignKey(a => a.MainContactId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(a => a.Cv)
+            .WithMany(c => c.Applications)
+            .HasForeignKey(a => a.CvId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(a => a.CandidateId);
         builder.HasIndex(a => a.CompanyId);
         builder.HasIndex(a => a.Status);
         builder.HasIndex(a => a.AppliedDate);
         builder.HasIndex(a => a.NextFollowUpDate);
+        builder.HasIndex(a => a.CvId);
     }
 }

@@ -9,10 +9,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Search, Trash2, Pencil } from 'lucide-react'
+import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText } from 'lucide-react'
 import { format } from 'date-fns'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
 import { STATUS_COLORS, FOLLOWUP_COLORS, STATUSES, formatStatusLabel } from './data/constants'
+import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 
 export function Applications() {
   const qc = useQueryClient()
@@ -85,13 +86,14 @@ export function Applications() {
               <TableHead>Priority</TableHead>
               <TableHead>Applied</TableHead>
               <TableHead>Follow-Up</TableHead>
+              <TableHead>Resume</TableHead>
               <TableHead className='w-10' />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={8}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
+            {isLoading && <TableRow><TableCell colSpan={9}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
             {!isLoading && data?.items.length === 0 && (
-              <TableRow><TableCell colSpan={8} className='text-center text-muted-foreground py-8'>No applications found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className='text-center text-muted-foreground py-8'>No applications found.</TableCell></TableRow>
             )}
             {data?.items.map((a) => (
               <TableRow key={a.id}>
@@ -120,6 +122,23 @@ export function Applications() {
                       )}
                     </span>
                   ) : '—'}
+                </TableCell>
+                <TableCell>
+                  {a.cvId && a.cvFileName ? (
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='h-8 max-w-[140px] justify-start gap-1 px-2 text-sm'
+                      title={a.cvFileName}
+                      onClick={() => downloadCvFile({ id: a.cvId!, fileName: a.cvFileName! })}
+                    >
+                      <FileText className='h-4 w-4 shrink-0 text-muted-foreground' />
+                      <span className='truncate'>{a.cvFileName}</span>
+                      <Download className='h-3 w-3 shrink-0 text-muted-foreground' />
+                    </Button>
+                  ) : (
+                    <span className='text-sm text-muted-foreground'>—</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>

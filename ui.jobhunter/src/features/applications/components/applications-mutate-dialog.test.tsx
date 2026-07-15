@@ -14,10 +14,17 @@ vi.mock('@/features/job-roles/api', () => ({
 vi.mock('@/features/contacts/api', () => ({
   contactsApi: { list: vi.fn(), create: vi.fn() },
 }))
+vi.mock('@/features/cvs/api', () => ({
+  cvsApi: { list: vi.fn(), upload: vi.fn() },
+}))
+vi.mock('@/features/cvs/lib/cv-file', () => ({
+  downloadCvFile: vi.fn(),
+}))
 
 const { companiesApi } = await import('@/features/companies/api')
 const { jobRolesApi } = await import('@/features/job-roles/api')
 const { contactsApi } = await import('@/features/contacts/api')
+const { cvsApi } = await import('@/features/cvs/api')
 
 async function renderDialog(props: Partial<ComponentProps<typeof ApplicationsMutateDialog>> = {}) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -47,6 +54,10 @@ describe('ApplicationsMutateDialog', () => {
       total: 1,
     })
     vi.mocked(contactsApi.list).mockResolvedValue({ items: [], total: 0 })
+    vi.mocked(cvsApi.list).mockResolvedValue({
+      items: [{ id: 5, candidateId: 42, fileName: 'resume-v1.pdf', contentType: 'application/pdf', fileSizeBytes: 1024, uploadedDate: '2026-01-01' }],
+      total: 1,
+    })
   })
 
   it('disables job role and contact until a company is selected', async () => {
@@ -112,9 +123,53 @@ describe('ApplicationsMutateDialog', () => {
         companyId: 1,
         jobRoleId: 10,
         mainContactId: undefined,
+        cvId: undefined,
         appliedDate: undefined,
         nextFollowUpDate: undefined,
       })
     )
+  })
+
+  it('selects an existing resume and includes its id on submit', async () => {
+    const { getByRole, getByPlaceholder, onSubmit } = await renderDialog()
+
+    await userEvent.click(getByRole('button', { name: /select company/i }))
+    await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
+    await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
+
+    await userEvent.click(getByRole('button', { name: /select job role/i }))
+    await userEvent.fill(getByPlaceholder(/search job roles/i), 'Backend')
+    await userEvent.click(getByRole('option', { name: /^Backend Engineer$/i }))
+
+    await userEvent.click(getByRole('button', { name: /select existing resume/i }))
+    await userEvent.click(getByRole('option', { name: /^resume-v1\.pdf$/i }))
+    await expect.element(getByRole('button', { name: /^resume-v1\.pdf$/i })).toBeInTheDocument()
+
+    await userEvent.click(getByRole('button', { name: /^create$/i }))
+
+    expect(cvsApi.upload).not.toHaveBeenCalled()
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ cvId: 5 }))
+  })
+
+  it('uploads a new resume file and includes the returned id on submit', async () => {
+    vi.mocked(cvsApi.upload).mockResolvedValue(77)
+    const { getByRole, getByPlaceholder, onSubmit } = await renderDialog()
+
+    await userEvent.click(getByRole('button', { name: /select company/i }))
+    await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
+    await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
+
+    await userEvent.click(getByRole('button', { name: /select job role/i }))
+    await userEvent.fill(getByPlaceholder(/search job roles/i), 'Backend')
+    await userEvent.click(getByRole('option', { name: /^Backend Engineer$/i }))
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(['%PDF-1.4'], 'new-resume.pdf', { type: 'application/pdf' })
+    await userEvent.upload(fileInput, file)
+
+    await userEvent.click(getByRole('button', { name: /^create$/i }))
+
+    expect(cvsApi.upload).toHaveBeenCalledWith({ candidateId: 42, file })
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ cvId: 77 }))
   })
 })

@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { Download, Loader2 } from 'lucide-react'
 import { companiesApi } from '@/features/companies/api'
 import { contactsApi } from '@/features/contacts/api'
 import { jobRolesApi } from '@/features/job-roles/api'
+import { cvsApi } from '@/features/cvs/api'
+import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 import { EntityCombobox, type EntityOption } from '@/components/entity-combobox'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -70,6 +73,12 @@ export function ApplicationsMutateDialog({
       ? { value: currentRow.mainContactId, label: currentRow.mainContactName ?? `#${currentRow.mainContactId}` }
       : null
   )
+  const [resumeCv, setResumeCv] = useState<EntityOption | null>(
+    currentRow?.cvId ? { value: currentRow.cvId, label: currentRow.cvFileName ?? `#${currentRow.cvId}` } : null
+  )
+  const [newResumeFile, setNewResumeFile] = useState<File | null>(null)
+  const [isUploadingResume, setIsUploadingResume] = useState(false)
+  const [fileInputKey, setFileInputKey] = useState(0)
 
   function handleCompanyChange(option: EntityOption | null) {
     setCompany(option)
@@ -77,7 +86,18 @@ export function ApplicationsMutateDialog({
     setMainContact(null)
   }
 
-  function submit(scalar: ScalarFields) {
+  function handleResumeSelect(option: EntityOption | null) {
+    setResumeCv(option)
+    setNewResumeFile(null)
+    setFileInputKey((k) => k + 1)
+  }
+
+  function handleResumeFileChange(file: File | null) {
+    setNewResumeFile(file)
+    if (file) setResumeCv(null)
+  }
+
+  async function submit(scalar: ScalarFields) {
     if (!candidateId) {
       toast.error('Could not determine your candidate profile.')
       return
@@ -90,6 +110,20 @@ export function ApplicationsMutateDialog({
       toast.error('Please select a job role.')
       return
     }
+
+    let cvId = resumeCv?.value
+    if (newResumeFile) {
+      setIsUploadingResume(true)
+      try {
+        cvId = await cvsApi.upload({ candidateId, file: newResumeFile })
+      } catch {
+        toast.error('Failed to upload resume')
+        setIsUploadingResume(false)
+        return
+      }
+      setIsUploadingResume(false)
+    }
+
     onSubmit({
       ...scalar,
       appliedDate: scalar.appliedDate || undefined,
@@ -98,6 +132,7 @@ export function ApplicationsMutateDialog({
       companyId: company.value,
       jobRoleId: jobRole.value,
       mainContactId: mainContact?.value,
+      cvId,
     })
   }
 
@@ -109,7 +144,7 @@ export function ApplicationsMutateDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit(submit)} className='space-y-4' id='application-form'>
           <div className='grid grid-cols-2 gap-3'>
-            <div className='space-y-1'>
+            <div className='min-w-0 space-y-1'>
               <Label>Company *</Label>
               <EntityCombobox
                 value={company}
@@ -126,7 +161,7 @@ export function ApplicationsMutateDialog({
                 onCreate={(name) => companiesApi.create({ name }).then((id) => ({ value: id, label: name }))}
               />
             </div>
-            <div className='space-y-1'>
+            <div className='min-w-0 space-y-1'>
               <Label>Job Role *</Label>
               <EntityCombobox
                 value={jobRole}
@@ -147,7 +182,7 @@ export function ApplicationsMutateDialog({
                 }
               />
             </div>
-            <div className='space-y-1'>
+            <div className='min-w-0 space-y-1'>
               <Label>Main Contact</Label>
               <EntityCombobox
                 value={mainContact}
@@ -167,6 +202,51 @@ export function ApplicationsMutateDialog({
                   contactsApi.create({ companyId: company!.value, fullName }).then((id) => ({ value: id, label: fullName }))
                 }
               />
+            </div>
+            <div className='min-w-0 space-y-1 col-span-2'>
+              <Label>Resume</Label>
+              <div className='flex items-center gap-2'>
+                <div className='min-w-0 flex-1'>
+                  <EntityCombobox
+                    value={resumeCv}
+                    onChange={handleResumeSelect}
+                    queryKey={['cvs', 'combobox', candidateId]}
+                    placeholder='Select existing resume...'
+                    searchPlaceholder='Search your resumes...'
+                    disabled={!candidateId}
+                    disabledPlaceholder='Loading your profile...'
+                    fetchOptions={(search) =>
+                      cvsApi.list({ candidateId, pageSize: 100 }).then((r) =>
+                        r.items
+                          .filter((cv) => !search || cv.fileName.toLowerCase().includes(search.toLowerCase()))
+                          .map((cv) => ({ value: cv.id, label: cv.fileName }))
+                      )
+                    }
+                  />
+                </div>
+                {resumeCv && (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='icon'
+                    title='Download resume'
+                    onClick={() => downloadCvFile({ id: resumeCv.value, fileName: resumeCv.label })}
+                  >
+                    <Download className='h-4 w-4' />
+                  </Button>
+                )}
+              </div>
+              <div className='flex items-center gap-2 pt-1'>
+                <span className='text-xs text-muted-foreground shrink-0'>or upload new:</span>
+                <Input
+                  key={fileInputKey}
+                  type='file'
+                  accept='.pdf,.doc,.docx'
+                  className='text-sm'
+                  onChange={(e) => handleResumeFileChange(e.target.files?.[0] ?? null)}
+                />
+                {isUploadingResume && <Loader2 className='h-4 w-4 animate-spin shrink-0' />}
+              </div>
             </div>
             <div className='space-y-1'>
               <Label>Status</Label>
@@ -222,7 +302,7 @@ export function ApplicationsMutateDialog({
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button type='submit' form='application-form' disabled={isPending}>
+          <Button type='submit' form='application-form' disabled={isPending || isUploadingResume}>
             {isUpdate ? 'Save Changes' : 'Create'}
           </Button>
         </DialogFooter>
