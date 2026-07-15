@@ -23,11 +23,25 @@ export const Route = createFileRoute('/_authenticated')({
           email: me.email,
           role: me.roles,
           exp: 0,
+          onboardingStatus: me.onboardingStatus,
         })
       } catch {
         auth.reset()
         throw redirect({ to: '/sign-in', search: { redirect: location.href } })
       }
+    }
+
+    const { user } = useAuthStore.getState().auth
+    const needsOnboarding =
+      !!user &&
+      user.role.includes('JobSeeker') &&
+      user.onboardingStatus === 'Pending'
+
+    const onOnboardingRoute =
+      location.pathname === '/onboarding' || location.pathname === '/onboarding/'
+
+    if (needsOnboarding && !onOnboardingRoute) {
+      throw redirect({ to: '/onboarding', replace: true })
     }
   },
   component: AuthenticatedLayout,

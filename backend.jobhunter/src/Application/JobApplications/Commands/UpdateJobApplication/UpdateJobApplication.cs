@@ -10,6 +10,7 @@ public record UpdateJobApplicationCommand : IRequest
 {
     public required int Id { get; init; }
     public int? MainContactId { get; init; }
+    public int? CvId { get; init; }
     public required string Status { get; init; }
     public required string Priority { get; init; }
     public DateTimeOffset? AppliedDate { get; init; }
@@ -32,6 +33,7 @@ public class UpdateJobApplicationCommandHandler(IApplicationDbContext context)
             ?? throw new NotFoundException("JobApplication", request.Id);
 
         entity.MainContactId = request.MainContactId;
+        entity.CvId = request.CvId;
         entity.Status = request.Status;
         entity.Priority = Enum.Parse<PriorityLevel>(request.Priority);
         entity.AppliedDate = request.AppliedDate;

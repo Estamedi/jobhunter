@@ -43,19 +43,22 @@ export function ProfileDropdown() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
+          {/* <DropdownMenuGroup>
+
             <DropdownMenuItem asChild>
               <Link to='/settings'>
                 Profile
                 <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
+
             <DropdownMenuItem asChild>
               <Link to='/settings'>
                 Billing
                 <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
+
             <DropdownMenuItem asChild>
               <Link to='/settings'>
                 Settings
@@ -63,8 +66,9 @@ export function ProfileDropdown() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>New Team</DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
+
+          </DropdownMenuGroup> */}
+          {/* <DropdownMenuSeparator /> */}
           <DropdownMenuItem variant='destructive' onClick={() => setOpen(true)}>
             Sign out
             <DropdownMenuShortcut className='text-current'>

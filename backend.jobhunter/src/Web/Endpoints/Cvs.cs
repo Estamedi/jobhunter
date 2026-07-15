@@ -21,17 +21,16 @@ public class Cvs : IEndpointGroup
     }
 
     [EndpointSummary("List CVs")]
-    [EndpointDescription("Lists CVs for the current user, optionally filtered by candidate or application.")]
+    [EndpointDescription("Lists CVs for the current user, optionally filtered by candidate.")]
     public static async Task<Ok<GetCvsResult>> GetCvs(
-        ISender sender, int? candidateId, int? applicationId, int page = 1, int pageSize = 20, CancellationToken ct = default)
-        => TypedResults.Ok(await sender.Send(new GetCvsQuery(candidateId, applicationId, page, pageSize), ct));
+        ISender sender, int? candidateId, int page = 1, int pageSize = 20, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new GetCvsQuery(candidateId, page, pageSize), ct));
 
     [EndpointSummary("Upload a CV")]
-    [EndpointDescription("Uploads a CV file for a candidate, optionally linked to a specific job application.")]
+    [EndpointDescription("Uploads a CV file for a candidate. Attach it to a job application separately via the application's cvId.")]
     public static async Task<Created<int>> UploadCv(
         ISender sender,
         [FromForm] int candidateId,
-        [FromForm] int? applicationId,
         IFormFile file,
         CancellationToken ct = default)
     {
@@ -40,7 +39,6 @@ public class Cvs : IEndpointGroup
         var id = await sender.Send(new UploadCvCommand
         {
             CandidateId = candidateId,
-            ApplicationId = applicationId,
             FileName = file.FileName,
             ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
             FileSizeBytes = file.Length,

@@ -5,6 +5,7 @@ using backend.jobhunter.Domain.Entities;
 using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace backend.jobhunter.Infrastructure.Data;
 
@@ -28,6 +29,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Note> Notes => Set<Note>();
 
     private Guid? CurrentOwnerId => Guid.TryParse(_user.Id, out var id) ? id : null;
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        // Npgsql only accepts UTC (offset 0) for 'timestamp with time zone'; normalize any
+        // client-supplied offset (e.g. a user's local timezone) before it hits the database.
+        configurationBuilder.Properties<DateTimeOffset>()
+            .HaveConversion<DateTimeOffsetUtcConverter>();
+    }
+
+    private class DateTimeOffsetUtcConverter()
+        : ValueConverter<DateTimeOffset, DateTimeOffset>(v => v.ToUniversalTime(), v => v);
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

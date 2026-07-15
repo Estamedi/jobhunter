@@ -1,4 +1,5 @@
-﻿using backend.jobhunter.Infrastructure.Identity;
+﻿using backend.jobhunter.Domain.Enums;
+using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,11 @@ public class Users : IEndpointGroup
         groupBuilder.MapPost(GoogleLogin, "google-login");
         groupBuilder.MapPost(Logout, "logout").RequireAuthorization();
         groupBuilder.MapGet(GetCurrentUser, "me").RequireAuthorization();
+        groupBuilder.MapPut(UpdateOnboardingStatus, "onboarding-status").RequireAuthorization();
     }
 
     [EndpointSummary("Get the current user")]
-    [EndpointDescription("Returns the authenticated user's id, email, and roles.")]
+    [EndpointDescription("Returns the authenticated user's id, email, roles, and onboarding status.")]
     public static async Task<Results<Ok<CurrentUserResponse>, UnauthorizedHttpResult>> GetCurrentUser(
         ClaimsPrincipal claimsPrincipal,
         UserManager<ApplicationUser> userManager)
@@ -35,10 +37,45 @@ public class Users : IEndpointGroup
 
         var roles = await userManager.GetRolesAsync(user);
 
-        return TypedResults.Ok(new CurrentUserResponse(user.Id, user.Email ?? user.UserName ?? string.Empty, [.. roles]));
+        return TypedResults.Ok(new CurrentUserResponse(
+            user.Id,
+            user.Email ?? user.UserName ?? string.Empty,
+            [.. roles],
+            user.OnboardingStatus.ToString()));
     }
 
-    public sealed record CurrentUserResponse(string Id, string Email, string[] Roles);
+    public sealed record CurrentUserResponse(string Id, string Email, string[] Roles, string OnboardingStatus);
+
+    [EndpointSummary("Update onboarding status")]
+    [EndpointDescription("Marks the current user's onboarding as completed or skipped.")]
+    public static async Task<Results<Ok, ValidationProblem, UnauthorizedHttpResult>> UpdateOnboardingStatus(
+        [FromBody] UpdateOnboardingStatusRequest request,
+        ClaimsPrincipal claimsPrincipal,
+        UserManager<ApplicationUser> userManager)
+    {
+        var user = await userManager.GetUserAsync(claimsPrincipal);
+
+        if (user is null)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        if (!Enum.TryParse<OnboardingStatus>(request.Status, out var status) ||
+            status is not (OnboardingStatus.Completed or OnboardingStatus.Skipped))
+        {
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [nameof(request.Status)] = ["Status must be Completed or Skipped."],
+            });
+        }
+
+        user.OnboardingStatus = status;
+        await userManager.UpdateAsync(user);
+
+        return TypedResults.Ok();
+    }
+
+    public sealed record UpdateOnboardingStatusRequest(string Status);
 
     [EndpointSummary("Log in with Google")]
     [EndpointDescription("Exchanges a Google ID token for the application's bearer token.")]

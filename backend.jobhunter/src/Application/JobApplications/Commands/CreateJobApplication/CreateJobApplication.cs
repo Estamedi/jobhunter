@@ -12,6 +12,7 @@ public record CreateJobApplicationCommand : IRequest<int>
     public required int JobRoleId { get; init; }
     public required int CompanyId { get; init; }
     public int? MainContactId { get; init; }
+    public int? CvId { get; init; }
     public string Status { get; init; } = "Wishlist";
     public string Priority { get; init; } = "Medium";
     public DateTimeOffset? AppliedDate { get; init; }
@@ -34,6 +35,7 @@ public class CreateJobApplicationCommandHandler(IApplicationDbContext context)
             JobRoleId = request.JobRoleId,
             CompanyId = request.CompanyId,
             MainContactId = request.MainContactId,
+            CvId = request.CvId,
             Status = request.Status,
             Priority = Enum.Parse<PriorityLevel>(request.Priority),
             AppliedDate = request.AppliedDate,

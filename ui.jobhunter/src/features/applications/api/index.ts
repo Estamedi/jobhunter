@@ -10,6 +10,8 @@ export interface JobApplication {
   companyName?: string
   mainContactId?: number
   mainContactName?: string
+  cvId?: number
+  cvFileName?: string
   status: string
   priority: string
   appliedDate?: string
@@ -35,6 +37,7 @@ export interface CreateApplicationDto {
   jobRoleId: number
   companyId: number
   mainContactId?: number
+  cvId?: number
   status?: string
   priority?: string
   appliedDate?: string

@@ -11,6 +11,7 @@ const sampleUser = {
   email: 'user@example.com',
   role: ['user'],
   exp: 1_700_000_000,
+  onboardingStatus: 'Completed' as const,
 }
 
 describe('useAuthStore', () => {

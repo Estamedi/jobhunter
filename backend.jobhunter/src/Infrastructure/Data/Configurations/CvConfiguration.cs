@@ -17,12 +17,6 @@ public class CvConfiguration : IEntityTypeConfiguration<Cv>
             .HasForeignKey(c => c.CandidateId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(c => c.Application)
-            .WithMany(a => a.Cvs)
-            .HasForeignKey(c => c.ApplicationId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         builder.HasIndex(c => c.CandidateId);
-        builder.HasIndex(c => c.ApplicationId);
     }
 }

@@ -110,9 +110,16 @@ export function UserAuthForm({
         email: me.email,
         role: me.roles,
         exp: 0,
+        onboardingStatus: me.onboardingStatus,
       })
     } catch {
-      auth.setUser({ accountNo: '', email: fallbackEmail, role: [], exp: 0 })
+      auth.setUser({
+        accountNo: '',
+        email: fallbackEmail,
+        role: [],
+        exp: 0,
+        onboardingStatus: 'Pending',
+      })
     }
   }
 
@@ -131,7 +138,7 @@ export function UserAuthForm({
       auth.setAccessToken(accessToken)
       await loadCurrentUser(data.email)
       toast.success(`Welcome back, ${data.email}!`)
-      navigate({ to: redirectTo || '/onboarding', replace: true })
+      navigate({ to: redirectTo || '/', replace: true })
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         toast.error('Invalid email or password.')

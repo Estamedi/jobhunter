@@ -10,6 +10,7 @@ public record JobApplicationDetailDto(
     int JobRoleId, string JobRoleTitle,
     int CompanyId, string CompanyName,
     int? MainContactId, string? MainContactName,
+    int? CvId, string? CvFileName,
     string Status, string Priority,
     DateTimeOffset? AppliedDate, DateTimeOffset? LastActivityDate, DateTimeOffset? NextFollowUpDate,
     string FollowUpStatus,
@@ -39,6 +40,7 @@ public class GetJobApplicationQueryHandler(IApplicationDbContext context)
                 a.JobRoleId, a.JobRole.Title,
                 a.CompanyId, a.Company.Name,
                 a.MainContactId, a.MainContact != null ? a.MainContact.FullName : null,
+                a.CvId, a.Cv != null ? a.Cv.FileName : null,
                 a.Status, a.Priority.ToString(),
                 a.AppliedDate, a.LastActivityDate, a.NextFollowUpDate,
                 a.NextFollowUpDate == null ? "NotNeeded"

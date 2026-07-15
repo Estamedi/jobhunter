@@ -6,6 +6,7 @@ public class JobApplication : OwnedEntity
     public int JobRoleId { get; set; }
     public int CompanyId { get; set; }
     public int? MainContactId { get; set; }
+    public int? CvId { get; set; }
     public string Status { get; set; } = "Wishlist";
     public PriorityLevel Priority { get; set; } = PriorityLevel.Medium;
     public DateTimeOffset? AppliedDate { get; set; }
@@ -23,8 +24,8 @@ public class JobApplication : OwnedEntity
     public JobRole JobRole { get; set; } = null!;
     public JobCompany Company { get; set; } = null!;
     public JobContact? MainContact { get; set; }
+    public Cv? Cv { get; set; }
     public ICollection<JobActivity> Activities { get; set; } = new List<JobActivity>();
     public ICollection<JobInterview> Interviews { get; set; } = new List<JobInterview>();
-    public ICollection<Cv> Cvs { get; set; } = new List<Cv>();
     public ICollection<Note> NoteEntries { get; set; } = new List<Note>();
 }

@@ -3,7 +3,6 @@ import { http } from '@/lib/http'
 export interface Cv {
   id: number
   candidateId: number
-  applicationId?: number
   fileName: string
   contentType: string
   fileSizeBytes: number
@@ -17,14 +16,12 @@ export interface GetCvsResult {
 
 export interface CvFilters {
   candidateId?: number
-  applicationId?: number
   page?: number
   pageSize?: number
 }
 
 export interface UploadCvDto {
   candidateId: number
-  applicationId?: number
   file: File
 }
 
@@ -35,9 +32,6 @@ export const cvsApi = {
   upload: (dto: UploadCvDto) => {
     const formData = new FormData()
     formData.append('candidateId', String(dto.candidateId))
-    if (dto.applicationId != null) {
-      formData.append('applicationId', String(dto.applicationId))
-    }
     formData.append('file', dto.file)
 
     // The shared `http` instance defaults to Content-Type: application/json; unset it here
