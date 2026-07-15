@@ -13,7 +13,7 @@ let settings = {
   accessToken: null,
   refreshToken: null,
   anthropicKey: null,
-  googleClientId: null,
+  googleClientId: "876332557394-rhd0tf0d8v0v5pv9o33f2qbtvi07r5o1.apps.googleusercontent.com",
   candidateId: null,
 };
 

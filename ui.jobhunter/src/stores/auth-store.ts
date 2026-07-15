@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { OnboardingStatus } from '@/features/auth/api'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
 const ACCESS_TOKEN = 'thisisjustarandomstring'
@@ -8,12 +9,14 @@ interface AuthUser {
   email: string
   role: string[]
   exp: number
+  onboardingStatus: OnboardingStatus
 }
 
 interface AuthState {
   auth: {
     user: AuthUser | null
     setUser: (user: AuthUser | null) => void
+    setOnboardingStatus: (status: OnboardingStatus) => void
     accessToken: string
     setAccessToken: (accessToken: string) => void
     resetAccessToken: () => void
@@ -29,6 +32,14 @@ export const useAuthStore = create<AuthState>()((set) => {
       user: null,
       setUser: (user) =>
         set((state) => ({ ...state, auth: { ...state.auth, user } })),
+      setOnboardingStatus: (status) =>
+        set((state) => ({
+          ...state,
+          auth: {
+            ...state.auth,
+            user: state.auth.user ? { ...state.auth.user, onboardingStatus: status } : null,
+          },
+        })),
       accessToken: initToken,
       setAccessToken: (accessToken) =>
         set((state) => {

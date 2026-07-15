@@ -6,6 +6,7 @@ import {
   type FormEvent,
 } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,6 +20,9 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
+import { authApi } from '@/features/auth/api'
+import { candidatesApi } from '@/features/candidates/api'
+import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -53,6 +57,25 @@ function validateResumeFile(file: File) {
   return null
 }
 
+function SkipOnboardingButton({
+  onSkip,
+  isSkipping,
+}: {
+  onSkip: () => void
+  isSkipping: boolean
+}) {
+  return (
+    <button
+      type='button'
+      onClick={onSkip}
+      disabled={isSkipping}
+      className='inline-flex w-fit items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50'
+    >
+      {isSkipping ? 'Skipping…' : 'Skip for now'}
+    </button>
+  )
+}
+
 function nameFromResume(fileName: string) {
   const name = fileName
     .replace(/\.[^.]+$/, '')
@@ -66,11 +89,14 @@ function nameFromResume(fileName: string) {
 
 export function Onboarding() {
   const navigate = useNavigate()
+  const { auth } = useAuthStore()
   const inputRef = useRef<HTMLInputElement>(null)
   const [view, setView] = useState<'upload' | 'manual' | 'review'>('upload')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSkipping, setIsSkipping] = useState(false)
 
   function handleFile(file?: File) {
     if (!file) return
@@ -107,9 +133,45 @@ export function Onboarding() {
     setView('review')
   }
 
-  function submitManualProfile(event: FormEvent<HTMLFormElement>) {
+  async function submitManualProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    navigate({ to: '/', replace: true })
+    const data = new FormData(event.currentTarget)
+    const fullName = String(data.get('fullName') ?? '').trim()
+    const email = String(data.get('email') ?? auth.user?.email ?? '').trim()
+    const jobTitle = String(data.get('jobTitle') ?? '').trim()
+    const location = String(data.get('location') ?? '').trim()
+    const skills = String(data.get('skills') ?? '').trim()
+    const summary = String(data.get('summary') ?? '').trim()
+
+    setIsSubmitting(true)
+    try {
+      await candidatesApi.create({
+        fullName,
+        email,
+        currentLocation: location || undefined,
+        targetRoles: jobTitle || undefined,
+        notes: [summary, skills].filter(Boolean).join('\n\n') || undefined,
+      })
+      await authApi.updateOnboardingStatus('Completed')
+      auth.setOnboardingStatus('Completed')
+      navigate({ to: '/', replace: true })
+    } catch {
+      toast.error('Failed to save your profile. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function skipOnboarding() {
+    setIsSkipping(true)
+    try {
+      await authApi.updateOnboardingStatus('Skipped')
+      auth.setOnboardingStatus('Skipped')
+      navigate({ to: '/', replace: true })
+    } catch {
+      toast.error('Failed to skip onboarding. Please try again.')
+      setIsSkipping(false)
+    }
   }
 
   if (view === 'review' && selectedFile) {
@@ -119,14 +181,17 @@ export function Onboarding() {
       <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
         <Card className='w-full max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
           <CardHeader className='border-b px-8 py-7'>
-            <button
-              type='button'
-              onClick={() => setView('upload')}
-              className='mb-5 inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
-            >
-              <ArrowLeft className='size-4' />
-              Back to CV upload
-            </button>
+            <div className='mb-5 flex items-center justify-between'>
+              <button
+                type='button'
+                onClick={() => setView('upload')}
+                className='inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
+              >
+                <ArrowLeft className='size-4' />
+                Back to CV upload
+              </button>
+              <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
+            </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
               <span className='size-2 rounded-full bg-violet-500' />
               Step 2 of 3
@@ -238,8 +303,13 @@ export function Onboarding() {
                 </div>
               </div>
 
-              <Button size='lg' className='w-full rounded-2xl' type='submit'>
-                Confirm and continue
+              <Button
+                size='lg'
+                className='w-full rounded-2xl'
+                type='submit'
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving…' : 'Confirm and continue'}
                 <ArrowRight className='size-4' />
               </Button>
             </form>
@@ -258,14 +328,17 @@ export function Onboarding() {
       <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
         <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
           <CardHeader className='border-b px-8 py-7'>
-            <button
-              type='button'
-              onClick={() => setView('upload')}
-              className='mb-5 inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
-            >
-              <ArrowLeft className='size-4' />
-              Back to CV upload
-            </button>
+            <div className='mb-5 flex items-center justify-between'>
+              <button
+                type='button'
+                onClick={() => setView('upload')}
+                className='inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
+              >
+                <ArrowLeft className='size-4' />
+                Back to CV upload
+              </button>
+              <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
+            </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
               <span className='size-2 rounded-full bg-violet-500' />
               Step 1 of 3
@@ -338,8 +411,13 @@ export function Onboarding() {
                 </div>
               </div>
 
-              <Button size='lg' className='w-full rounded-2xl' type='submit'>
-                Save and continue
+              <Button
+                size='lg'
+                className='w-full rounded-2xl'
+                type='submit'
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving…' : 'Save and continue'}
                 <ArrowRight className='size-4' />
               </Button>
             </form>
@@ -357,9 +435,12 @@ export function Onboarding() {
     <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
       <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
         <CardHeader className='border-b px-8 py-7'>
-          <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
-            <span className='size-2 rounded-full bg-violet-500' />
-            Step 1 of 3
+          <div className='mb-4 flex items-center justify-between'>
+            <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
+              <span className='size-2 rounded-full bg-violet-500' />
+              Step 1 of 3
+            </div>
+            <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
           </div>
           <CardTitle className='text-3xl font-bold tracking-tight'>
             Set up your profile

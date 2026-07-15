@@ -128,7 +128,7 @@ describe('UserAuthForm', () => {
       expect(setAccessTokenMock).toHaveBeenCalledWith('mock-access-token')
 
       await vi.waitFor(() =>
-        expect(navigate).toHaveBeenCalledWith({ to: '/onboarding', replace: true })
+        expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
       )
     })
   })
@@ -199,7 +199,7 @@ describe('UserAuthForm', () => {
     )
     expect(setAccessTokenMock).toHaveBeenCalledWith('google-access-token')
     await vi.waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith({ to: '/onboarding', replace: true })
+      expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
     )
   })
 })
