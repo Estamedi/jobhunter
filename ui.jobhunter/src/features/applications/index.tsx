@@ -1,107 +1,18 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { applicationsApi, type JobApplication, type CreateApplicationDto } from './api'
+import { candidatesApi } from '@/features/candidates/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Search, Trash2, Pencil } from 'lucide-react'
-import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
-
-const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  Wishlist: 'outline',
-  Applied: 'secondary',
-  PhoneScreen: 'default',
-  HRInterview: 'default',
-  TechnicalInterview: 'default',
-  FinalInterview: 'default',
-  Offer: 'default',
-  Accepted: 'default',
-  Rejected: 'destructive',
-  Withdrawn: 'secondary',
-  Ghosted: 'secondary',
-}
-
-const FOLLOWUP_COLORS: Record<string, string> = {
-  Overdue: 'text-destructive font-medium',
-  DueToday: 'text-orange-500 font-medium',
-  ThisWeek: 'text-yellow-600',
-}
-
-const STATUSES = ['Wishlist', 'Applied', 'PhoneScreen', 'HRInterview', 'TechnicalInterview', 'FinalInterview', 'Offer', 'Accepted', 'Rejected', 'Withdrawn', 'Ghosted']
-
-function ApplicationForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateApplicationDto>; onSubmit: (d: CreateApplicationDto) => void }) {
-  const { register, handleSubmit } = useForm<CreateApplicationDto>({ defaultValues })
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='app-form'>
-      <div className='grid grid-cols-2 gap-3'>
-        <div className='space-y-1'>
-          <Label>Candidate ID *</Label>
-          <Input type='number' {...register('candidateId', { valueAsNumber: true })} required />
-        </div>
-        <div className='space-y-1'>
-          <Label>Job Role ID *</Label>
-          <Input type='number' {...register('jobRoleId', { valueAsNumber: true })} required />
-        </div>
-        <div className='space-y-1'>
-          <Label>Company ID *</Label>
-          <Input type='number' {...register('companyId', { valueAsNumber: true })} required />
-        </div>
-        <div className='space-y-1'>
-          <Label>Main Contact ID</Label>
-          <Input type='number' {...register('mainContactId', { valueAsNumber: true })} />
-        </div>
-        <div className='space-y-1'>
-          <Label>Status</Label>
-          <select {...register('status')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/([A-Z])/g, ' $1').trim()}</option>)}
-          </select>
-        </div>
-        <div className='space-y-1'>
-          <Label>Priority</Label>
-          <select {...register('priority')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {['Low', 'Medium', 'High'].map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
-        <div className='space-y-1'>
-          <Label>Applied Date</Label>
-          <Input type='date' {...register('appliedDate')} />
-        </div>
-        <div className='space-y-1'>
-          <Label>Next Follow-Up</Label>
-          <Input type='date' {...register('nextFollowUpDate')} />
-        </div>
-        <div className='space-y-1'>
-          <Label>Expected Salary</Label>
-          <Input type='number' {...register('expectedSalary', { valueAsNumber: true })} />
-        </div>
-        <div className='space-y-1'>
-          <Label>Currency</Label>
-          <Input {...register('currency')} placeholder='USD' />
-        </div>
-        <div className='space-y-1'>
-          <Label>Resume Version</Label>
-          <Input {...register('resumeVersion')} placeholder='v1, tailored-stripe' />
-        </div>
-        <div className='space-y-1'>
-          <Label>Cover Letter Version</Label>
-          <Input {...register('coverLetterVersion')} />
-        </div>
-      </div>
-      <div className='space-y-1'>
-        <Label>Notes</Label>
-        <Textarea {...register('notes')} rows={3} />
-      </div>
-    </form>
-  )
-}
+import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
+import { STATUS_COLORS, FOLLOWUP_COLORS, STATUSES, formatStatusLabel } from './data/constants'
 
 export function Applications() {
   const qc = useQueryClient()
@@ -114,6 +25,12 @@ export function Applications() {
     queryKey: ['applications', search, statusFilter],
     queryFn: () => applicationsApi.list({ search: search || undefined, status: statusFilter }),
   })
+
+  const { data: myCandidate } = useQuery({
+    queryKey: ['candidates', 'me'],
+    queryFn: () => candidatesApi.list({ pageSize: 1 }),
+  })
+  const candidateId = myCandidate?.items[0]?.id
 
   const create = useMutation({
     mutationFn: applicationsApi.create,
@@ -150,7 +67,7 @@ export function Applications() {
           className='flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm'
         >
           <option value=''>All statuses</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/([A-Z])/g, ' $1').trim()}</option>)}
+          {STATUSES.map((s) => <option key={s} value={s}>{formatStatusLabel(s)}</option>)}
         </select>
         <Button onClick={() => { setEditing(null); setDialogOpen(true) }} className='ml-auto'>
           <Plus className='h-4 w-4 mr-1' /> Add Application
@@ -183,7 +100,7 @@ export function Applications() {
                 <TableCell className='text-sm max-w-[150px] truncate'>{a.jobRoleTitle || `#${a.jobRoleId}`}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_COLORS[a.status] ?? 'secondary'} className='text-xs whitespace-nowrap'>
-                    {a.status.replace(/([A-Z])/g, ' $1').trim()}
+                    {formatStatusLabel(a.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -222,33 +139,15 @@ export function Applications() {
         </Table>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-          <DialogHeader><DialogTitle>{editing ? 'Edit Application' : 'Add Application'}</DialogTitle></DialogHeader>
-          <ApplicationForm
-            defaultValues={editing ? {
-              candidateId: editing.candidateId,
-              jobRoleId: editing.jobRoleId,
-              companyId: editing.companyId,
-              mainContactId: editing.mainContactId,
-              status: editing.status,
-              priority: editing.priority,
-              appliedDate: editing.appliedDate?.split('T')[0],
-              nextFollowUpDate: editing.nextFollowUpDate?.split('T')[0],
-              expectedSalary: editing.expectedSalary,
-              currency: editing.currency,
-              resumeVersion: editing.resumeVersion,
-              coverLetterVersion: editing.coverLetterVersion,
-              notes: editing.notes,
-            } : undefined}
-            onSubmit={handleSubmit}
-          />
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button type='submit' form='app-form' disabled={isBusy}>{editing ? 'Save Changes' : 'Create'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ApplicationsMutateDialog
+        key={editing?.id ?? 'create'}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        currentRow={editing}
+        candidateId={candidateId}
+        isPending={isBusy}
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
