@@ -12,6 +12,7 @@ public interface IApplicationDbContext
     DbSet<JobActivity> Activities { get; }
     DbSet<JobInterview> Interviews { get; }
     DbSet<Cv> Cvs { get; }
+    DbSet<Note> Notes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -75,6 +75,48 @@ button.primary:hover { background: #1e40af; }
 button.primary:disabled { background: #93a8e8; cursor: wait; }
 button.danger { background: #b42318; }
 
+button.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  font: inherit;
+  font-weight: 600;
+  color: #344054;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button.google:hover { background: #f9fafb; }
+button.google:disabled { opacity: 0.6; cursor: wait; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  color: #98a2b3;
+  font-size: 12px;
+}
+.divider::before, .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eaecf0;
+}
+
+code {
+  font: 11px/1.4 ui-monospace, monospace;
+  background: #eef1f5;
+  padding: 1px 4px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
 details { margin-bottom: 8px; }
 details summary { cursor: pointer; font-weight: 600; color: #344054; margin-bottom: 4px; }
 details textarea { margin-bottom: 6px; }
