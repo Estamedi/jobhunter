@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { Download, Loader2 } from 'lucide-react'
+import { format } from 'date-fns'
+import { CalendarIcon, Download, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { companiesApi } from '@/features/companies/api'
 import { contactsApi } from '@/features/contacts/api'
 import { jobRolesApi } from '@/features/job-roles/api'
@@ -9,9 +11,11 @@ import { cvsApi } from '@/features/cvs/api'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 import { EntityCombobox, type EntityOption } from '@/components/entity-combobox'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
 import { PRIORITIES, STATUSES, formatStatusLabel } from '../data/constants'
 import type { CreateApplicationDto, JobApplication } from '../api'
@@ -37,6 +41,41 @@ interface ApplicationsMutateDialogProps {
   onSubmit: (dto: CreateApplicationDto) => void
 }
 
+function DatePickerField({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value?: string
+  onChange: (value: string | undefined) => void
+  placeholder: string
+}) {
+  const selected = value ? new Date(`${value}T00:00:00`) : undefined
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type='button'
+          variant='outline'
+          className={cn('w-full justify-start text-left font-normal', !selected && 'text-muted-foreground')}
+        >
+          <CalendarIcon className='mr-2 h-4 w-4' />
+          {selected ? format(selected, 'PPP') : placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className='w-auto p-0' align='start'>
+        <Calendar
+          mode='single'
+          selected={selected}
+          onSelect={(date) => onChange(date ? format(date, 'yyyy-MM-dd') : undefined)}
+          autoFocus
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function ApplicationsMutateDialog({
   open,
   onOpenChange,
@@ -46,7 +85,7 @@ export function ApplicationsMutateDialog({
   onSubmit,
 }: ApplicationsMutateDialogProps) {
   const isUpdate = !!currentRow
-  const { register, handleSubmit } = useForm<ScalarFields>({
+  const { register, handleSubmit, control } = useForm<ScalarFields>({
     defaultValues: currentRow
       ? {
           status: currentRow.status,
@@ -270,11 +309,23 @@ export function ApplicationsMutateDialog({
             </div>
             <div className='space-y-1'>
               <Label>Applied Date</Label>
-              <Input type='date' {...register('appliedDate')} />
+              <Controller
+                control={control}
+                name='appliedDate'
+                render={({ field }) => (
+                  <DatePickerField value={field.value} onChange={field.onChange} placeholder='Pick a date' />
+                )}
+              />
             </div>
             <div className='space-y-1'>
               <Label>Next Follow-Up</Label>
-              <Input type='date' {...register('nextFollowUpDate')} />
+              <Controller
+                control={control}
+                name='nextFollowUpDate'
+                render={({ field }) => (
+                  <DatePickerField value={field.value} onChange={field.onChange} placeholder='Pick a date' />
+                )}
+              />
             </div>
             <div className='space-y-1'>
               <Label>Expected Salary</Label>

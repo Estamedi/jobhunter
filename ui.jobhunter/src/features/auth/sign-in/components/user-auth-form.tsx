@@ -198,7 +198,7 @@ export function UserAuthForm({
       auth.setAccessToken(accessToken)
       await loadCurrentUser('')
       toast.success('Signed in with Google.')
-      navigate({ to: redirectTo || '/', replace: true })
+      navigate({ to: redirectTo || '/onboarding', replace: true })
     } catch {
       toast.error('Failed to sign in with Google. Please try again.')
     } finally {

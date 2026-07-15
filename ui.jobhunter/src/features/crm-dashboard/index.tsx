@@ -4,8 +4,10 @@ import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import {
   Check,
+  Eye,
   FileText,
   Heart,
+  Loader2,
   Pencil,
   Plus,
   Trash2,
@@ -17,6 +19,7 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { dashboardApi } from './api'
 import { notesApi, type Note } from '@/features/notes/api'
@@ -307,6 +310,29 @@ function CvPanel() {
   })
   const cvs = data?.items ?? []
 
+  const [previewCv, setPreviewCv] = useState<Cv | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [loadingId, setLoadingId] = useState<number | null>(null)
+
+  async function openPreview(cv: Cv) {
+    setLoadingId(cv.id)
+    try {
+      const blob = await cvsApi.download(cv.id)
+      setPreviewUrl(URL.createObjectURL(blob))
+      setPreviewCv(cv)
+    } catch {
+      toast.error('Failed to load CV preview.')
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  function closePreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewCv(null)
+    setPreviewUrl(null)
+  }
+
   return (
     <Card className='h-auto gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:h-[202px]'>
       <PanelHeader title='CVs' action='Add CV' actionHref='/cvs' />
@@ -328,9 +354,26 @@ function CvPanel() {
             key={cv.id}
             cv={cv}
             bordered={index < cvs.length - 1}
+            isLoadingPreview={loadingId === cv.id}
+            onView={() => openPreview(cv)}
           />
         ))}
       </CardContent>
+
+      <Dialog open={!!previewCv} onOpenChange={(open) => !open && closePreview()}>
+        <DialogContent className='flex h-[90vh] w-[90vw] max-w-5xl flex-col p-0 sm:max-w-5xl'>
+          <DialogHeader className='px-4 pt-4 pb-0'>
+            <DialogTitle className='truncate text-sm'>{previewCv?.fileName}</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe
+              src={previewUrl}
+              title={previewCv?.fileName}
+              className='min-h-0 flex-1 rounded-b-lg border-0'
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
@@ -338,9 +381,13 @@ function CvPanel() {
 function CvRow({
   cv,
   bordered,
+  isLoadingPreview,
+  onView,
 }: {
   cv: Cv
   bordered: boolean
+  isLoadingPreview: boolean
+  onView: () => void
 }) {
   return (
     <div
@@ -352,7 +399,7 @@ function CvRow({
       <span className='flex size-7 shrink-0 items-center justify-center rounded-[10px] bg-tapinti-primary-soft text-tapinti-primary-icon'>
         <FileText className='size-3.5' />
       </span>
-      <div className='min-w-0'>
+      <div className='min-w-0 flex-1'>
         <p className='truncate text-xs leading-4 font-medium text-tapinti-foreground'>
           {cv.fileName}
         </p>
@@ -360,6 +407,14 @@ function CvRow({
           {format(new Date(cv.uploadedDate), 'MMM d, yyyy')}
         </p>
       </div>
+      <button
+        onClick={onView}
+        disabled={isLoadingPreview}
+        title='View CV'
+        className='flex size-7 shrink-0 items-center justify-center rounded-[10px] text-tapinti-muted-foreground hover:bg-tapinti-surface-muted hover:text-tapinti-foreground disabled:opacity-50'
+      >
+        {isLoadingPreview ? <Loader2 className='size-3.5 animate-spin' /> : <Eye className='size-3.5' />}
+      </button>
     </div>
   )
 }
@@ -442,7 +497,12 @@ function NotesPanel() {
           <button
             onClick={submitDraft}
             disabled={create.isPending || !draft.trim()}
-            className='flex size-7 shrink-0 items-center justify-center rounded-[10px] bg-tapinti-control text-tapinti-primary-foreground disabled:opacity-50'
+            className={cn(
+              'flex size-7 shrink-0 items-center justify-center rounded-[10px] transition-colors disabled:opacity-50',
+              draft.trim()
+                ? 'bg-tapinti-primary text-tapinti-primary-foreground'
+                : 'bg-tapinti-control text-tapinti-muted-foreground'
+            )}
           >
             <Check className='size-4' />
           </button>
@@ -528,7 +588,12 @@ function NoteRow({
           <button
             onClick={onSaveEdit}
             disabled={isSaving || !editingContent.trim()}
-            className='flex size-6 items-center justify-center rounded-[8px] bg-tapinti-control text-tapinti-primary-foreground disabled:opacity-50'
+            className={cn(
+              'flex size-6 items-center justify-center rounded-[8px] transition-colors disabled:opacity-50',
+              editingContent.trim()
+                ? 'bg-tapinti-primary text-tapinti-primary-foreground'
+                : 'bg-tapinti-control text-tapinti-muted-foreground'
+            )}
           >
             <Check className='size-3.5' />
           </button>
