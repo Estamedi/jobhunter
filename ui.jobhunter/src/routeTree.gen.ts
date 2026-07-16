@@ -35,6 +35,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
 import { Route as AuthenticatedOnboardingIndexRouteImport } from './routes/_authenticated/onboarding/index'
 import { Route as AuthenticatedNotesIndexRouteImport } from './routes/_authenticated/notes/index'
+import { Route as AuthenticatedJobTitlesIndexRouteImport } from './routes/_authenticated/job-titles/index'
 import { Route as AuthenticatedJobRolesIndexRouteImport } from './routes/_authenticated/job-roles/index'
 import { Route as AuthenticatedInterviewsIndexRouteImport } from './routes/_authenticated/interviews/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
@@ -50,6 +51,7 @@ import { Route as AuthenticatedActivitiesIndexRouteImport } from './routes/_auth
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/_authenticated/settings/password'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
@@ -187,6 +189,12 @@ const AuthenticatedNotesIndexRoute = AuthenticatedNotesIndexRouteImport.update({
   path: '/notes/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedJobTitlesIndexRoute =
+  AuthenticatedJobTitlesIndexRouteImport.update({
+    id: '/job-titles/',
+    path: '/job-titles/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedJobRolesIndexRoute =
   AuthenticatedJobRolesIndexRouteImport.update({
     id: '/job-roles/',
@@ -272,6 +280,12 @@ const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => ClerkauthRouteRoute,
 } as any)
+const AuthenticatedSettingsPasswordRoute =
+  AuthenticatedSettingsPasswordRouteImport.update({
+    id: '/password',
+    path: '/password',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
@@ -326,6 +340,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -341,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/interviews/': typeof AuthenticatedInterviewsIndexRoute
   '/job-roles/': typeof AuthenticatedJobRolesIndexRoute
+  '/job-titles/': typeof AuthenticatedJobTitlesIndexRoute
   '/notes/': typeof AuthenticatedNotesIndexRoute
   '/onboarding/': typeof AuthenticatedOnboardingIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
@@ -370,6 +386,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -385,6 +402,7 @@ export interface FileRoutesByTo {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/interviews': typeof AuthenticatedInterviewsIndexRoute
   '/job-roles': typeof AuthenticatedJobRolesIndexRoute
+  '/job-titles': typeof AuthenticatedJobTitlesIndexRoute
   '/notes': typeof AuthenticatedNotesIndexRoute
   '/onboarding': typeof AuthenticatedOnboardingIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
@@ -419,6 +437,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -434,6 +453,7 @@ export interface FileRoutesById {
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/interviews/': typeof AuthenticatedInterviewsIndexRoute
   '/_authenticated/job-roles/': typeof AuthenticatedJobRolesIndexRoute
+  '/_authenticated/job-titles/': typeof AuthenticatedJobTitlesIndexRoute
   '/_authenticated/notes/': typeof AuthenticatedNotesIndexRoute
   '/_authenticated/onboarding/': typeof AuthenticatedOnboardingIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
@@ -466,6 +486,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/settings/password'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -481,6 +502,7 @@ export interface FileRouteTypes {
     | '/help-center/'
     | '/interviews/'
     | '/job-roles/'
+    | '/job-titles/'
     | '/notes/'
     | '/onboarding/'
     | '/reports/'
@@ -510,6 +532,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/settings/password'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -525,6 +548,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/interviews'
     | '/job-roles'
+    | '/job-titles'
     | '/notes'
     | '/onboarding'
     | '/reports'
@@ -558,6 +582,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/settings/password'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
@@ -573,6 +598,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help-center/'
     | '/_authenticated/interviews/'
     | '/_authenticated/job-roles/'
+    | '/_authenticated/job-titles/'
     | '/_authenticated/notes/'
     | '/_authenticated/onboarding/'
     | '/_authenticated/reports/'
@@ -784,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/job-titles/': {
+      id: '/_authenticated/job-titles/'
+      path: '/job-titles'
+      fullPath: '/job-titles/'
+      preLoaderRoute: typeof AuthenticatedJobTitlesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/job-roles/': {
       id: '/_authenticated/job-roles/'
       path: '/job-roles'
@@ -889,6 +922,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkauthSignInRouteImport
       parentRoute: typeof ClerkauthRouteRoute
     }
+    '/_authenticated/settings/password': {
+      id: '/_authenticated/settings/password'
+      path: '/password'
+      fullPath: '/settings/password'
+      preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
       path: '/notifications'
@@ -932,6 +972,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -942,6 +983,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
+    AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
@@ -966,6 +1008,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInterviewsIndexRoute: typeof AuthenticatedInterviewsIndexRoute
   AuthenticatedJobRolesIndexRoute: typeof AuthenticatedJobRolesIndexRoute
+  AuthenticatedJobTitlesIndexRoute: typeof AuthenticatedJobTitlesIndexRoute
   AuthenticatedNotesIndexRoute: typeof AuthenticatedNotesIndexRoute
   AuthenticatedOnboardingIndexRoute: typeof AuthenticatedOnboardingIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
@@ -989,6 +1032,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInterviewsIndexRoute: AuthenticatedInterviewsIndexRoute,
   AuthenticatedJobRolesIndexRoute: AuthenticatedJobRolesIndexRoute,
+  AuthenticatedJobTitlesIndexRoute: AuthenticatedJobTitlesIndexRoute,
   AuthenticatedNotesIndexRoute: AuthenticatedNotesIndexRoute,
   AuthenticatedOnboardingIndexRoute: AuthenticatedOnboardingIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,

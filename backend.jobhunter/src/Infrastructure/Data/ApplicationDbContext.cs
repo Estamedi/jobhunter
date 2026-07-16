@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<JobCompany> Companies => Set<JobCompany>();
     public DbSet<JobContact> Contacts => Set<JobContact>();
     public DbSet<JobRole> JobRoles => Set<JobRole>();
+    public DbSet<JobTitle> JobTitles => Set<JobTitle>();
     public DbSet<JobApplication> Applications => Set<JobApplication>();
     public DbSet<JobActivity> Activities => Set<JobActivity>();
     public DbSet<JobInterview> Interviews => Set<JobInterview>();

@@ -17,7 +17,7 @@ public record JobApplicationDetailDto(
     string? ResumeVersion, string? CoverLetterVersion,
     decimal? ExpectedSalary, decimal? ActualOfferSalary, string? Currency,
     string? RejectionReason, string? Notes,
-    string? JobRoleCountry, string? JobRoleWorkType, string? JobRoleSource,
+    string? JobRoleCountry, string? JobRoleWorkType, string? JobRoleSource, string? JobRoleDescription,
     DateTimeOffset Created, DateTimeOffset LastModified
 );
 
@@ -51,7 +51,7 @@ public class GetJobApplicationQueryHandler(IApplicationDbContext context)
                 a.ResumeVersion, a.CoverLetterVersion,
                 a.ExpectedSalary, a.ActualOfferSalary, a.Currency,
                 a.RejectionReason, a.Notes,
-                a.JobRole.Country, a.JobRole.WorkType, a.JobRole.Source,
+                a.JobRole.Country, a.JobRole.WorkType, a.JobRole.Source, a.JobRole.Description,
                 a.Created, a.LastModified))
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("JobApplication", request.Id);

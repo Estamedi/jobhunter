@@ -10,6 +10,7 @@ interface AuthUser {
   role: string[]
   exp: number
   onboardingStatus: OnboardingStatus
+  hasPassword: boolean
 }
 
 interface AuthState {
@@ -17,6 +18,7 @@ interface AuthState {
     user: AuthUser | null
     setUser: (user: AuthUser | null) => void
     setOnboardingStatus: (status: OnboardingStatus) => void
+    setHasPassword: (hasPassword: boolean) => void
     accessToken: string
     setAccessToken: (accessToken: string) => void
     resetAccessToken: () => void
@@ -38,6 +40,14 @@ export const useAuthStore = create<AuthState>()((set) => {
           auth: {
             ...state.auth,
             user: state.auth.user ? { ...state.auth.user, onboardingStatus: status } : null,
+          },
+        })),
+      setHasPassword: (hasPassword) =>
+        set((state) => ({
+          ...state,
+          auth: {
+            ...state.auth,
+            user: state.auth.user ? { ...state.auth.user, hasPassword } : null,
           },
         })),
       accessToken: initToken,

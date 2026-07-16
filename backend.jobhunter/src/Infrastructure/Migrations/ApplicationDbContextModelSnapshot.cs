@@ -696,6 +696,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<int?>("JobTitleId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
@@ -740,9 +743,46 @@ namespace backend.jobhunter.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("JobTitleId");
+
                     b.HasIndex("RoleStatus");
 
                     b.ToTable("JobRoles");
+                });
+
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobTitle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("JobTitles");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.Note", b =>
@@ -1031,7 +1071,14 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.jobhunter.Domain.Entities.JobTitle", "JobTitle")
+                        .WithMany("JobRoles")
+                        .HasForeignKey("JobTitleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Company");
+
+                    b.Navigation("JobTitle");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.Note", b =>
@@ -1090,6 +1137,11 @@ namespace backend.jobhunter.Infrastructure.Migrations
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobRole", b =>
                 {
                     b.Navigation("Applications");
+                });
+
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobTitle", b =>
+                {
+                    b.Navigation("JobRoles");
                 });
 #pragma warning restore 612, 618
         }

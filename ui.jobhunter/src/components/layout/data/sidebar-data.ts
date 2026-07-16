@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Files,
   StickyNote,
+  Tag,
 } from 'lucide-react'
 import { type NavGroup, type SidebarData } from '../types'
 
@@ -35,6 +36,11 @@ const jobSeekerNavGroups: NavGroup[] = [
         title: 'Applications',
         url: '/applications',
         icon: FileText,
+      },
+      {
+        title: 'Vacancies',
+        url: '/job-roles',
+        icon: Briefcase,
       },
       {
         title: 'CVs',
@@ -85,9 +91,14 @@ const defaultNavGroups: NavGroup[] = [
         icon: Contact2,
       },
       {
-        title: 'Job Roles',
+        title: 'Vacancies',
         url: '/job-roles',
         icon: Briefcase,
+      },
+      {
+        title: 'Job Titles',
+        url: '/job-titles',
+        icon: Tag,
       },
       {
         title: 'All Applications',

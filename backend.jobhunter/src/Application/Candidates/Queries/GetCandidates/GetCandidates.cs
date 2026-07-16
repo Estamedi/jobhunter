@@ -37,7 +37,10 @@ public class GetCandidatesQueryHandler(IApplicationDbContext context)
         var query = context.Candidates.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
-            query = query.Where(c => c.FullName.Contains(request.Search) || c.Email.Contains(request.Search));
+        {
+            var search = request.Search.ToLower();
+            query = query.Where(c => c.FullName.ToLower().Contains(search) || c.Email.ToLower().Contains(search));
+        }
 
         if (request.IsActive.HasValue)
             query = query.Where(c => c.IsActive == request.IsActive.Value);

@@ -11,6 +11,9 @@ vi.mock('@/features/companies/api', () => ({
 vi.mock('@/features/job-roles/api', () => ({
   jobRolesApi: { list: vi.fn(), create: vi.fn() },
 }))
+vi.mock('@/features/job-titles/api', () => ({
+  jobTitlesApi: { list: vi.fn(), create: vi.fn() },
+}))
 vi.mock('@/features/contacts/api', () => ({
   contactsApi: { list: vi.fn(), create: vi.fn() },
 }))
@@ -23,6 +26,7 @@ vi.mock('@/features/cvs/lib/cv-file', () => ({
 
 const { companiesApi } = await import('@/features/companies/api')
 const { jobRolesApi } = await import('@/features/job-roles/api')
+const { jobTitlesApi } = await import('@/features/job-titles/api')
 const { contactsApi } = await import('@/features/contacts/api')
 const { cvsApi } = await import('@/features/cvs/api')
 
@@ -53,6 +57,7 @@ describe('ApplicationsMutateDialog', () => {
       items: [{ id: 10, companyId: 1, title: 'Backend Engineer', source: 'LinkedIn', workType: 'Remote', employmentType: 'FullTime', roleStatus: 'Open' }],
       total: 1,
     })
+    vi.mocked(jobTitlesApi.list).mockResolvedValue({ items: [], total: 0 })
     vi.mocked(contactsApi.list).mockResolvedValue({ items: [], total: 0 })
     vi.mocked(cvsApi.list).mockResolvedValue({
       items: [{ id: 5, candidateId: 42, fileName: 'resume-v1.pdf', contentType: 'application/pdf', fileSizeBytes: 1024, uploadedDate: '2026-01-01' }],
@@ -76,7 +81,7 @@ describe('ApplicationsMutateDialog', () => {
     await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
 
     await expect.element(getByRole('button', { name: /^Acme Inc$/i })).toBeInTheDocument()
-    await expect.element(getByRole('button', { name: /select job role/i })).not.toBeDisabled()
+    await expect.element(getByRole('button', { name: /select vacancy/i })).not.toBeDisabled()
   })
 
   it('creates a new company inline and selects it', async () => {
@@ -110,8 +115,8 @@ describe('ApplicationsMutateDialog', () => {
     await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
     await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
 
-    await userEvent.click(getByRole('button', { name: /select job role/i }))
-    await userEvent.fill(getByPlaceholder(/search job roles/i), 'Backend')
+    await userEvent.click(getByRole('button', { name: /select vacancy/i }))
+    await userEvent.fill(getByPlaceholder(/search vacancies or job titles/i), 'Backend')
     await userEvent.click(getByRole('option', { name: /^Backend Engineer$/i }))
 
     await userEvent.click(getByRole('button', { name: /^create$/i }))
@@ -137,8 +142,8 @@ describe('ApplicationsMutateDialog', () => {
     await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
     await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
 
-    await userEvent.click(getByRole('button', { name: /select job role/i }))
-    await userEvent.fill(getByPlaceholder(/search job roles/i), 'Backend')
+    await userEvent.click(getByRole('button', { name: /select vacancy/i }))
+    await userEvent.fill(getByPlaceholder(/search vacancies or job titles/i), 'Backend')
     await userEvent.click(getByRole('option', { name: /^Backend Engineer$/i }))
 
     await userEvent.click(getByRole('button', { name: /select existing resume/i }))
@@ -159,8 +164,8 @@ describe('ApplicationsMutateDialog', () => {
     await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
     await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
 
-    await userEvent.click(getByRole('button', { name: /select job role/i }))
-    await userEvent.fill(getByPlaceholder(/search job roles/i), 'Backend')
+    await userEvent.click(getByRole('button', { name: /select vacancy/i }))
+    await userEvent.fill(getByPlaceholder(/search vacancies or job titles/i), 'Backend')
     await userEvent.click(getByRole('option', { name: /^Backend Engineer$/i }))
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
@@ -171,5 +176,95 @@ describe('ApplicationsMutateDialog', () => {
 
     expect(cvsApi.upload).toHaveBeenCalledWith({ candidateId: 42, file })
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ cvId: 77 }))
+  })
+
+  it('groups existing vacancies separately from job titles', async () => {
+    vi.mocked(jobTitlesApi.list).mockResolvedValue({
+      items: [{ id: 55, name: 'Product Manager', jobRoleCount: 1 }],
+      total: 1,
+    })
+    const { getByRole, getByPlaceholder, getByText } = await renderDialog()
+
+    await userEvent.click(getByRole('button', { name: /select company/i }))
+    await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
+    await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
+
+    await userEvent.click(getByRole('button', { name: /select vacancy/i }))
+    await userEvent.fill(getByPlaceholder(/search vacancies or job titles/i), 'e')
+
+    await expect.element(getByText('Existing vacancies')).toBeInTheDocument()
+    await expect.element(getByText('Job titles')).toBeInTheDocument()
+    await expect.element(getByRole('option', { name: /^Backend Engineer$/i })).toBeInTheDocument()
+    await expect.element(getByRole('option', { name: /^Product Manager$/i })).toBeInTheDocument()
+  })
+
+  it('creates a job role linked to the job title when none exists yet for this company', async () => {
+    vi.mocked(jobTitlesApi.list).mockResolvedValue({
+      items: [{ id: 55, name: 'Product Manager', jobRoleCount: 0 }],
+      total: 1,
+    })
+    vi.mocked(jobRolesApi.list).mockImplementation((filters) =>
+      Promise.resolve(
+        filters?.jobTitleId
+          ? { items: [], total: 0 }
+          : {
+              items: [
+                { id: 10, companyId: 1, title: 'Backend Engineer', source: 'LinkedIn', workType: 'Remote', employmentType: 'FullTime', roleStatus: 'Open' },
+              ],
+              total: 1,
+            }
+      )
+    )
+    vi.mocked(jobRolesApi.create).mockResolvedValue(200)
+    const { getByRole, getByPlaceholder, onSubmit } = await renderDialog()
+
+    await userEvent.click(getByRole('button', { name: /select company/i }))
+    await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
+    await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
+
+    await userEvent.click(getByRole('button', { name: /select vacancy/i }))
+    await userEvent.fill(getByPlaceholder(/search vacancies or job titles/i), 'Product')
+    await userEvent.click(getByRole('option', { name: /^Product Manager$/i }))
+
+    await expect.element(getByRole('button', { name: /^Product Manager$/i })).toBeInTheDocument()
+    expect(jobRolesApi.list).toHaveBeenCalledWith({ companyId: 1, jobTitleId: 55, pageSize: 1 })
+    expect(jobRolesApi.create).toHaveBeenCalledWith({ companyId: 1, jobTitleId: 55, title: 'Product Manager' })
+
+    await userEvent.click(getByRole('button', { name: /^create$/i }))
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ jobRoleId: 200 }))
+  })
+
+  it('reuses the existing job role when the selected job title already has one for this company', async () => {
+    vi.mocked(jobTitlesApi.list).mockResolvedValue({
+      items: [{ id: 55, name: 'Product Manager', jobRoleCount: 1 }],
+      total: 1,
+    })
+    vi.mocked(jobRolesApi.list).mockImplementation((filters) =>
+      Promise.resolve(
+        filters?.jobTitleId === 55
+          ? {
+              items: [
+                { id: 10, companyId: 1, jobTitleId: 55, title: 'Product Manager', source: 'LinkedIn', workType: 'Remote', employmentType: 'FullTime', roleStatus: 'Open' },
+              ],
+              total: 1,
+            }
+          : { items: [], total: 0 }
+      )
+    )
+    const { getByRole, getByPlaceholder, onSubmit } = await renderDialog()
+
+    await userEvent.click(getByRole('button', { name: /select company/i }))
+    await userEvent.fill(getByPlaceholder(/search companies/i), 'Acme')
+    await userEvent.click(getByRole('option', { name: /^Acme Inc$/i }))
+
+    await userEvent.click(getByRole('button', { name: /select vacancy/i }))
+    await userEvent.fill(getByPlaceholder(/search vacancies or job titles/i), 'Product')
+    await userEvent.click(getByRole('option', { name: /^Product Manager$/i }))
+
+    await expect.element(getByRole('button', { name: /^Product Manager$/i })).toBeInTheDocument()
+    expect(jobRolesApi.create).not.toHaveBeenCalled()
+
+    await userEvent.click(getByRole('button', { name: /^create$/i }))
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ jobRoleId: 10 }))
   })
 })

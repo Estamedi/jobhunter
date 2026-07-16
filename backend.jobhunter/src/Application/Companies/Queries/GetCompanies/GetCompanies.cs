@@ -30,7 +30,10 @@ public class GetCompaniesQueryHandler(IApplicationDbContext context)
         var query = context.Companies.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
-            query = query.Where(c => c.Name.Contains(request.Search));
+        {
+            var search = request.Search.ToLower();
+            query = query.Where(c => c.Name.ToLower().Contains(search));
+        }
         if (!string.IsNullOrWhiteSpace(request.Priority))
             query = query.Where(c => c.Priority == request.Priority);
         if (!string.IsNullOrWhiteSpace(request.Country))

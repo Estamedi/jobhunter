@@ -2,29 +2,61 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { applicationsApi, type JobApplication, type CreateApplicationDto } from './api'
 import { candidatesApi } from '@/features/candidates/api'
+import { ListPagination } from '@/components/list-pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText } from 'lucide-react'
+import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText, Settings2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
-import { STATUS_COLORS, FOLLOWUP_COLORS, STATUSES, formatStatusLabel } from './data/constants'
+import { ApplicationsBoard } from './components/applications-board'
+import { CustomizeStagesDialog } from './components/customize-stages-dialog'
+import { FOLLOWUP_COLORS, formatStatusLabel } from './data/constants'
+import { useBoardStages } from './hooks/use-board-stages'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
+
+const PAGE_SIZE = 20
 
 export function Applications() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string | undefined>()
+  const [page, setPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobApplication | null>(null)
+  const [customizeOpen, setCustomizeOpen] = useState(false)
+
+  const {
+    stages,
+    visibleStages,
+    addStage,
+    renameStage,
+    setStageColor,
+    toggleVisibility,
+    reorderStage,
+    removeStage,
+    resetToDefault,
+  } = useBoardStages()
+  const stageByStatus = Object.fromEntries(stages.map((s) => [s.status, s]))
+
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+
+  function handleStatusFilterChange(value: string | undefined) {
+    setStatusFilter(value)
+    setPage(1)
+  }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['applications', search, statusFilter],
-    queryFn: () => applicationsApi.list({ search: search || undefined, status: statusFilter }),
+    queryKey: ['applications', search, statusFilter, page],
+    queryFn: () => applicationsApi.list({ search: search || undefined, status: statusFilter, page, pageSize: PAGE_SIZE }),
   })
 
   const { data: myCandidate } = useQuery({
@@ -57,22 +89,40 @@ export function Applications() {
 
   return (
     <div className='space-y-4'>
+      <Tabs defaultValue='board'>
+        <div className='flex flex-wrap items-center justify-between gap-2'>
+          <TabsList>
+            <TabsTrigger value='board'>Board (by stage)</TabsTrigger>
+            <TabsTrigger value='all'>All applications</TabsTrigger>
+          </TabsList>
+          <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
+            <Plus className='h-4 w-4 mr-1' /> Add Application
+          </Button>
+        </div>
+
+        <TabsContent value='board' className='mt-4 space-y-3'>
+          <div className='flex justify-end'>
+            <Button variant='outline' size='sm' onClick={() => setCustomizeOpen(true)}>
+              <Settings2 className='h-4 w-4 mr-1' /> Customize board
+            </Button>
+          </div>
+          <ApplicationsBoard stages={visibleStages} />
+        </TabsContent>
+
+        <TabsContent value='all' className='mt-4 space-y-4'>
       <div className='flex flex-wrap items-center gap-2'>
         <div className='relative flex-1 min-w-[200px] max-w-sm'>
           <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-          <Input placeholder='Search applications...' className='pl-8' value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder='Search applications...' className='pl-8' value={search} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         <select
           value={statusFilter ?? ''}
-          onChange={(e) => setStatusFilter(e.target.value || undefined)}
+          onChange={(e) => handleStatusFilterChange(e.target.value || undefined)}
           className='flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm'
         >
           <option value=''>All statuses</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{formatStatusLabel(s)}</option>)}
+          {stages.map((s) => <option key={s.status} value={s.status}>{s.label}</option>)}
         </select>
-        <Button onClick={() => { setEditing(null); setDialogOpen(true) }} className='ml-auto'>
-          <Plus className='h-4 w-4 mr-1' /> Add Application
-        </Button>
       </div>
 
       <div className='rounded-md border overflow-x-auto'>
@@ -81,7 +131,8 @@ export function Applications() {
             <TableRow>
               <TableHead>Candidate</TableHead>
               <TableHead>Company</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Vacancy</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Applied</TableHead>
@@ -91,18 +142,24 @@ export function Applications() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={9}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
+            {isLoading && <TableRow><TableCell colSpan={10}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
             {!isLoading && data?.items.length === 0 && (
-              <TableRow><TableCell colSpan={9} className='text-center text-muted-foreground py-8'>No applications found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className='text-center text-muted-foreground py-8'>No applications found.</TableCell></TableRow>
             )}
             {data?.items.map((a) => (
               <TableRow key={a.id}>
                 <TableCell className='font-medium text-sm'>{a.candidateName || `#${a.candidateId}`}</TableCell>
                 <TableCell className='text-sm'>{a.companyName || `#${a.companyId}`}</TableCell>
                 <TableCell className='text-sm max-w-[150px] truncate'>{a.jobRoleTitle || `#${a.jobRoleId}`}</TableCell>
+                <TableCell
+                  className='text-sm text-muted-foreground max-w-[200px] truncate'
+                  title={a.jobRoleDescription || undefined}
+                >
+                  {a.jobRoleDescription || '—'}
+                </TableCell>
                 <TableCell>
-                  <Badge variant={STATUS_COLORS[a.status] ?? 'secondary'} className='text-xs whitespace-nowrap'>
-                    {formatStatusLabel(a.status)}
+                  <Badge variant={stageByStatus[a.status]?.badgeVariant ?? 'secondary'} className='text-xs whitespace-nowrap'>
+                    {stageByStatus[a.status]?.label ?? formatStatusLabel(a.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -157,6 +214,25 @@ export function Applications() {
           </TableBody>
         </Table>
       </div>
+
+      {!isLoading && (
+        <ListPagination page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPageChange={setPage} itemLabel='application' />
+      )}
+        </TabsContent>
+      </Tabs>
+
+      <CustomizeStagesDialog
+        open={customizeOpen}
+        onOpenChange={setCustomizeOpen}
+        stages={stages}
+        onRename={renameStage}
+        onColor={setStageColor}
+        onToggleVisibility={toggleVisibility}
+        onReorder={reorderStage}
+        onRemove={removeStage}
+        onAdd={addStage}
+        onReset={resetToDefault}
+      />
 
       <ApplicationsMutateDialog
         key={editing?.id ?? 'create'}

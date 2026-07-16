@@ -6,6 +6,7 @@ export interface JobApplication {
   candidateName?: string
   jobRoleId: number
   jobRoleTitle?: string
+  jobRoleDescription?: string
   companyId: number
   companyName?: string
   mainContactId?: number

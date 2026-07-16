@@ -25,7 +25,13 @@ public class JobRoleConfiguration : IEntityTypeConfiguration<JobRole>
             .HasForeignKey(r => r.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(r => r.JobTitle)
+            .WithMany(t => t.JobRoles)
+            .HasForeignKey(r => r.JobTitleId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(r => r.CompanyId);
         builder.HasIndex(r => r.RoleStatus);
+        builder.HasIndex(r => r.JobTitleId);
     }
 }

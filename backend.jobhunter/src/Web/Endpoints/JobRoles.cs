@@ -23,9 +23,9 @@ public class JobRoles : IEndpointGroup
 
     [EndpointSummary("List job roles")]
     public static async Task<Ok<GetJobRolesResult>> GetJobRoles(
-        ISender sender, string? search, int? companyId, string? roleStatus, string? workType, string? country, string? source, int page = 1, int pageSize = 50,
+        ISender sender, string? search, int? companyId, int? jobTitleId, string? roleStatus, string? workType, string? country, string? source, int page = 1, int pageSize = 50,
         CancellationToken ct = default)
-        => TypedResults.Ok(await sender.Send(new GetJobRolesQuery(search, companyId, roleStatus, workType, country, source, page, pageSize), ct));
+        => TypedResults.Ok(await sender.Send(new GetJobRolesQuery(search, companyId, jobTitleId, roleStatus, workType, country, source, page, pageSize), ct));
 
     [EndpointSummary("Get job role by ID")]
     public static async Task<Ok<JobRoleDetailDto>> GetJobRole(ISender sender, int id, CancellationToken ct = default)

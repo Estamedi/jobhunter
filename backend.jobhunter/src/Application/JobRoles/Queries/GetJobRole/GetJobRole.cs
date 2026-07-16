@@ -5,7 +5,7 @@ using backend.jobhunter.Application.Common.Security;
 namespace backend.jobhunter.Application.JobRoles.Queries.GetJobRole;
 
 public record JobRoleDetailDto(
-    int Id, int CompanyId, string? CompanyName, string Title,
+    int Id, int CompanyId, string? CompanyName, int? JobTitleId, string? JobTitleName, string Title,
     string? JobLink, string Source, string? Country, string? City,
     string WorkType, decimal? SalaryMin, decimal? SalaryMax, string? Currency,
     string EmploymentType, string RoleStatus,
@@ -24,7 +24,7 @@ public class GetJobRoleQueryHandler(IApplicationDbContext context)
         var r = await context.JobRoles.AsNoTracking()
             .Where(r => r.Id == request.Id)
             .Select(r => new JobRoleDetailDto(
-                r.Id, r.CompanyId, r.Company.Name, r.Title, r.JobLink,
+                r.Id, r.CompanyId, r.Company.Name, r.JobTitleId, r.JobTitle != null ? r.JobTitle.Name : null, r.Title, r.JobLink,
                 r.Source, r.Country, r.City, r.WorkType,
                 r.SalaryMin, r.SalaryMax, r.Currency,
                 r.EmploymentType, r.RoleStatus,

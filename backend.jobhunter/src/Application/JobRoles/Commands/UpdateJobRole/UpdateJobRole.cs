@@ -9,6 +9,7 @@ public record UpdateJobRoleCommand : IRequest
 {
     public required int Id { get; init; }
     public required int CompanyId { get; init; }
+    public int? JobTitleId { get; init; }
     public required string Title { get; init; }
     public string? JobLink { get; init; }
     public string Source { get; init; } = "Other";
@@ -33,6 +34,7 @@ public class UpdateJobRoleCommandHandler(IApplicationDbContext context)
             ?? throw new NotFoundException("JobRole", request.Id);
 
         entity.CompanyId = request.CompanyId;
+        entity.JobTitleId = request.JobTitleId;
         entity.Title = request.Title;
         entity.JobLink = request.JobLink;
         entity.Source = request.Source;

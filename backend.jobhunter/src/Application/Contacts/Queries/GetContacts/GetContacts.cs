@@ -30,7 +30,10 @@ public class GetContactsQueryHandler(IApplicationDbContext context)
         var query = context.Contacts.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
-            query = query.Where(c => c.FullName.Contains(request.Search) || (c.Email != null && c.Email.Contains(request.Search)));
+        {
+            var search = request.Search.ToLower();
+            query = query.Where(c => c.FullName.ToLower().Contains(search) || (c.Email != null && c.Email.ToLower().Contains(search)));
+        }
         if (request.CompanyId.HasValue)
             query = query.Where(c => c.CompanyId == request.CompanyId.Value);
         if (!string.IsNullOrWhiteSpace(request.Type))

@@ -12,6 +12,7 @@ const sampleUser = {
   role: ['user'],
   exp: 1_700_000_000,
   onboardingStatus: 'Completed' as const,
+  hasPassword: true,
 }
 
 describe('useAuthStore', () => {
