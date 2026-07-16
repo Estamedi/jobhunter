@@ -38,7 +38,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { CURRENCIES, PRIORITIES, STATUSES, formatStatusLabel } from '../data/constants'
+import { CURRENCIES, PRIORITIES } from '../data/constants'
+import { useBoardStages } from '../hooks/use-board-stages'
 import type { CreateApplicationDto, JobApplication } from '../api'
 
 function SectionHeading({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
@@ -177,6 +178,7 @@ export function ApplicationsMutateDialog({
   onSubmit,
 }: ApplicationsMutateDialogProps) {
   const isUpdate = !!currentRow
+  const { stages } = useBoardStages()
   const { register, handleSubmit, control } = useForm<ScalarFields>({
     defaultValues: currentRow
       ? {
@@ -190,7 +192,7 @@ export function ApplicationsMutateDialog({
           coverLetterVersion: currentRow.coverLetterVersion,
           notes: currentRow.notes,
         }
-      : { currency: 'USD', status: STATUSES[0], priority: PRIORITIES[0] },
+      : { currency: 'USD', status: stages[0]?.status, priority: PRIORITIES[0] },
   })
 
   const [company, setCompany] = useState<EntityOption | null>(
@@ -380,9 +382,9 @@ export function ApplicationsMutateDialog({
                         <SelectValue placeholder='Select status...' />
                       </SelectTrigger>
                       <SelectContent>
-                        {STATUSES.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {formatStatusLabel(s)}
+                        {stages.map((s) => (
+                          <SelectItem key={s.status} value={s.status}>
+                            {s.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
