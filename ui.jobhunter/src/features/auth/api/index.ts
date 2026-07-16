@@ -7,6 +7,7 @@ export interface CurrentUser {
   email: string
   roles: string[]
   onboardingStatus: OnboardingStatus
+  hasPassword: boolean
 }
 
 export const authApi = {
@@ -14,4 +15,7 @@ export const authApi = {
 
   updateOnboardingStatus: (status: Extract<OnboardingStatus, 'Completed' | 'Skipped'>) =>
     http.put('/api/Users/onboarding-status', { status }),
+
+  setPassword: (newPassword: string, oldPassword?: string) =>
+    http.post('/api/Users/password', { newPassword, oldPassword }),
 }

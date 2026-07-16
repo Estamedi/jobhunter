@@ -7,7 +7,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { SidebarNav } from './components/sidebar-nav'
-import { UserCog, Wrench } from 'lucide-react'
+import { KeyRound, UserCog, Wrench } from 'lucide-react'
 
 const sidebarNavItems = [
   {
@@ -19,6 +19,11 @@ const sidebarNavItems = [
     title: 'Account',
     href: '/settings/account',
     icon: <Wrench size={18} />,
+  },
+  {
+    title: 'Password',
+    href: '/settings/password',
+    icon: <KeyRound size={18} />,
   },
   // {
   //   title: 'Appearance',

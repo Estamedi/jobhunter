@@ -24,6 +24,7 @@ export const Route = createFileRoute('/_authenticated')({
           role: me.roles,
           exp: 0,
           onboardingStatus: me.onboardingStatus,
+          hasPassword: me.hasPassword,
         })
       } catch {
         auth.reset()

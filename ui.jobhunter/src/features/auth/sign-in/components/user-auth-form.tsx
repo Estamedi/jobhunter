@@ -111,6 +111,7 @@ export function UserAuthForm({
         role: me.roles,
         exp: 0,
         onboardingStatus: me.onboardingStatus,
+        hasPassword: me.hasPassword,
       })
     } catch {
       auth.setUser({
@@ -119,6 +120,7 @@ export function UserAuthForm({
         role: [],
         exp: 0,
         onboardingStatus: 'Pending',
+        hasPassword: false,
       })
     }
   }
