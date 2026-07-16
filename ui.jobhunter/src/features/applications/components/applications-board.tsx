@@ -11,12 +11,17 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { CSS } from '@dnd-kit/utilities'
+import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { applicationsApi, type GetApplicationsResult, type JobApplication } from '../api'
 import type { BoardStage } from '../hooks/use-board-stages'
+
+// Standard column height so a column never resizes as cards move in/out — only the
+// card list inside it scrolls once it overflows.
+const COLUMN_HEIGHT = 'h-[34rem]'
+const CARD_SPRING = { duration: 0.18, ease: 'easeOut' } as const
 
 // Board view fetches without pagination; beyond this it silently truncates, which is
 // acceptable for a personal pipeline tracker but would need real pagination at larger scale.
@@ -59,19 +64,24 @@ function CardContent({ application }: { application: JobApplication }) {
 }
 
 function BoardCard({ application }: { application: JobApplication }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: application.id })
-  const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined
+  // The dragged card stays put (just dimmed) — DragOverlay renders the copy that follows
+  // the pointer, so this element doesn't also chase the cursor.
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: application.id })
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
-      style={style}
+      layout
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: isDragging ? 0.4 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.85 }}
+      transition={CARD_SPRING}
       {...listeners}
       {...attributes}
-      className={`cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing ${isDragging ? 'opacity-40' : ''}`}
+      className='cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing'
     >
       <CardContent application={application} />
-    </div>
+    </motion.div>
   )
 }
 
@@ -79,7 +89,7 @@ function BoardColumn({ stage, applications, accent }: { stage: BoardStage; appli
   const { isOver, setNodeRef } = useDroppable({ id: stage.status })
 
   return (
-    <div className='flex w-72 shrink-0 flex-col rounded-xl border bg-muted/20'>
+    <div className={`flex w-72 shrink-0 flex-col rounded-xl border bg-muted/20 ${COLUMN_HEIGHT}`}>
       <div className={`flex items-center justify-between gap-2 rounded-t-xl border-t-4 px-3 py-2.5 ${accent.top}`}>
         <div className='flex min-w-0 items-center gap-2'>
           <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
@@ -91,16 +101,18 @@ function BoardColumn({ stage, applications, accent }: { stage: BoardStage; appli
       </div>
       <div
         ref={setNodeRef}
-        className={`flex min-h-[160px] flex-1 flex-col gap-2 p-2.5 transition-colors duration-150 ${isOver ? `${accent.tint} ring-2 ring-inset ${accent.ring}` : ''}`}
+        className={`flex flex-1 flex-col gap-2 overflow-y-auto p-2.5 transition-colors duration-150 ${isOver ? `${accent.tint} ring-2 ring-inset ${accent.ring}` : ''}`}
       >
         {applications.length === 0 && (
-          <div className='flex flex-1 items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 py-8 text-center text-xs text-muted-foreground'>
+          <div className='flex flex-1 items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 text-center text-xs text-muted-foreground'>
             Drag applications here
           </div>
         )}
-        {applications.map((app) => (
-          <BoardCard key={app.id} application={app} />
-        ))}
+        <AnimatePresence initial={false}>
+          {applications.map((app) => (
+            <BoardCard key={app.id} application={app} />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   )
@@ -168,27 +180,29 @@ export function ApplicationsBoard({ stages }: { stages: BoardStage[] }) {
     return (
       <div className='flex gap-4 overflow-x-auto pb-4'>
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className='h-64 w-72 shrink-0' />
+          <Skeleton key={i} className={`w-72 shrink-0 ${COLUMN_HEIGHT}`} />
         ))}
       </div>
     )
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className='flex gap-4 overflow-x-auto pb-4'>
-        {stages.map((stage, i) => (
-          <BoardColumn key={stage.status} stage={stage} applications={grouped.get(stage.status) ?? []} accent={COLUMN_ACCENTS[i % COLUMN_ACCENTS.length]} />
-        ))}
-        {otherItems.length > 0 && <BoardColumn stage={OTHER_STAGE} applications={otherItems} accent={OTHER_ACCENT} />}
-      </div>
-      <DragOverlay>
-        {activeApp && (
-          <div className='w-72 rotate-1 rounded-lg border bg-card p-3 shadow-lg'>
-            <CardContent application={activeApp} />
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+    <MotionConfig reducedMotion='user'>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className='flex gap-4 overflow-x-auto pb-4'>
+          {stages.map((stage, i) => (
+            <BoardColumn key={stage.status} stage={stage} applications={grouped.get(stage.status) ?? []} accent={COLUMN_ACCENTS[i % COLUMN_ACCENTS.length]} />
+          ))}
+          {otherItems.length > 0 && <BoardColumn stage={OTHER_STAGE} applications={otherItems} accent={OTHER_ACCENT} />}
+        </div>
+        <DragOverlay dropAnimation={null}>
+          {activeApp && (
+            <div className='w-72 rotate-1 rounded-lg border bg-card p-3 shadow-lg'>
+              <CardContent application={activeApp} />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+    </MotionConfig>
   )
 }
