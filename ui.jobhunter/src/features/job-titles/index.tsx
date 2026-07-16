@@ -89,7 +89,7 @@ export function JobTitles() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Job Roles</TableHead>
+              <TableHead>Vacancies</TableHead>
               <TableHead className='w-16' />
             </TableRow>
           </TableHeader>

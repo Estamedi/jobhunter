@@ -16,7 +16,7 @@ function JobRolesPage() {
       </Header>
       <Main>
         <div className='mb-4'>
-          <h1 className='text-2xl font-bold tracking-tight'>Job Roles</h1>
+          <h1 className='text-2xl font-bold tracking-tight'>Vacancies</h1>
           <p className='text-muted-foreground text-sm'>Open positions being tracked</p>
         </div>
         <JobRoles />

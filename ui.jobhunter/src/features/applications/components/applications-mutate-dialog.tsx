@@ -195,7 +195,7 @@ export function ApplicationsMutateDialog({
       return
     }
     if (!jobRole) {
-      toast.error('Please select a job role.')
+      toast.error('Please select a vacancy.')
       return
     }
 
@@ -231,13 +231,13 @@ export function ApplicationsMutateDialog({
           <DialogTitle>{isUpdate ? 'Edit Application' : 'Add Application'}</DialogTitle>
           <DialogDescription>
             {isUpdate
-              ? 'Update the role, pipeline stage, and documents for this application.'
-              : "Track a role you applied to — who it's with, where it stands, and the resume you sent."}
+              ? 'Update the vacancy, pipeline stage, and documents for this application.'
+              : "Track a vacancy you applied to — who it's with, where it stands, and the resume you sent."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(submit)} className='space-y-5' id='application-form'>
           <section className='space-y-3'>
-            <SectionHeading icon={Building2} title='Role' />
+            <SectionHeading icon={Building2} title='Vacancy' />
             <div className='grid grid-cols-2 gap-3'>
               <div className='min-w-0 space-y-1'>
                 <Label>Company *</Label>
@@ -257,14 +257,14 @@ export function ApplicationsMutateDialog({
                 />
               </div>
               <div className='min-w-0 space-y-1'>
-                <Label>Job Role *</Label>
+                <Label>Vacancy *</Label>
                 <EntityCombobox
                   value={jobRole}
                   onChange={setJobRole}
                   queryKey={['job-roles', 'combobox', company?.value]}
-                  placeholder='Select job role...'
-                  searchPlaceholder='Search job roles...'
-                  createLabel={(name) => `Create job role "${name}"`}
+                  placeholder='Select vacancy...'
+                  searchPlaceholder='Search vacancies...'
+                  createLabel={(name) => `Create vacancy "${name}"`}
                   disabled={!company}
                   disabledPlaceholder='Select a company first'
                   fetchOptions={(search) =>
@@ -286,7 +286,7 @@ export function ApplicationsMutateDialog({
                     value={jobRoleDescription ?? ''}
                     readOnly
                     rows={3}
-                    placeholder='No description on file for this job role yet — add one from the Job Roles page.'
+                    placeholder='No description on file for this vacancy yet — add one from the Vacancies page.'
                     className='resize-none bg-muted/40'
                   />
                 </div>

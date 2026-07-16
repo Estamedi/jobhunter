@@ -133,17 +133,17 @@ export function JobRoles() {
 
   const create = useMutation({
     mutationFn: jobRolesApi.create,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['job-roles'] }); toast.success('Job role created'); setDialogOpen(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['job-roles'] }); toast.success('Vacancy created'); setDialogOpen(false) },
   })
 
   const update = useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: Partial<CreateJobRoleDto> }) => jobRolesApi.update(id, dto),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['job-roles'] }); toast.success('Job role updated'); setDialogOpen(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['job-roles'] }); toast.success('Vacancy updated'); setDialogOpen(false) },
   })
 
   const remove = useMutation({
     mutationFn: jobRolesApi.delete,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['job-roles'] }); toast.success('Job role deleted') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['job-roles'] }); toast.success('Vacancy deleted') },
   })
 
   function handleSubmit(dto: CreateJobRoleDto) {
@@ -158,10 +158,10 @@ export function JobRoles() {
       <div className='flex items-center gap-2'>
         <div className='relative flex-1 max-w-sm'>
           <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-          <Input placeholder='Search job roles...' className='pl-8' value={search} onChange={(e) => handleSearchChange(e.target.value)} />
+          <Input placeholder='Search vacancies...' className='pl-8' value={search} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         <Button onClick={() => { setEditing(null); setDialogOpen(true) }} className='ml-auto'>
-          <Plus className='h-4 w-4 mr-1' /> Add Job Role
+          <Plus className='h-4 w-4 mr-1' /> Add Vacancy
         </Button>
       </div>
 
@@ -182,7 +182,7 @@ export function JobRoles() {
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={8}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
             {!isLoading && data?.items.length === 0 && (
-              <TableRow><TableCell colSpan={8} className='text-center text-muted-foreground py-8'>No job roles found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className='text-center text-muted-foreground py-8'>No vacancies found.</TableCell></TableRow>
             )}
             {data?.items.map((r) => (
               <TableRow key={r.id}>
@@ -221,12 +221,12 @@ export function JobRoles() {
       </div>
 
       {!isLoading && (
-        <ListPagination page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPageChange={setPage} itemLabel='job role' />
+        <ListPagination page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPageChange={setPage} itemLabel='vacancy' itemLabelPlural='vacancies' />
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className='max-w-lg'>
-          <DialogHeader><DialogTitle>{editing ? 'Edit Job Role' : 'Add Job Role'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? 'Edit Vacancy' : 'Add Vacancy'}</DialogTitle></DialogHeader>
           <JobRoleForm defaultValues={editing ?? undefined} onSubmit={handleSubmit} />
           <DialogFooter>
             <Button variant='outline' onClick={() => setDialogOpen(false)}>Cancel</Button>

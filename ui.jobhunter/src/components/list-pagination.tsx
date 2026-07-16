@@ -15,9 +15,17 @@ interface ListPaginationProps {
   total: number
   onPageChange: (page: number) => void
   itemLabel?: string
+  itemLabelPlural?: string
 }
 
-export function ListPagination({ page, pageSize, total, onPageChange, itemLabel = 'item' }: ListPaginationProps) {
+export function ListPagination({
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  itemLabel = 'item',
+  itemLabelPlural = `${itemLabel}s`,
+}: ListPaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const pageNumbers = getPageNumbers(page, totalPages)
 
@@ -26,8 +34,7 @@ export function ListPagination({ page, pageSize, total, onPageChange, itemLabel 
   return (
     <div className='flex items-center justify-between gap-2'>
       <p className='text-sm text-muted-foreground'>
-        {total} {itemLabel}
-        {total === 1 ? '' : 's'}
+        {total} {total === 1 ? itemLabel : itemLabelPlural}
       </p>
       <Pagination className='mx-0 w-auto'>
         <PaginationContent>

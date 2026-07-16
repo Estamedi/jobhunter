@@ -95,7 +95,7 @@ export function Applications() {
             <TableRow>
               <TableHead>Candidate</TableHead>
               <TableHead>Company</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Vacancy</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
