@@ -4,7 +4,7 @@ using backend.jobhunter.Application.Common.Security;
 namespace backend.jobhunter.Application.JobRoles.Queries.GetJobRoles;
 
 public record JobRoleDto(
-    int Id, int CompanyId, string? CompanyName, string Title,
+    int Id, int CompanyId, string? CompanyName, int? JobTitleId, string? JobTitleName, string Title,
     string? JobLink, string Source, string? Country, string? City,
     string WorkType, decimal? SalaryMin, decimal? SalaryMax, string? Currency,
     string EmploymentType, string RoleStatus, string? Description,
@@ -17,6 +17,7 @@ public record GetJobRolesResult(IReadOnlyList<JobRoleDto> Items, int Total);
 public record GetJobRolesQuery(
     string? Search = null,
     int? CompanyId = null,
+    int? JobTitleId = null,
     string? RoleStatus = null,
     string? WorkType = null,
     string? Country = null,
@@ -33,9 +34,14 @@ public class GetJobRolesQueryHandler(IApplicationDbContext context)
         var query = context.JobRoles.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
-            query = query.Where(r => r.Title.Contains(request.Search));
+        {
+            var search = request.Search.ToLower();
+            query = query.Where(r => r.Title.ToLower().Contains(search));
+        }
         if (request.CompanyId.HasValue)
             query = query.Where(r => r.CompanyId == request.CompanyId.Value);
+        if (request.JobTitleId.HasValue)
+            query = query.Where(r => r.JobTitleId == request.JobTitleId.Value);
         if (!string.IsNullOrWhiteSpace(request.RoleStatus))
             query = query.Where(r => r.RoleStatus == request.RoleStatus);
         if (!string.IsNullOrWhiteSpace(request.WorkType))
@@ -51,7 +57,7 @@ public class GetJobRolesQueryHandler(IApplicationDbContext context)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(r => new JobRoleDto(
-                r.Id, r.CompanyId, r.Company.Name, r.Title, r.JobLink,
+                r.Id, r.CompanyId, r.Company.Name, r.JobTitleId, r.JobTitle != null ? r.JobTitle.Name : null, r.Title, r.JobLink,
                 r.Source, r.Country, r.City, r.WorkType,
                 r.SalaryMin, r.SalaryMax, r.Currency,
                 r.EmploymentType, r.RoleStatus, r.Description,

@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { jobRolesApi, type JobRole, type CreateJobRoleDto } from './api'
+import { jobTitlesApi } from '@/features/job-titles/api'
+import { EntityCombobox, type EntityOption } from '@/components/entity-combobox'
+import { ListPagination } from '@/components/list-pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -14,16 +17,26 @@ import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Search, Trash2, Pencil, ExternalLink } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
+const PAGE_SIZE = 20
+
 const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
   Open: 'default',
   Closed: 'secondary',
   Paused: 'destructive',
 }
 
-function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateJobRoleDto>; onSubmit: (d: CreateJobRoleDto) => void }) {
+function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<JobRole>; onSubmit: (d: CreateJobRoleDto) => void }) {
   const { register, handleSubmit } = useForm<CreateJobRoleDto>({ defaultValues })
+  const [jobTitle, setJobTitle] = useState<EntityOption | null>(
+    defaultValues?.jobTitleId ? { value: defaultValues.jobTitleId, label: defaultValues.jobTitleName ?? `#${defaultValues.jobTitleId}` } : null
+  )
+
+  function submit(dto: CreateJobRoleDto) {
+    onSubmit({ ...dto, jobTitleId: jobTitle?.value })
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='jobrole-form'>
+    <form onSubmit={handleSubmit(submit)} className='space-y-4' id='jobrole-form'>
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1'>
           <Label>Title *</Label>
@@ -32,6 +45,21 @@ function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Crea
         <div className='space-y-1'>
           <Label>Company ID *</Label>
           <Input type='number' {...register('companyId', { valueAsNumber: true })} required />
+        </div>
+        <div className='space-y-1 col-span-2'>
+          <Label>Job Title (catalog)</Label>
+          <EntityCombobox
+            value={jobTitle}
+            onChange={setJobTitle}
+            queryKey={['job-titles', 'combobox']}
+            placeholder='Select job title...'
+            searchPlaceholder='Search job titles...'
+            createLabel={(name) => `Create job title "${name}"`}
+            fetchOptions={(search) =>
+              jobTitlesApi.list({ search: search || undefined, pageSize: 20 }).then((r) => r.items.map((t) => ({ value: t.id, label: t.name })))
+            }
+            onCreate={(name) => jobTitlesApi.create({ name }).then((id) => ({ value: id, label: name }))}
+          />
         </div>
         <div className='space-y-1 col-span-2'>
           <Label>Job Link</Label>
@@ -89,12 +117,18 @@ function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Crea
 export function JobRoles() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobRole | null>(null)
 
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+
   const { data, isLoading } = useQuery({
-    queryKey: ['job-roles', search],
-    queryFn: () => jobRolesApi.list({ search: search || undefined }),
+    queryKey: ['job-roles', search, page],
+    queryFn: () => jobRolesApi.list({ search: search || undefined, page, pageSize: PAGE_SIZE }),
   })
 
   const create = useMutation({
@@ -124,7 +158,7 @@ export function JobRoles() {
       <div className='flex items-center gap-2'>
         <div className='relative flex-1 max-w-sm'>
           <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-          <Input placeholder='Search job roles...' className='pl-8' value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder='Search job roles...' className='pl-8' value={search} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         <Button onClick={() => { setEditing(null); setDialogOpen(true) }} className='ml-auto'>
           <Plus className='h-4 w-4 mr-1' /> Add Job Role
@@ -136,6 +170,7 @@ export function JobRoles() {
           <TableHeader>
             <TableRow>
               <TableHead>Title</TableHead>
+              <TableHead>Job Title</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Work Type</TableHead>
@@ -145,9 +180,9 @@ export function JobRoles() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={7}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
+            {isLoading && <TableRow><TableCell colSpan={8}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
             {!isLoading && data?.items.length === 0 && (
-              <TableRow><TableCell colSpan={7} className='text-center text-muted-foreground py-8'>No job roles found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className='text-center text-muted-foreground py-8'>No job roles found.</TableCell></TableRow>
             )}
             {data?.items.map((r) => (
               <TableRow key={r.id}>
@@ -157,6 +192,7 @@ export function JobRoles() {
                     {r.jobLink && <a href={r.jobLink} target='_blank' rel='noopener noreferrer'><ExternalLink className='h-3.5 w-3.5 text-muted-foreground' /></a>}
                   </div>
                 </TableCell>
+                <TableCell className='text-sm text-muted-foreground'>{r.jobTitleName ?? '—'}</TableCell>
                 <TableCell className='text-sm'>{r.companyName || `#${r.companyId}`}</TableCell>
                 <TableCell className='text-sm'>{[r.city, r.country].filter(Boolean).join(', ') || '—'}</TableCell>
                 <TableCell><Badge variant='outline' className='text-xs'>{r.workType}</Badge></TableCell>
@@ -183,6 +219,10 @@ export function JobRoles() {
           </TableBody>
         </Table>
       </div>
+
+      {!isLoading && (
+        <ListPagination page={page} pageSize={PAGE_SIZE} total={data?.total ?? 0} onPageChange={setPage} itemLabel='job role' />
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className='max-w-lg'>

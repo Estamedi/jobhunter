@@ -8,6 +8,7 @@ public interface IApplicationDbContext
     DbSet<JobCompany> Companies { get; }
     DbSet<JobContact> Contacts { get; }
     DbSet<JobRole> JobRoles { get; }
+    DbSet<JobTitle> JobTitles { get; }
     DbSet<JobApplication> Applications { get; }
     DbSet<JobActivity> Activities { get; }
     DbSet<JobInterview> Interviews { get; }

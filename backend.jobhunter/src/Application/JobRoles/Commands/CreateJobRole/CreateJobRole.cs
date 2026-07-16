@@ -8,6 +8,7 @@ namespace backend.jobhunter.Application.JobRoles.Commands.CreateJobRole;
 public record CreateJobRoleCommand : IRequest<int>
 {
     public required int CompanyId { get; init; }
+    public int? JobTitleId { get; init; }
     public required string Title { get; init; }
     public string? JobLink { get; init; }
     public string Source { get; init; } = "Other";
@@ -31,6 +32,7 @@ public class CreateJobRoleCommandHandler(IApplicationDbContext context)
         var entity = new JobRole
         {
             CompanyId = request.CompanyId,
+            JobTitleId = request.JobTitleId,
             Title = request.Title,
             JobLink = request.JobLink,
             Source = request.Source,

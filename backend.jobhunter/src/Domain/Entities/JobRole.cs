@@ -3,6 +3,7 @@ namespace backend.jobhunter.Domain.Entities;
 public class JobRole : OwnedEntity
 {
     public int CompanyId { get; set; }
+    public int? JobTitleId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? JobLink { get; set; }
     public string Source { get; set; } = "Other";
@@ -18,5 +19,6 @@ public class JobRole : OwnedEntity
     public string? Requirements { get; set; }
 
     public JobCompany Company { get; set; } = null!;
+    public JobTitle? JobTitle { get; set; }
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
 }

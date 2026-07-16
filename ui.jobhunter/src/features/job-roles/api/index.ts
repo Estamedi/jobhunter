@@ -4,6 +4,8 @@ export interface JobRole {
   id: number
   companyId: number
   companyName?: string
+  jobTitleId?: number
+  jobTitleName?: string
   title: string
   jobLink?: string
   source: string
@@ -26,6 +28,7 @@ export interface GetJobRolesResult {
 
 export interface CreateJobRoleDto {
   companyId: number
+  jobTitleId?: number
   title: string
   jobLink?: string
   source?: string
@@ -42,7 +45,7 @@ export interface CreateJobRoleDto {
 }
 
 export const jobRolesApi = {
-  list: (filters: { search?: string; companyId?: number; roleStatus?: string; workType?: string; country?: string; source?: string; page?: number; pageSize?: number } = {}) =>
+  list: (filters: { search?: string; companyId?: number; jobTitleId?: number; roleStatus?: string; workType?: string; country?: string; source?: string; page?: number; pageSize?: number } = {}) =>
     http.get<GetJobRolesResult>('/api/job-roles', { params: filters }).then((r) => r.data),
 
   get: (id: number) =>

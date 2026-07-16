@@ -18,7 +18,7 @@ public record JobApplicationDto(
     string? ResumeVersion, string? CoverLetterVersion,
     decimal? ExpectedSalary, decimal? ActualOfferSalary, string? Currency,
     string? RejectionReason, string? Notes,
-    string? JobRoleCountry, string? JobRoleWorkType,
+    string? JobRoleCountry, string? JobRoleWorkType, string? JobRoleDescription,
     DateTimeOffset Created, DateTimeOffset LastModified
 );
 
@@ -66,10 +66,13 @@ public class GetJobApplicationsQueryHandler(IApplicationDbContext context)
         if (request.DateTo.HasValue)
             query = query.Where(a => a.AppliedDate <= request.DateTo.Value);
         if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.ToLower();
             query = query.Where(a =>
-                a.Candidate.FullName.Contains(request.Search) ||
-                a.Company.Name.Contains(request.Search) ||
-                a.JobRole.Title.Contains(request.Search));
+                a.Candidate.FullName.ToLower().Contains(search) ||
+                a.Company.Name.ToLower().Contains(search) ||
+                a.JobRole.Title.ToLower().Contains(search));
+        }
 
         var total = await query.CountAsync(cancellationToken);
         var now = DateTimeOffset.UtcNow;
@@ -96,7 +99,7 @@ public class GetJobApplicationsQueryHandler(IApplicationDbContext context)
                 a.ResumeVersion, a.CoverLetterVersion,
                 a.ExpectedSalary, a.ActualOfferSalary, a.Currency,
                 a.RejectionReason, a.Notes,
-                a.JobRole.Country, a.JobRole.WorkType,
+                a.JobRole.Country, a.JobRole.WorkType, a.JobRole.Description,
                 a.Created, a.LastModified))
             .ToListAsync(cancellationToken);
 

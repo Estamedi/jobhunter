@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -156,6 +157,13 @@ export function ApplicationsMutateDialog({
   const [resumeCv, setResumeCv] = useState<EntityOption | null>(
     currentRow?.cvId ? { value: currentRow.cvId, label: currentRow.cvFileName ?? `#${currentRow.cvId}` } : null
   )
+  const { data: jobRoleDetail } = useQuery({
+    queryKey: ['job-roles', 'detail', jobRole?.value],
+    queryFn: () => jobRolesApi.get(jobRole!.value),
+    enabled: !!jobRole,
+  })
+  const jobRoleDescription = jobRoleDetail?.description ?? (jobRole?.value === currentRow?.jobRoleId ? currentRow?.jobRoleDescription : undefined)
+
   const [newResumeFile, setNewResumeFile] = useState<File | null>(null)
   const [isUploadingResume, setIsUploadingResume] = useState(false)
   const [fileInputKey, setFileInputKey] = useState(0)
@@ -271,6 +279,18 @@ export function ApplicationsMutateDialog({
                   }
                 />
               </div>
+              {jobRole && (
+                <div className='min-w-0 space-y-1 col-span-2'>
+                  <Label>Job Description</Label>
+                  <Textarea
+                    value={jobRoleDescription ?? ''}
+                    readOnly
+                    rows={3}
+                    placeholder='No description on file for this job role yet — add one from the Job Roles page.'
+                    className='resize-none bg-muted/40'
+                  />
+                </div>
+              )}
               <div className='min-w-0 space-y-1 col-span-2'>
                 <Label>Main Contact</Label>
                 <EntityCombobox

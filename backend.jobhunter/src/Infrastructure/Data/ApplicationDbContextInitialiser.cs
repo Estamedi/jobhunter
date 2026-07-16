@@ -1,4 +1,6 @@
-﻿using backend.jobhunter.Domain.Constants;
+﻿using System.Reflection;
+using backend.jobhunter.Domain.Constants;
+using backend.jobhunter.Domain.Entities;
 using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -85,8 +87,71 @@ public class ApplicationDbContextInitialiser
             }
         }
 
-        // No CRM data is seeded here. Each job seeker gets their own Candidate row created by
+        // No per-user CRM data is seeded here. Each job seeker gets their own Candidate row created by
         // ApplicationUserManager, once their account is confirmed (local email confirmation) or
         // right away (Google sign-in, which arrives pre-confirmed).
+
+        // JobTitles is a shared, global reference catalog (not owned by any user), so it's seeded once here.
+        await SeedJobTitlesAsync();
+    }
+
+    private async Task SeedJobTitlesAsync()
+    {
+        if (await _context.JobTitles.AnyAsync())
+        {
+            return;
+        }
+
+        var assembly = Assembly.GetExecutingAssembly();
+        const string resourceName = "backend.jobhunter.Infrastructure.Data.Seed.job_titles.csv";
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream is null)
+        {
+            _logger.LogWarning("Job titles seed resource '{ResourceName}' was not found; skipping seed.", resourceName);
+            return;
+        }
+
+        using var reader = new StreamReader(stream);
+
+        var jobTitles = new List<JobTitle>();
+        var isHeaderRow = true;
+        string? line;
+        while ((line = await reader.ReadLineAsync()) is not null)
+        {
+            if (isHeaderRow)
+            {
+                isHeaderRow = false;
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            var separatorIndex = line.IndexOf(',');
+            if (separatorIndex < 0)
+            {
+                continue;
+            }
+
+            var name = line[..separatorIndex].Trim();
+            var description = line[(separatorIndex + 1)..].Trim();
+
+            if (name.Length == 0)
+            {
+                continue;
+            }
+
+            jobTitles.Add(new JobTitle
+            {
+                Name = name,
+                Description = description.Length > 0 ? description : null
+            });
+        }
+
+        _context.JobTitles.AddRange(jobTitles);
+        await _context.SaveChangesAsync(CancellationToken.None);
     }
 }
