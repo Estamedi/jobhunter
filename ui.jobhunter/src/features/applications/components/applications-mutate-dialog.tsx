@@ -16,8 +16,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { PRIORITIES, STATUSES, formatStatusLabel } from '../data/constants'
+import { CURRENCIES, PRIORITIES, STATUSES, formatStatusLabel } from '../data/constants'
 import type { CreateApplicationDto, JobApplication } from '../api'
 
 interface ScalarFields {
@@ -98,7 +99,7 @@ export function ApplicationsMutateDialog({
           coverLetterVersion: currentRow.coverLetterVersion,
           notes: currentRow.notes,
         }
-      : {},
+      : { currency: 'USD' },
   })
 
   const [company, setCompany] = useState<EntityOption | null>(
@@ -333,16 +334,33 @@ export function ApplicationsMutateDialog({
             </div>
             <div className='space-y-1'>
               <Label>Currency</Label>
-              <Input {...register('currency')} placeholder='USD' />
+              <Controller
+                control={control}
+                name='currency'
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='Select currency...' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div className='space-y-1'>
               <Label>Resume Version</Label>
               <Input {...register('resumeVersion')} placeholder='v1, tailored-stripe' />
             </div>
-            <div className='space-y-1'>
+            {/* <div className='space-y-1'>
               <Label>Cover Letter Version</Label>
               <Input {...register('coverLetterVersion')} />
-            </div>
+            </div> */}
           </div>
           <div className='space-y-1'>
             <Label>Notes</Label>

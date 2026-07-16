@@ -34,6 +34,21 @@ export const STATUSES = [
 
 export const PRIORITIES = ['Low', 'Medium', 'High']
 
+export const CURRENCIES = [
+  'USD',
+  'EUR',
+  'GBP',
+  'CAD',
+  'AUD',
+  'JPY',
+  'CNY',
+  'INR',
+  'CHF',
+  'SEK',
+  'AED',
+  'OMR',
+]
+
 export function formatStatusLabel(status: string) {
   return status.replace(/([A-Z])/g, ' $1').trim()
 }
