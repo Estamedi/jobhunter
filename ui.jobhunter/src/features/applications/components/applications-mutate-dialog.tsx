@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { companiesApi } from '@/features/companies/api'
 import { contactsApi } from '@/features/contacts/api'
 import { jobRolesApi } from '@/features/job-roles/api'
+import { jobTitlesApi } from '@/features/job-titles/api'
 import { cvsApi } from '@/features/cvs/api'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 import { EntityCombobox, type EntityOption } from '@/components/entity-combobox'
@@ -47,6 +48,55 @@ function SectionHeading({ icon: Icon, title }: { icon: LucideIcon; title: string
       <h4 className='text-sm font-medium'>{title}</h4>
     </div>
   )
+}
+
+interface VacancyMeta {
+  kind: 'jobTitle'
+  jobTitleId: number
+}
+
+async function fetchVacancyOptions(companyId: number | undefined, search: string): Promise<EntityOption[]> {
+  const [jobRoles, jobTitles] = await Promise.all([
+    companyId
+      ? jobRolesApi.list({ search: search || undefined, companyId, pageSize: 20 })
+      : Promise.resolve({ items: [], total: 0 }),
+    jobTitlesApi.list({ search: search || undefined, pageSize: 20 }),
+  ])
+  const existingTitleIds = new Set(
+    jobRoles.items.map((jr) => jr.jobTitleId).filter((id): id is number => id != null)
+  )
+  const jobRoleOptions: EntityOption[] = jobRoles.items.map((jr) => ({
+    value: jr.id,
+    label: jr.title,
+    group: 'Existing vacancies',
+  }))
+  const jobTitleOptions: EntityOption[] = jobTitles.items
+    .filter((jt) => !existingTitleIds.has(jt.id))
+    .map((jt) => ({
+      value: jt.id,
+      label: jt.name,
+      group: 'Job titles',
+      meta: { kind: 'jobTitle', jobTitleId: jt.id } satisfies VacancyMeta,
+    }))
+  return [...jobRoleOptions, ...jobTitleOptions]
+}
+
+async function resolveVacancyOption(companyId: number, option: EntityOption): Promise<EntityOption> {
+  const meta = option.meta as VacancyMeta | undefined
+  if (meta?.kind !== 'jobTitle') return option
+
+  try {
+    const existing = await jobRolesApi.list({ companyId, jobTitleId: meta.jobTitleId, pageSize: 1 })
+    if (existing.items.length > 0) {
+      const jr = existing.items[0]
+      return { value: jr.id, label: jr.title }
+    }
+    const id = await jobRolesApi.create({ companyId, jobTitleId: meta.jobTitleId, title: option.label })
+    return { value: id, label: option.label }
+  } catch {
+    toast.error('Failed to add vacancy')
+    throw new Error('vacancy-resolution-failed')
+  }
 }
 
 function OrDivider({ label }: { label: string }) {
@@ -261,17 +311,14 @@ export function ApplicationsMutateDialog({
                 <EntityCombobox
                   value={jobRole}
                   onChange={setJobRole}
-                  queryKey={['job-roles', 'combobox', company?.value]}
+                  queryKey={['job-roles', 'vacancy-combobox', company?.value]}
                   placeholder='Select vacancy...'
-                  searchPlaceholder='Search vacancies...'
+                  searchPlaceholder='Search vacancies or job titles...'
                   createLabel={(name) => `Create vacancy "${name}"`}
                   disabled={!company}
                   disabledPlaceholder='Select a company first'
-                  fetchOptions={(search) =>
-                    jobRolesApi
-                      .list({ search: search || undefined, companyId: company?.value, pageSize: 20 })
-                      .then((r) => r.items.map((jr) => ({ value: jr.id, label: jr.title })))
-                  }
+                  fetchOptions={(search) => fetchVacancyOptions(company?.value, search)}
+                  onSelectOption={(option) => resolveVacancyOption(company!.value, option)}
                   onCreate={(title) =>
                     jobRolesApi
                       .create({ companyId: company!.value, title })
