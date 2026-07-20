@@ -1,5 +1,6 @@
 import { type ComponentProps } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { addDays, format } from 'date-fns'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import { userEvent } from 'vitest/browser'
@@ -129,8 +130,8 @@ describe('ApplicationsMutateDialog', () => {
         jobRoleId: 10,
         mainContactId: undefined,
         cvId: undefined,
-        appliedDate: undefined,
-        nextFollowUpDate: undefined,
+        appliedDate: format(new Date(), 'yyyy-MM-dd'),
+        nextFollowUpDate: format(addDays(new Date(), 7), 'yyyy-MM-dd'),
       })
     )
   })
