@@ -13,7 +13,6 @@ import {
   UploadCloud,
   Wallet,
   Workflow,
-  type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { companiesApi } from '@/features/companies/api'
@@ -42,18 +41,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { CURRENCIES, formatStatusLabel, PRIORITIES, STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
 import { PriorityPicker, StagePicker } from './pipeline-pickers'
+import { SectionHeading } from './section-heading'
 import type { CreateApplicationDto, JobApplication } from '../api'
-
-function SectionHeading({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
-  return (
-    <div className='flex items-center gap-3'>
-      <div className='flex size-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-400'>
-        <Icon className='size-4' />
-      </div>
-      <h4 className='text-sm font-semibold'>{title}</h4>
-    </div>
-  )
-}
 
 interface VacancyMeta {
   kind: 'jobTitle'

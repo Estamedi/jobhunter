@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import {
   DndContext,
   DragOverlay,
@@ -54,6 +55,7 @@ function BoardCard({ application }: { application: JobApplication }) {
   // The dragged card stays put (just dimmed) — DragOverlay renders the copy that follows
   // the pointer, so this element doesn't also chase the cursor.
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: application.id })
+  const navigate = useNavigate()
 
   return (
     <motion.div
@@ -65,6 +67,7 @@ function BoardCard({ application }: { application: JobApplication }) {
       transition={CARD_SPRING}
       {...listeners}
       {...attributes}
+      onClick={() => navigate({ to: '/applications/$applicationId', params: { applicationId: String(application.id) } })}
       className='cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing'
     >
       <CardContent application={application} />
