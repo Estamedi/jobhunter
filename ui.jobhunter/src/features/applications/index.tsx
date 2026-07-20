@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText, Settings2 } from 'lucide-react'
+import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List } from 'lucide-react'
 import { format } from 'date-fns'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
 import { ApplicationsBoard } from './components/applications-board'
@@ -92,8 +92,12 @@ export function Applications() {
       <Tabs defaultValue='board'>
         <div className='flex flex-wrap items-center justify-between gap-2'>
           <TabsList>
-            <TabsTrigger value='board'>Board (by stage)</TabsTrigger>
-            <TabsTrigger value='all'>All applications</TabsTrigger>
+            <TabsTrigger value='board'>
+              <LayoutGrid className='h-4 w-4 mr-1' /> Kanban View
+            </TabsTrigger>
+            <TabsTrigger value='all'>
+              <List className='h-4 w-4 mr-1' /> List View
+            </TabsTrigger>
           </TabsList>
           <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
             <Plus className='h-4 w-4 mr-1' /> Add Application
