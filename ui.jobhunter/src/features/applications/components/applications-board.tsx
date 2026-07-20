@@ -16,6 +16,7 @@ import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { applicationsApi, type GetApplicationsResult, type JobApplication } from '../api'
+import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT } from '../data/constants'
 import type { BoardStage } from '../hooks/use-board-stages'
 
 // Standard column height so a column never resizes as cards move in/out — only the
@@ -29,20 +30,6 @@ const BOARD_PAGE_SIZE = 500
 const OTHER_STATUS = '__other__'
 const OTHER_STAGE: BoardStage = { status: OTHER_STATUS, label: 'Other', badgeVariant: 'outline', visible: true }
 
-// Per-column accent, keyed by position rather than the user's badge-variant choice — a richer
-// palette than the 4 badge variants gives each column a distinct identity at a glance.
-const COLUMN_ACCENTS = [
-  { top: 'border-t-violet-500', dot: 'bg-violet-500', tint: 'bg-violet-50 dark:bg-violet-500/10', ring: 'ring-violet-400/50' },
-  { top: 'border-t-blue-500', dot: 'bg-blue-500', tint: 'bg-blue-50 dark:bg-blue-500/10', ring: 'ring-blue-400/50' },
-  { top: 'border-t-emerald-500', dot: 'bg-emerald-500', tint: 'bg-emerald-50 dark:bg-emerald-500/10', ring: 'ring-emerald-400/50' },
-  { top: 'border-t-amber-500', dot: 'bg-amber-500', tint: 'bg-amber-50 dark:bg-amber-500/10', ring: 'ring-amber-400/50' },
-  { top: 'border-t-rose-500', dot: 'bg-rose-500', tint: 'bg-rose-50 dark:bg-rose-500/10', ring: 'ring-rose-400/50' },
-  { top: 'border-t-cyan-500', dot: 'bg-cyan-500', tint: 'bg-cyan-50 dark:bg-cyan-500/10', ring: 'ring-cyan-400/50' },
-  { top: 'border-t-orange-500', dot: 'bg-orange-500', tint: 'bg-orange-50 dark:bg-orange-500/10', ring: 'ring-orange-400/50' },
-  { top: 'border-t-pink-500', dot: 'bg-pink-500', tint: 'bg-pink-50 dark:bg-pink-500/10', ring: 'ring-pink-400/50' },
-]
-const OTHER_ACCENT = { top: 'border-t-muted-foreground/30', dot: 'bg-muted-foreground/40', tint: 'bg-muted', ring: 'ring-muted-foreground/30' }
-
 function CardContent({ application }: { application: JobApplication }) {
   return (
     <>
@@ -50,7 +37,7 @@ function CardContent({ application }: { application: JobApplication }) {
       <p className='mt-0.5 truncate text-xs text-muted-foreground'>{application.jobRoleTitle || `#${application.jobRoleId}`}</p>
       <div className='mt-3 flex items-center justify-between'>
         <Badge
-          variant={application.priority === 'High' ? 'destructive' : application.priority === 'Medium' ? 'default' : 'secondary'}
+          variant={application.priority === 'High' ? 'destructive' : 'secondary'}
           className='text-[10px]'
         >
           {application.priority}
@@ -85,7 +72,7 @@ function BoardCard({ application }: { application: JobApplication }) {
   )
 }
 
-function BoardColumn({ stage, applications, accent }: { stage: BoardStage; applications: JobApplication[]; accent: (typeof COLUMN_ACCENTS)[number] }) {
+function BoardColumn({ stage, applications, accent }: { stage: BoardStage; applications: JobApplication[]; accent: (typeof STAGE_ACCENTS)[number] }) {
   const { isOver, setNodeRef } = useDroppable({ id: stage.status })
 
   return (
@@ -191,9 +178,9 @@ export function ApplicationsBoard({ stages }: { stages: BoardStage[] }) {
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className='flex gap-4 overflow-x-auto pb-4'>
           {stages.map((stage, i) => (
-            <BoardColumn key={stage.status} stage={stage} applications={grouped.get(stage.status) ?? []} accent={COLUMN_ACCENTS[i % COLUMN_ACCENTS.length]} />
+            <BoardColumn key={stage.status} stage={stage} applications={grouped.get(stage.status) ?? []} accent={STAGE_ACCENTS[i % STAGE_ACCENTS.length]} />
           ))}
-          {otherItems.length > 0 && <BoardColumn stage={OTHER_STAGE} applications={otherItems} accent={OTHER_ACCENT} />}
+          {otherItems.length > 0 && <BoardColumn stage={OTHER_STAGE} applications={otherItems} accent={UNKNOWN_STAGE_ACCENT} />}
         </div>
         <DragOverlay dropAnimation={null}>
           {activeApp && (

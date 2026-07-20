@@ -167,7 +167,7 @@ export function Applications() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={a.priority === 'High' ? 'destructive' : a.priority === 'Medium' ? 'default' : 'secondary'} className='text-xs'>
+                  <Badge variant={a.priority === 'High' ? 'destructive' : 'secondary'} className='text-xs'>
                     {a.priority}
                   </Badge>
                 </TableCell>

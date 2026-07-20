@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { addDays, format } from 'date-fns'
 import {
   Building2,
   CalendarIcon,
@@ -10,6 +10,7 @@ import {
   FileText,
   Loader2,
   StickyNote,
+  UploadCloud,
   Wallet,
   Workflow,
   type LucideIcon,
@@ -38,15 +39,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { CURRENCIES, PRIORITIES } from '../data/constants'
+import { CURRENCIES, formatStatusLabel, PRIORITIES, STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
+import { PriorityPicker, StagePicker } from './pipeline-pickers'
 import type { CreateApplicationDto, JobApplication } from '../api'
 
 function SectionHeading({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return (
-    <div className='flex items-center gap-2'>
-      <Icon className='h-4 w-4 text-muted-foreground' />
-      <h4 className='text-sm font-medium'>{title}</h4>
+    <div className='flex items-center gap-3'>
+      <div className='flex size-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-400'>
+        <Icon className='size-4' />
+      </div>
+      <h4 className='text-sm font-semibold'>{title}</h4>
     </div>
   )
 }
@@ -151,7 +155,7 @@ function DatePickerField({
         <Button
           type='button'
           variant='outline'
-          className={cn('w-full justify-start text-left font-normal', !selected && 'text-muted-foreground')}
+          className={cn('w-full justify-start rounded-xl text-left font-normal', !selected && 'text-muted-foreground')}
         >
           <CalendarIcon className='mr-2 h-4 w-4' />
           {selected ? format(selected, 'PPP') : placeholder}
@@ -192,8 +196,18 @@ export function ApplicationsMutateDialog({
           coverLetterVersion: currentRow.coverLetterVersion,
           notes: currentRow.notes,
         }
-      : { currency: 'USD', status: stages[0]?.status, priority: PRIORITIES[0] },
+      : {
+          currency: 'USD',
+          status: stages[0]?.status,
+          priority: PRIORITIES[0],
+          appliedDate: format(new Date(), 'yyyy-MM-dd'),
+          nextFollowUpDate: format(addDays(new Date(), 7), 'yyyy-MM-dd'),
+        },
   })
+  const liveStatus = useWatch({ control, name: 'status' })
+  const stageIndex = stages.findIndex((s) => s.status === liveStatus)
+  const stageAccent = stageIndex >= 0 ? STAGE_ACCENTS[stageIndex % STAGE_ACCENTS.length] : UNKNOWN_STAGE_ACCENT
+  const stageLabel = stages.find((s) => s.status === liveStatus)?.label ?? (liveStatus ? formatStatusLabel(liveStatus) : undefined)
 
   const [company, setCompany] = useState<EntityOption | null>(
     currentRow ? { value: currentRow.companyId, label: currentRow.companyName ?? `#${currentRow.companyId}` } : null
@@ -278,276 +292,287 @@ export function ApplicationsMutateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle>{isUpdate ? 'Edit Application' : 'Add Application'}</DialogTitle>
-          <DialogDescription>
-            {isUpdate
-              ? 'Update the vacancy, pipeline stage, and documents for this application.'
-              : "Track a vacancy you applied to — who it's with, where it stands, and the resume you sent."}
-          </DialogDescription>
+      <DialogContent className='max-w-2xl gap-0 overflow-hidden rounded-2xl border-border/80 p-0 shadow-lg'>
+        <DialogHeader className='gap-3 border-b bg-muted/20 px-6 py-5 sm:text-start'>
+          <div className='flex items-center justify-between gap-2'>
+            <div className='flex items-center gap-2 text-xs font-bold tracking-wide text-violet-500 uppercase'>
+              <span className='size-2 rounded-full bg-violet-500' />
+              {isUpdate ? 'Editing application' : 'New application'}
+            </div>
+            {liveStatus && (
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-foreground',
+                  stageAccent.tint
+                )}
+              >
+                <span className={cn('size-1.5 rounded-full', stageAccent.dot)} />
+                {stageLabel}
+              </span>
+            )}
+          </div>
+          <div>
+            <DialogTitle className='text-xl font-bold tracking-tight'>
+              {isUpdate ? currentRow?.jobRoleTitle || 'Edit application' : 'Add application'}
+            </DialogTitle>
+            <DialogDescription>
+              {isUpdate
+                ? `${currentRow?.companyName ?? 'This vacancy'} — update the stage, dates, and documents for this application.`
+                : "Track a vacancy you applied to — who it's with, where it stands, and the resume you sent."}
+            </DialogDescription>
+          </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit(submit)} className='space-y-5' id='application-form'>
-          <section className='space-y-3'>
-            <SectionHeading icon={Building2} title='Vacancy' />
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='min-w-0 space-y-1'>
-                <Label>Company *</Label>
-                <EntityCombobox
-                  value={company}
-                  onChange={handleCompanyChange}
-                  queryKey={['companies', 'combobox']}
-                  placeholder='Select company...'
-                  searchPlaceholder='Search companies...'
-                  createLabel={(name) => `Create company "${name}"`}
-                  fetchOptions={(search) =>
-                    companiesApi
-                      .list({ search: search || undefined, pageSize: 20 })
-                      .then((r) => r.items.map((c) => ({ value: c.id, label: c.name })))
-                  }
-                  onCreate={(name) => companiesApi.create({ name }).then((id) => ({ value: id, label: name }))}
-                />
-              </div>
-              <div className='min-w-0 space-y-1'>
-                <Label>Vacancy *</Label>
-                <EntityCombobox
-                  value={jobRole}
-                  onChange={setJobRole}
-                  queryKey={['job-roles', 'vacancy-combobox', company?.value]}
-                  placeholder='Select vacancy...'
-                  searchPlaceholder='Search vacancies or job titles...'
-                  createLabel={(name) => `Create vacancy "${name}"`}
-                  disabled={!company}
-                  disabledPlaceholder='Select a company first'
-                  fetchOptions={(search) => fetchVacancyOptions(company?.value, search)}
-                  onSelectOption={(option) => resolveVacancyOption(company!.value, option)}
-                  onCreate={(title) =>
-                    jobRolesApi
-                      .create({ companyId: company!.value, title })
-                      .then((id) => ({ value: id, label: title }))
-                  }
-                />
-              </div>
-              {jobRole && (
-                <div className='min-w-0 space-y-1 col-span-2'>
-                  <Label>Job Description</Label>
-                  <Textarea
-                    value={jobRoleDescription ?? ''}
-                    readOnly
-                    rows={3}
-                    placeholder='No description on file for this vacancy yet — add one from the Vacancies page.'
-                    className='resize-none bg-muted/40'
+
+        <div className='max-h-[65vh] overflow-y-auto px-6 py-6'>
+          <form onSubmit={handleSubmit(submit)} className='space-y-5' id='application-form'>
+            <section className='space-y-3'>
+              <SectionHeading icon={Building2} title='Vacancy' />
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='min-w-0 space-y-1'>
+                  <Label>Company *</Label>
+                  <EntityCombobox
+                    value={company}
+                    onChange={handleCompanyChange}
+                    queryKey={['companies', 'combobox']}
+                    placeholder='Select company...'
+                    searchPlaceholder='Search companies...'
+                    createLabel={(name) => `Create company "${name}"`}
+                    triggerClassName='rounded-xl'
+                    fetchOptions={(search) =>
+                      companiesApi
+                        .list({ search: search || undefined, pageSize: 20 })
+                        .then((r) => r.items.map((c) => ({ value: c.id, label: c.name })))
+                    }
+                    onCreate={(name) => companiesApi.create({ name }).then((id) => ({ value: id, label: name }))}
                   />
                 </div>
-              )}
-              <div className='min-w-0 space-y-1 col-span-2'>
-                <Label>Main Contact</Label>
-                <EntityCombobox
-                  value={mainContact}
-                  onChange={setMainContact}
-                  queryKey={['contacts', 'combobox', company?.value]}
-                  placeholder='Select contact...'
-                  searchPlaceholder='Search contacts...'
-                  createLabel={(name) => `Create contact "${name}"`}
-                  disabled={!company}
-                  disabledPlaceholder='Select a company first'
-                  fetchOptions={(search) =>
-                    contactsApi
-                      .list({ search: search || undefined, companyId: company?.value, pageSize: 20 })
-                      .then((r) => r.items.map((c) => ({ value: c.id, label: c.fullName })))
-                  }
-                  onCreate={(fullName) =>
-                    contactsApi
-                      .create({ companyId: company!.value, fullName })
-                      .then((id) => ({ value: id, label: fullName }))
-                  }
-                />
+                <div className='min-w-0 space-y-1'>
+                  <Label>Vacancy *</Label>
+                  <EntityCombobox
+                    value={jobRole}
+                    onChange={setJobRole}
+                    queryKey={['job-roles', 'vacancy-combobox', company?.value]}
+                    placeholder='Select vacancy...'
+                    searchPlaceholder='Search vacancies or job titles...'
+                    createLabel={(name) => `Create vacancy "${name}"`}
+                    disabled={!company}
+                    disabledPlaceholder='Select a company first'
+                    triggerClassName='rounded-xl'
+                    fetchOptions={(search) => fetchVacancyOptions(company?.value, search)}
+                    onSelectOption={(option) => resolveVacancyOption(company!.value, option)}
+                    onCreate={(title) =>
+                      jobRolesApi
+                        .create({ companyId: company!.value, title })
+                        .then((id) => ({ value: id, label: title }))
+                    }
+                  />
+                </div>
+                {jobRole && (
+                  <div className='min-w-0 col-span-2 space-y-1'>
+                    <Label>Job Description</Label>
+                    <Textarea
+                      value={jobRoleDescription ?? ''}
+                      readOnly
+                      rows={3}
+                      placeholder='No description on file for this vacancy yet — add one from the Vacancies page.'
+                      className='resize-none rounded-xl bg-muted/40'
+                    />
+                  </div>
+                )}
+                <div className='min-w-0 col-span-2 space-y-1'>
+                  <Label>Main Contact</Label>
+                  <EntityCombobox
+                    value={mainContact}
+                    onChange={setMainContact}
+                    queryKey={['contacts', 'combobox', company?.value]}
+                    placeholder='Select contact...'
+                    searchPlaceholder='Search contacts...'
+                    createLabel={(name) => `Create contact "${name}"`}
+                    disabled={!company}
+                    disabledPlaceholder='Select a company first'
+                    triggerClassName='rounded-xl'
+                    fetchOptions={(search) =>
+                      contactsApi
+                        .list({ search: search || undefined, companyId: company?.value, pageSize: 20 })
+                        .then((r) => r.items.map((c) => ({ value: c.id, label: c.fullName })))
+                    }
+                    onCreate={(fullName) =>
+                      contactsApi
+                        .create({ companyId: company!.value, fullName })
+                        .then((id) => ({ value: id, label: fullName }))
+                    }
+                  />
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <Separator />
+            <Separator />
 
-          <section className='space-y-3'>
-            <SectionHeading icon={Workflow} title='Pipeline' />
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1'>
+            <section className='space-y-4'>
+              <SectionHeading icon={Workflow} title='Pipeline' />
+              <div className='space-y-2'>
                 <Label>Status</Label>
                 <Controller
                   control={control}
                   name='status'
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select status...' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {stages.map((s) => (
-                          <SelectItem key={s.status} value={s.status}>
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  render={({ field }) => <StagePicker stages={stages} value={field.value} onChange={field.onChange} />}
                 />
               </div>
-              <div className='space-y-1'>
+              <div className='space-y-2'>
                 <Label>Priority</Label>
                 <Controller
                   control={control}
                   name='priority'
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select priority...' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRIORITIES.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <PriorityPicker priorities={PRIORITIES} value={field.value} onChange={field.onChange} />
                   )}
                 />
               </div>
-              <div className='space-y-1'>
-                <Label>Applied Date</Label>
-                <Controller
-                  control={control}
-                  name='appliedDate'
-                  render={({ field }) => (
-                    <DatePickerField value={field.value} onChange={field.onChange} placeholder='Pick a date' />
-                  )}
-                />
-              </div>
-              <div className='space-y-1'>
-                <Label>Next Follow-Up</Label>
-                <Controller
-                  control={control}
-                  name='nextFollowUpDate'
-                  render={({ field }) => (
-                    <DatePickerField value={field.value} onChange={field.onChange} placeholder='Pick a date' />
-                  )}
-                />
-              </div>
-            </div>
-          </section>
-
-          <Separator />
-
-          <section className='space-y-3'>
-            <SectionHeading icon={Wallet} title='Compensation' />
-            <div className='grid grid-cols-3 gap-3'>
-              <div className='space-y-1 col-span-2'>
-                <Label>Expected Salary</Label>
-                <Input type='number' placeholder='e.g. 120000' {...register('expectedSalary', { valueAsNumber: true })} />
-              </div>
-              <div className='space-y-1'>
-                <Label>Currency</Label>
-                <Controller
-                  control={control}
-                  name='currency'
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Currency' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CURRENCIES.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </div>
-          </section>
-
-          <Separator />
-
-          <section className='space-y-3'>
-            <SectionHeading icon={FileText} title='Documents' />
-            <div className='space-y-1'>
-              <Label>Resume</Label>
-              <div className='space-y-2 rounded-md border p-3'>
-                <div className='flex items-center gap-2'>
-                  <div className='min-w-0 flex-1'>
-                    <EntityCombobox
-                      value={resumeCv}
-                      onChange={handleResumeSelect}
-                      queryKey={['cvs', 'combobox', candidateId]}
-                      placeholder='Select existing resume...'
-                      searchPlaceholder='Search your resumes...'
-                      disabled={!candidateId}
-                      disabledPlaceholder='Loading your profile...'
-                      fetchOptions={(search) =>
-                        cvsApi.list({ candidateId, pageSize: 100 }).then((r) =>
-                          r.items
-                            .filter((cv) => !search || cv.fileName.toLowerCase().includes(search.toLowerCase()))
-                            .map((cv) => ({ value: cv.id, label: cv.fileName }))
-                        )
-                      }
-                    />
-                  </div>
-                  {resumeCv && (
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='icon'
-                      title='Download resume'
-                      onClick={() => downloadCvFile({ id: resumeCv.value, fileName: resumeCv.label })}
-                    >
-                      <Download className='h-4 w-4' />
-                    </Button>
-                  )}
-                </div>
-                <OrDivider label='Or upload new' />
-                <div className='flex items-center gap-2'>
-                  <Input
-                    key={fileInputKey}
-                    type='file'
-                    accept='.pdf,.doc,.docx'
-                    className='text-sm'
-                    onChange={(e) => handleResumeFileChange(e.target.files?.[0] ?? null)}
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-1'>
+                  <Label>Applied Date</Label>
+                  <Controller
+                    control={control}
+                    name='appliedDate'
+                    render={({ field }) => (
+                      <DatePickerField value={field.value} onChange={field.onChange} placeholder='Pick a date' />
+                    )}
                   />
-                  {isUploadingResume && <Loader2 className='h-4 w-4 animate-spin shrink-0' />}
+                </div>
+                <div className='space-y-1'>
+                  <Label>Next Follow-Up</Label>
+                  <Controller
+                    control={control}
+                    name='nextFollowUpDate'
+                    render={({ field }) => (
+                      <DatePickerField value={field.value} onChange={field.onChange} placeholder='Pick a date' />
+                    )}
+                  />
                 </div>
               </div>
-            </div>
-            <div className='space-y-1'>
-              <Label>Resume Version</Label>
-              <Input {...register('resumeVersion')} placeholder='v1, tailored-stripe' />
-            </div>
-          </section>
+            </section>
 
-          <Separator />
+            <Separator />
 
-          <section className='space-y-3'>
-            <SectionHeading icon={StickyNote} title='Notes' />
-            <Textarea
-              {...register('notes')}
-              rows={3}
-              placeholder='Interview prep, referral details, anything worth remembering...'
-            />
-          </section>
-        </form>
-        <DialogFooter>
-          <div className='flex w-full items-center justify-between gap-2'>
-            <span className='text-xs text-muted-foreground'>* Required</span>
-            <div className='flex gap-2'>
-              <Button variant='outline' onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type='submit' form='application-form' disabled={isPending || isUploadingResume}>
-                {isUpdate ? 'Save Changes' : 'Create'}
-              </Button>
-            </div>
+            <section className='space-y-3'>
+              <SectionHeading icon={Wallet} title='Compensation' />
+              <div className='grid grid-cols-3 gap-3'>
+                <div className='col-span-2 space-y-1'>
+                  <Label>Expected Salary</Label>
+                  <Input
+                    type='number'
+                    placeholder='e.g. 120000'
+                    className='rounded-xl'
+                    {...register('expectedSalary', { valueAsNumber: true })}
+                  />
+                </div>
+                <div className='space-y-1'>
+                  <Label>Currency</Label>
+                  <Controller
+                    control={control}
+                    name='currency'
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className='w-full rounded-xl'>
+                          <SelectValue placeholder='Currency' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CURRENCIES.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <Separator />
+
+            <section className='space-y-3'>
+              <SectionHeading icon={FileText} title='Documents' />
+              <div className='space-y-1'>
+                <Label>Resume</Label>
+                <div className='space-y-3 rounded-2xl border border-dashed border-violet-200 bg-violet-50/40 p-4 dark:border-violet-900 dark:bg-violet-950/20'>
+                  <div className='flex items-center gap-2'>
+                    <div className='min-w-0 flex-1'>
+                      <EntityCombobox
+                        value={resumeCv}
+                        onChange={handleResumeSelect}
+                        queryKey={['cvs', 'combobox', candidateId]}
+                        placeholder='Select existing resume...'
+                        searchPlaceholder='Search your resumes...'
+                        disabled={!candidateId}
+                        disabledPlaceholder='Loading your profile...'
+                        triggerClassName='rounded-xl bg-background'
+                        fetchOptions={(search) =>
+                          cvsApi.list({ candidateId, pageSize: 100 }).then((r) =>
+                            r.items
+                              .filter((cv) => !search || cv.fileName.toLowerCase().includes(search.toLowerCase()))
+                              .map((cv) => ({ value: cv.id, label: cv.fileName }))
+                          )
+                        }
+                      />
+                    </div>
+                    {resumeCv && (
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='icon'
+                        className='rounded-xl bg-background'
+                        title='Download resume'
+                        onClick={() => downloadCvFile({ id: resumeCv.value, fileName: resumeCv.label })}
+                      >
+                        <Download className='h-4 w-4' />
+                      </Button>
+                    )}
+                  </div>
+                  <OrDivider label='Or upload new' />
+                  <div className='flex items-center gap-2 rounded-xl border border-input bg-background px-1'>
+                    <UploadCloud className='ml-2 h-4 w-4 shrink-0 text-muted-foreground' />
+                    <Input
+                      key={fileInputKey}
+                      type='file'
+                      accept='.pdf,.doc,.docx'
+                      className='border-0 shadow-none focus-visible:ring-0'
+                      onChange={(e) => handleResumeFileChange(e.target.files?.[0] ?? null)}
+                    />
+                    {isUploadingResume && <Loader2 className='mr-2 h-4 w-4 shrink-0 animate-spin' />}
+                  </div>
+                </div>
+              </div>
+              <div className='space-y-1'>
+                <Label>Resume Version</Label>
+                <Input {...register('resumeVersion')} placeholder='v1, tailored-stripe' className='rounded-xl' />
+              </div>
+            </section>
+
+            <Separator />
+
+            <section className='space-y-3'>
+              <SectionHeading icon={StickyNote} title='Notes' />
+              <Textarea
+                {...register('notes')}
+                rows={3}
+                placeholder='Interview prep, referral details, anything worth remembering...'
+                className='resize-none rounded-xl'
+              />
+            </section>
+          </form>
+        </div>
+
+        <DialogFooter className='border-t px-6 py-4 sm:justify-between'>
+          <span className='text-xs text-muted-foreground'>* Required</span>
+          <div className='flex gap-2'>
+            <Button variant='outline' className='rounded-xl' onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type='submit' form='application-form' className='rounded-xl' disabled={isPending || isUploadingResume}>
+              {isUpdate ? 'Save Changes' : 'Create'}
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

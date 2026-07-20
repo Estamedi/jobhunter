@@ -36,6 +36,7 @@ interface EntityComboboxProps {
   createLabel?: (name: string) => string
   disabled?: boolean
   disabledPlaceholder?: string
+  triggerClassName?: string
 }
 
 export function EntityCombobox({
@@ -51,6 +52,7 @@ export function EntityCombobox({
   createLabel = (name) => `Create "${name}"`,
   disabled,
   disabledPlaceholder,
+  triggerClassName,
 }: EntityComboboxProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -137,7 +139,7 @@ export function EntityCombobox({
           aria-expanded={open}
           aria-haspopup='listbox'
           disabled={disabled}
-          className='w-full justify-between font-normal'
+          className={cn('w-full justify-between font-normal', triggerClassName)}
         >
           <span className={cn('min-w-0 flex-1 truncate text-left', !value && 'text-muted-foreground')}>
             {value?.label ?? (disabled ? (disabledPlaceholder ?? placeholder) : placeholder)}
