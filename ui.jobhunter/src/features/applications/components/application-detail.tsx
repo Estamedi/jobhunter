@@ -34,6 +34,7 @@ import { interviewsApi } from '@/features/interviews/api'
 import { downloadCvFile, viewCvFile } from '@/features/cvs/lib/cv-file'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
@@ -42,7 +43,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { applicationsApi, type CreateApplicationDto, type JobApplication } from '../api'
-import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
+import { PRIORITIES, STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
 import { ApplicationJourney } from './application-journey'
 import { ApplicationMainContactDialog } from './application-main-contact-dialog'
@@ -50,6 +51,7 @@ import { ApplicationNotes } from './application-notes'
 import { ApplicationVacancyDialog } from './application-vacancy-dialog'
 import { ApplicationsMutateDialog } from './applications-mutate-dialog'
 import { InterviewTimeline } from './interview-timeline'
+import { PriorityPicker } from './pipeline-pickers'
 import { SectionHeading } from './section-heading'
 
 const FOLLOWUP_TINTS: Record<string, string> = {
@@ -184,6 +186,35 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
     onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   })
 
+  const updatePriority = useMutation({
+    mutationFn: (priority: string) =>
+      applicationsApi.update(applicationId, {
+        status: app!.status,
+        priority,
+        appliedDate: app!.appliedDate,
+        nextFollowUpDate: app!.nextFollowUpDate,
+        resumeVersion: app!.resumeVersion,
+        coverLetterVersion: app!.coverLetterVersion,
+        expectedSalary: app!.expectedSalary,
+        actualOfferSalary: app!.actualOfferSalary,
+        currency: app!.currency,
+        rejectionReason: app!.rejectionReason,
+        cvId: app!.cvId,
+        mainContactId: app!.mainContactId,
+      }),
+    onMutate: async (priority) => {
+      await qc.cancelQueries({ queryKey: detailKey })
+      const previous = qc.getQueryData<JobApplication>(detailKey)
+      qc.setQueryData<JobApplication>(detailKey, (old) => (old ? { ...old, priority } : old))
+      return { previous }
+    },
+    onError: (_err, _priority, context) => {
+      if (context?.previous) qc.setQueryData(detailKey, context.previous)
+      toast.error('Failed to update priority')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
+  })
+
   const update = useMutation({
     mutationFn: (dto: Partial<CreateApplicationDto>) => applicationsApi.update(applicationId, dto),
     onSuccess: () => {
@@ -272,9 +303,23 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
               <span className={cn('size-1.5 rounded-full', stageAccent.dot)} />
               {stageLabel}
             </span>
-            <Badge variant={app.priority === 'High' ? 'destructive' : 'secondary'} className='text-xs'>
-              {app.priority} priority
-            </Badge>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type='button' className='inline-flex rounded-md focus-visible:outline-none'>
+                  <Badge variant={app.priority === 'High' ? 'destructive' : 'secondary'} className='cursor-pointer text-xs hover:opacity-80'>
+                    {app.priority} priority
+                  </Badge>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-3' align='end'>
+                <p className='mb-2 text-xs font-medium text-muted-foreground'>Priority</p>
+                <PriorityPicker
+                  priorities={PRIORITIES}
+                  value={app.priority}
+                  onChange={(priority) => updatePriority.mutate(priority)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
