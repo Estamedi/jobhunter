@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { format, formatDistanceToNowStrict } from 'date-fns'
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { IconWhatsapp } from '@/assets/brand-icons'
 import { candidatesApi } from '@/features/candidates/api'
 import { companiesApi } from '@/features/companies/api'
 import { contactsApi } from '@/features/contacts/api'
@@ -46,6 +47,7 @@ import { useBoardStages } from '../hooks/use-board-stages'
 import { ApplicationJourney } from './application-journey'
 import { ApplicationMainContactDialog } from './application-main-contact-dialog'
 import { ApplicationNotes } from './application-notes'
+import { ApplicationVacancyDialog } from './application-vacancy-dialog'
 import { ApplicationsMutateDialog } from './applications-mutate-dialog'
 import { InterviewTimeline } from './interview-timeline'
 import { SectionHeading } from './section-heading'
@@ -74,6 +76,38 @@ function EmptyNote({ children }: { children: React.ReactNode }) {
   return <p className='text-sm text-muted-foreground italic'>{children}</p>
 }
 
+function toWhatsAppUrl(phone: string) {
+  return `https://wa.me/${phone.replace(/[^\d+]/g, '').replace(/^\+/, '')}`
+}
+
+function ExpandableText({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const [canExpand, setCanExpand] = useState(false)
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (el) setCanExpand(el.scrollHeight > el.clientHeight + 1)
+  }, [text])
+
+  return (
+    <div>
+      <p ref={ref} className={cn('mt-1 text-sm whitespace-pre-line', !expanded && 'line-clamp-4')}>
+        {text}
+      </p>
+      {canExpand && (
+        <button
+          type='button'
+          className='mt-1 text-xs font-medium text-violet-600 hover:underline dark:text-violet-400'
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function DetailSkeleton() {
   return (
     <div className='space-y-5'>
@@ -97,6 +131,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
   const { stages } = useBoardStages()
   const [editOpen, setEditOpen] = useState(false)
   const [mainContactDialogOpen, setMainContactDialogOpen] = useState(false)
+  const [vacancyDialogOpen, setVacancyDialogOpen] = useState(false)
 
   const detailKey = ['applications', 'detail', applicationId]
 
@@ -265,7 +300,23 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
       <div className='grid gap-5 lg:grid-cols-3'>
         <div className='space-y-5 lg:col-span-2'>
           <Panel className='space-y-4'>
-            <SectionHeading icon={Briefcase} title='About the role' />
+            <SectionHeading
+              icon={Briefcase}
+              title='About the role'
+              action={
+                jobRole && (
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='size-7 text-muted-foreground hover:text-foreground'
+                    aria-label='Edit vacancy'
+                    onClick={() => setVacancyDialogOpen(true)}
+                  >
+                    <Pencil className='size-3.5' />
+                  </Button>
+                )
+              }
+            />
             <div className='flex flex-wrap gap-2'>
               {jobRole?.workType && <Badge variant='outline'>{jobRole.workType}</Badge>}
               {jobRole?.employmentType && <Badge variant='outline'>{jobRole.employmentType}</Badge>}
@@ -289,7 +340,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
             <div>
               <p className='text-xs font-medium text-muted-foreground'>Description</p>
               {app.jobRoleDescription || jobRole?.description ? (
-                <p className='mt-1 text-sm whitespace-pre-line'>{jobRole?.description ?? app.jobRoleDescription}</p>
+                <ExpandableText text={jobRole?.description ?? app.jobRoleDescription ?? ''} />
               ) : (
                 <EmptyNote>No description on file for this vacancy yet.</EmptyNote>
               )}
@@ -297,7 +348,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
             {jobRole?.requirements && (
               <div>
                 <p className='text-xs font-medium text-muted-foreground'>Requirements</p>
-                <p className='mt-1 text-sm whitespace-pre-line'>{jobRole.requirements}</p>
+                <ExpandableText text={jobRole.requirements} />
               </div>
             )}
           </Panel>
@@ -382,6 +433,10 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
               <>
                 <p className='text-sm font-semibold'>{contact.fullName}</p>
                 {contact.jobTitle && <p className='text-xs text-muted-foreground'>{contact.jobTitle}</p>}
+                <div className='space-y-1.5 pt-1'>
+                  {contact.email && <Field label='Email'>{contact.email}</Field>}
+                  {contact.phone && <Field label='Phone'>{contact.phone}</Field>}
+                </div>
                 <div className='flex flex-wrap gap-2 pt-1'>
                   {contact.email && (
                     <Button variant='outline' size='sm' asChild>
@@ -391,11 +446,18 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
                     </Button>
                   )}
                   {contact.phone && (
-                    <Button variant='outline' size='sm' asChild>
-                      <a href={`tel:${contact.phone}`}>
-                        <Phone className='mr-1.5 size-3.5' /> Call
-                      </a>
-                    </Button>
+                    <>
+                      <Button variant='outline' size='sm' asChild>
+                        <a href={`tel:${contact.phone}`}>
+                          <Phone className='mr-1.5 size-3.5' /> Call
+                        </a>
+                      </Button>
+                      <Button variant='outline' size='sm' asChild>
+                        <a href={toWhatsAppUrl(contact.phone)} target='_blank' rel='noopener noreferrer'>
+                          <IconWhatsapp className='mr-1.5 size-3.5' /> WhatsApp
+                        </a>
+                      </Button>
+                    </>
                   )}
                   {contact.linkedInUrl && (
                     <Button variant='outline' size='sm' asChild>
@@ -459,6 +521,15 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
         application={app}
         contact={contact}
       />
+
+      {jobRole && (
+        <ApplicationVacancyDialog
+          key={vacancyDialogOpen ? 'open' : 'closed'}
+          open={vacancyDialogOpen}
+          onOpenChange={setVacancyDialogOpen}
+          jobRole={jobRole}
+        />
+      )}
     </div>
   )
 }
