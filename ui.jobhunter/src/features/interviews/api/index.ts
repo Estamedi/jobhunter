@@ -50,7 +50,7 @@ export const interviewsApi = {
     http.post<number>('/api/interviews', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateInterviewDto>) =>
-    http.put(`/api/interviews/${id}`, dto),
+    http.put(`/api/interviews/${id}`, { ...dto, id }),
 
   delete: (id: number) =>
     http.delete(`/api/interviews/${id}`),

@@ -41,7 +41,7 @@ export const companiesApi = {
     http.post<number>('/api/companies', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateCompanyDto>) =>
-    http.put(`/api/companies/${id}`, dto),
+    http.put(`/api/companies/${id}`, { ...dto, id }),
 
   delete: (id: number) =>
     http.delete(`/api/companies/${id}`),

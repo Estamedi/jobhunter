@@ -24,7 +24,6 @@ export interface JobApplication {
   actualOfferSalary?: number
   currency?: string
   rejectionReason?: string
-  notes?: string
   followUpStatus?: string
 }
 
@@ -46,8 +45,9 @@ export interface CreateApplicationDto {
   resumeVersion?: string
   coverLetterVersion?: string
   expectedSalary?: number
+  actualOfferSalary?: number
   currency?: string
-  notes?: string
+  rejectionReason?: string
 }
 
 export const applicationsApi = {
@@ -79,7 +79,7 @@ export const applicationsApi = {
     http.post<number>('/api/applications', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateApplicationDto>) =>
-    http.put(`/api/applications/${id}`, dto),
+    http.put(`/api/applications/${id}`, { ...dto, id }),
 
   updateStatus: (id: number, status: string) =>
     http.patch(`/api/applications/${id}/status`, { id, status }),

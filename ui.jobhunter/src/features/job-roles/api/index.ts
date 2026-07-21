@@ -55,7 +55,7 @@ export const jobRolesApi = {
     http.post<number>('/api/job-roles', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateJobRoleDto>) =>
-    http.put(`/api/job-roles/${id}`, dto),
+    http.put(`/api/job-roles/${id}`, { ...dto, id }),
 
   delete: (id: number) =>
     http.delete(`/api/job-roles/${id}`),

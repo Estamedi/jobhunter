@@ -1,9 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import { format, formatDistanceToNowStrict } from 'date-fns'
 import {
-  ArrowLeft,
   Briefcase,
   Building2,
   CalendarClock,
@@ -17,6 +15,7 @@ import {
   MoreHorizontal,
   Pencil,
   Phone,
+  Plus,
   StickyNote,
   Trash2,
   Users,
@@ -24,6 +23,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { IconWhatsapp } from '@/assets/brand-icons'
 import { candidatesApi } from '@/features/candidates/api'
 import { companiesApi } from '@/features/companies/api'
 import { contactsApi } from '@/features/contacts/api'
@@ -32,6 +32,7 @@ import { interviewsApi } from '@/features/interviews/api'
 import { downloadCvFile, viewCvFile } from '@/features/cvs/lib/cv-file'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
@@ -40,11 +41,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { applicationsApi, type CreateApplicationDto, type JobApplication } from '../api'
-import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
+import { PRIORITIES, STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
+import { ApplicationCompanyDialog } from './application-company-dialog'
 import { ApplicationJourney } from './application-journey'
+import { ApplicationMainContactDialog } from './application-main-contact-dialog'
+import { ApplicationNotes } from './application-notes'
+import { ApplicationVacancyDialog } from './application-vacancy-dialog'
 import { ApplicationsMutateDialog } from './applications-mutate-dialog'
 import { InterviewTimeline } from './interview-timeline'
+import { PriorityPicker } from './pipeline-pickers'
 import { SectionHeading } from './section-heading'
 
 const FOLLOWUP_TINTS: Record<string, string> = {
@@ -71,6 +77,38 @@ function EmptyNote({ children }: { children: React.ReactNode }) {
   return <p className='text-sm text-muted-foreground italic'>{children}</p>
 }
 
+function toWhatsAppUrl(phone: string) {
+  return `https://wa.me/${phone.replace(/[^\d+]/g, '').replace(/^\+/, '')}`
+}
+
+function ExpandableText({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const [canExpand, setCanExpand] = useState(false)
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (el) setCanExpand(el.scrollHeight > el.clientHeight + 1)
+  }, [text])
+
+  return (
+    <div>
+      <p ref={ref} className={cn('mt-1 text-sm whitespace-pre-line', !expanded && 'line-clamp-4')}>
+        {text}
+      </p>
+      {canExpand && (
+        <button
+          type='button'
+          className='mt-1 text-xs font-medium text-violet-600 hover:underline dark:text-violet-400'
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function DetailSkeleton() {
   return (
     <div className='space-y-5'>
@@ -86,13 +124,16 @@ function DetailSkeleton() {
 
 interface ApplicationDetailProps {
   applicationId: number
+  onClose?: () => void
 }
 
-export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
-  const navigate = useNavigate()
+export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailProps) {
   const qc = useQueryClient()
   const { stages } = useBoardStages()
   const [editOpen, setEditOpen] = useState(false)
+  const [mainContactDialogOpen, setMainContactDialogOpen] = useState(false)
+  const [vacancyDialogOpen, setVacancyDialogOpen] = useState(false)
+  const [companyDialogOpen, setCompanyDialogOpen] = useState(false)
 
   const detailKey = ['applications', 'detail', applicationId]
 
@@ -145,6 +186,35 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
     onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   })
 
+  const updatePriority = useMutation({
+    mutationFn: (priority: string) =>
+      applicationsApi.update(applicationId, {
+        status: app!.status,
+        priority,
+        appliedDate: app!.appliedDate,
+        nextFollowUpDate: app!.nextFollowUpDate,
+        resumeVersion: app!.resumeVersion,
+        coverLetterVersion: app!.coverLetterVersion,
+        expectedSalary: app!.expectedSalary,
+        actualOfferSalary: app!.actualOfferSalary,
+        currency: app!.currency,
+        rejectionReason: app!.rejectionReason,
+        cvId: app!.cvId,
+        mainContactId: app!.mainContactId,
+      }),
+    onMutate: async (priority) => {
+      await qc.cancelQueries({ queryKey: detailKey })
+      const previous = qc.getQueryData<JobApplication>(detailKey)
+      qc.setQueryData<JobApplication>(detailKey, (old) => (old ? { ...old, priority } : old))
+      return { previous }
+    },
+    onError: (_err, _priority, context) => {
+      if (context?.previous) qc.setQueryData(detailKey, context.previous)
+      toast.error('Failed to update priority')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
+  })
+
   const update = useMutation({
     mutationFn: (dto: Partial<CreateApplicationDto>) => applicationsApi.update(applicationId, dto),
     onSuccess: () => {
@@ -159,7 +229,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['applications'] })
       toast.success('Application deleted')
-      navigate({ to: '/applications' })
+      onClose?.()
     },
   })
 
@@ -168,9 +238,6 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
   if (!app) {
     return (
       <div className='space-y-4'>
-        <Button variant='ghost' size='sm' onClick={() => navigate({ to: '/applications' })}>
-          <ArrowLeft className='mr-1.5 size-4' /> Back to applications
-        </Button>
         <Panel className='text-center text-sm text-muted-foreground'>
           We couldn’t find that application. It may have been deleted.
         </Panel>
@@ -185,10 +252,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
 
   return (
     <div className='space-y-5'>
-      <div className='flex items-center justify-between'>
-        <Button variant='ghost' size='sm' onClick={() => navigate({ to: '/applications' })}>
-          <ArrowLeft className='mr-1.5 size-4' /> Back to applications
-        </Button>
+      <div className='flex items-center justify-end'>
         <div className='flex items-center gap-2'>
           <Button variant='outline' size='sm' onClick={() => setEditOpen(true)}>
             <Pencil className='mr-1.5 size-4' /> Edit
@@ -233,9 +297,23 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
               <span className={cn('size-1.5 rounded-full', stageAccent.dot)} />
               {stageLabel}
             </span>
-            <Badge variant={app.priority === 'High' ? 'destructive' : 'secondary'} className='text-xs'>
-              {app.priority} priority
-            </Badge>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type='button' className='inline-flex rounded-md focus-visible:outline-none'>
+                  <Badge variant={app.priority === 'High' ? 'destructive' : 'secondary'} className='cursor-pointer text-xs hover:opacity-80'>
+                    {app.priority} priority
+                  </Badge>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-3' align='end'>
+                <p className='mb-2 text-xs font-medium text-muted-foreground'>Priority</p>
+                <PriorityPicker
+                  priorities={PRIORITIES}
+                  value={app.priority}
+                  onChange={(priority) => updatePriority.mutate(priority)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
@@ -261,7 +339,23 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
       <div className='grid gap-5 lg:grid-cols-3'>
         <div className='space-y-5 lg:col-span-2'>
           <Panel className='space-y-4'>
-            <SectionHeading icon={Briefcase} title='About the role' />
+            <SectionHeading
+              icon={Briefcase}
+              title='About the role'
+              action={
+                jobRole && (
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='size-7 text-muted-foreground hover:text-foreground'
+                    aria-label='Edit vacancy'
+                    onClick={() => setVacancyDialogOpen(true)}
+                  >
+                    <Pencil className='size-3.5' />
+                  </Button>
+                )
+              }
+            />
             <div className='flex flex-wrap gap-2'>
               {jobRole?.workType && <Badge variant='outline'>{jobRole.workType}</Badge>}
               {jobRole?.employmentType && <Badge variant='outline'>{jobRole.employmentType}</Badge>}
@@ -285,7 +379,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
             <div>
               <p className='text-xs font-medium text-muted-foreground'>Description</p>
               {app.jobRoleDescription || jobRole?.description ? (
-                <p className='mt-1 text-sm whitespace-pre-line'>{jobRole?.description ?? app.jobRoleDescription}</p>
+                <ExpandableText text={jobRole?.description ?? app.jobRoleDescription ?? ''} />
               ) : (
                 <EmptyNote>No description on file for this vacancy yet.</EmptyNote>
               )}
@@ -293,7 +387,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
             {jobRole?.requirements && (
               <div>
                 <p className='text-xs font-medium text-muted-foreground'>Requirements</p>
-                <p className='mt-1 text-sm whitespace-pre-line'>{jobRole.requirements}</p>
+                <ExpandableText text={jobRole.requirements} />
               </div>
             )}
           </Panel>
@@ -303,13 +397,9 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
             <InterviewTimeline interviews={interviews?.items ?? []} />
           </Panel>
 
-          <Panel className='space-y-2'>
+          <Panel className='space-y-3'>
             <SectionHeading icon={StickyNote} title='Notes' />
-            {app.notes ? (
-              <p className='text-sm whitespace-pre-line'>{app.notes}</p>
-            ) : (
-              <EmptyNote>Nothing jotted down yet — interview prep, referral details, anything worth remembering goes here.</EmptyNote>
-            )}
+            <ApplicationNotes applicationId={applicationId} />
           </Panel>
         </div>
 
@@ -336,7 +426,23 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={Building2} title='Company' />
+            <SectionHeading
+              icon={Building2}
+              title='Company'
+              action={
+                company && (
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='size-7 text-muted-foreground hover:text-foreground'
+                    aria-label='Edit company'
+                    onClick={() => setCompanyDialogOpen(true)}
+                  >
+                    <Pencil className='size-3.5' />
+                  </Button>
+                )
+              }
+            />
             {company?.industry && <Field label='Industry'>{company.industry}</Field>}
             {company?.companySize && <Field label='Size'>{company.companySize}</Field>}
             {(company?.city || company?.country) && (
@@ -363,11 +469,29 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={Users} title='Main contact' />
+            <SectionHeading
+              icon={Users}
+              title='Main contact'
+              action={
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='size-7 text-muted-foreground hover:text-foreground'
+                  aria-label={contact ? 'Edit main contact' : 'Add main contact'}
+                  onClick={() => setMainContactDialogOpen(true)}
+                >
+                  {contact ? <Pencil className='size-3.5' /> : <Plus className='size-3.5' />}
+                </Button>
+              }
+            />
             {contact ? (
               <>
                 <p className='text-sm font-semibold'>{contact.fullName}</p>
                 {contact.jobTitle && <p className='text-xs text-muted-foreground'>{contact.jobTitle}</p>}
+                <div className='space-y-1.5 pt-1'>
+                  {contact.email && <Field label='Email'>{contact.email}</Field>}
+                  {contact.phone && <Field label='Phone'>{contact.phone}</Field>}
+                </div>
                 <div className='flex flex-wrap gap-2 pt-1'>
                   {contact.email && (
                     <Button variant='outline' size='sm' asChild>
@@ -377,11 +501,18 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
                     </Button>
                   )}
                   {contact.phone && (
-                    <Button variant='outline' size='sm' asChild>
-                      <a href={`tel:${contact.phone}`}>
-                        <Phone className='mr-1.5 size-3.5' /> Call
-                      </a>
-                    </Button>
+                    <>
+                      <Button variant='outline' size='sm' asChild>
+                        <a href={`tel:${contact.phone}`}>
+                          <Phone className='mr-1.5 size-3.5' /> Call
+                        </a>
+                      </Button>
+                      <Button variant='outline' size='sm' asChild>
+                        <a href={toWhatsAppUrl(contact.phone)} target='_blank' rel='noopener noreferrer'>
+                          <IconWhatsapp className='mr-1.5 size-3.5' /> WhatsApp
+                        </a>
+                      </Button>
+                    </>
                   )}
                   {contact.linkedInUrl && (
                     <Button variant='outline' size='sm' asChild>
@@ -393,7 +524,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
                 </div>
               </>
             ) : (
-              <EmptyNote>No contact added yet — add one from Edit.</EmptyNote>
+              <EmptyNote>No contact added yet — add one above.</EmptyNote>
             )}
           </Panel>
 
@@ -429,7 +560,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
       </div>
 
       <ApplicationsMutateDialog
-        key={editOpen ? 'open' : 'closed'}
+        key={`edit-${editOpen ? 'open' : 'closed'}`}
         open={editOpen}
         onOpenChange={setEditOpen}
         currentRow={app}
@@ -437,6 +568,32 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
         isPending={update.isPending}
         onSubmit={(dto) => update.mutate(dto)}
       />
+
+      <ApplicationMainContactDialog
+        key={`main-contact-${mainContactDialogOpen ? 'open' : 'closed'}`}
+        open={mainContactDialogOpen}
+        onOpenChange={setMainContactDialogOpen}
+        application={app}
+        contact={contact}
+      />
+
+      {jobRole && (
+        <ApplicationVacancyDialog
+          key={`vacancy-${vacancyDialogOpen ? 'open' : 'closed'}`}
+          open={vacancyDialogOpen}
+          onOpenChange={setVacancyDialogOpen}
+          jobRole={jobRole}
+        />
+      )}
+
+      {company && (
+        <ApplicationCompanyDialog
+          key={`company-${companyDialogOpen ? 'open' : 'closed'}`}
+          open={companyDialogOpen}
+          onOpenChange={setCompanyDialogOpen}
+          company={company}
+        />
+      )}
     </div>
   )
 }

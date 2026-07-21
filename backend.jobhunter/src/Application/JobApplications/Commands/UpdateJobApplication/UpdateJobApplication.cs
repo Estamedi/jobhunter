@@ -21,7 +21,6 @@ public record UpdateJobApplicationCommand : IRequest
     public decimal? ActualOfferSalary { get; init; }
     public string? Currency { get; init; }
     public string? RejectionReason { get; init; }
-    public string? Notes { get; init; }
 }
 
 public class UpdateJobApplicationCommandHandler(IApplicationDbContext context)
@@ -44,7 +43,6 @@ public class UpdateJobApplicationCommandHandler(IApplicationDbContext context)
         entity.ActualOfferSalary = request.ActualOfferSalary;
         entity.Currency = request.Currency;
         entity.RejectionReason = request.RejectionReason;
-        entity.Notes = request.Notes;
         entity.LastActivityDate = DateTimeOffset.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);

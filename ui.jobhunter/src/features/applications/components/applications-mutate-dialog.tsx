@@ -9,7 +9,6 @@ import {
   Download,
   FileText,
   Loader2,
-  StickyNote,
   UploadCloud,
   Wallet,
   Workflow,
@@ -115,7 +114,6 @@ interface ScalarFields {
   currency?: string
   resumeVersion?: string
   coverLetterVersion?: string
-  notes?: string
 }
 
 interface ApplicationsMutateDialogProps {
@@ -183,7 +181,6 @@ export function ApplicationsMutateDialog({
           currency: currentRow.currency,
           resumeVersion: currentRow.resumeVersion,
           coverLetterVersion: currentRow.coverLetterVersion,
-          notes: currentRow.notes,
         }
       : {
           currency: 'USD',
@@ -276,12 +273,14 @@ export function ApplicationsMutateDialog({
       jobRoleId: jobRole.value,
       mainContactId: mainContact?.value,
       cvId,
+      actualOfferSalary: currentRow?.actualOfferSalary,
+      rejectionReason: currentRow?.rejectionReason,
     })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl gap-0 overflow-hidden rounded-2xl border-border/80 p-0 shadow-lg'>
+      <DialogContent className='max-w-2xl gap-0 overflow-hidden rounded-2xl border-border/80 p-0 shadow-lg sm:max-w-2xl'>
         <DialogHeader className='gap-3 border-b bg-muted/20 px-6 py-5 sm:text-start'>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-2 text-xs font-bold tracking-wide text-violet-500 uppercase'>
@@ -537,18 +536,6 @@ export function ApplicationsMutateDialog({
                 <Label>Resume Version</Label>
                 <Input {...register('resumeVersion')} placeholder='v1, tailored-stripe' className='rounded-xl' />
               </div>
-            </section>
-
-            <Separator />
-
-            <section className='space-y-3'>
-              <SectionHeading icon={StickyNote} title='Notes' />
-              <Textarea
-                {...register('notes')}
-                rows={3}
-                placeholder='Interview prep, referral details, anything worth remembering...'
-                className='resize-none rounded-xl'
-              />
             </section>
           </form>
         </div>
