@@ -12,7 +12,7 @@ public class WebApiFactory(string connectionString) : WebApplicationFactory<Prog
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder
-            .UseSetting("ConnectionStrings:backend.jobhunterDb", connectionString);
+            .UseSetting("ConnectionStrings:backend-jobhunterDb", connectionString);
 
         builder.ConfigureTestServices(services =>
         {
