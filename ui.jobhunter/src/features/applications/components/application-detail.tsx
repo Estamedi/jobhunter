@@ -43,6 +43,7 @@ import { applicationsApi, type CreateApplicationDto, type JobApplication } from 
 import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
 import { ApplicationJourney } from './application-journey'
+import { ApplicationNotes } from './application-notes'
 import { ApplicationsMutateDialog } from './applications-mutate-dialog'
 import { InterviewTimeline } from './interview-timeline'
 import { SectionHeading } from './section-heading'
@@ -303,13 +304,9 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
             <InterviewTimeline interviews={interviews?.items ?? []} />
           </Panel>
 
-          <Panel className='space-y-2'>
+          <Panel className='space-y-3'>
             <SectionHeading icon={StickyNote} title='Notes' />
-            {app.notes ? (
-              <p className='text-sm whitespace-pre-line'>{app.notes}</p>
-            ) : (
-              <EmptyNote>Nothing jotted down yet — interview prep, referral details, anything worth remembering goes here.</EmptyNote>
-            )}
+            <ApplicationNotes applicationId={applicationId} />
           </Panel>
         </div>
 

@@ -16,7 +16,7 @@ public record JobApplicationDetailDto(
     string FollowUpStatus,
     string? ResumeVersion, string? CoverLetterVersion,
     decimal? ExpectedSalary, decimal? ActualOfferSalary, string? Currency,
-    string? RejectionReason, string? Notes,
+    string? RejectionReason,
     string? JobRoleCountry, string? JobRoleWorkType, string? JobRoleSource, string? JobRoleDescription,
     DateTimeOffset Created, DateTimeOffset LastModified
 );
@@ -50,7 +50,7 @@ public class GetJobApplicationQueryHandler(IApplicationDbContext context)
                     : "NotNeeded",
                 a.ResumeVersion, a.CoverLetterVersion,
                 a.ExpectedSalary, a.ActualOfferSalary, a.Currency,
-                a.RejectionReason, a.Notes,
+                a.RejectionReason,
                 a.JobRole.Country, a.JobRole.WorkType, a.JobRole.Source, a.JobRole.Description,
                 a.Created, a.LastModified))
             .FirstOrDefaultAsync(cancellationToken)

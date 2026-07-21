@@ -24,7 +24,6 @@ export interface JobApplication {
   actualOfferSalary?: number
   currency?: string
   rejectionReason?: string
-  notes?: string
   followUpStatus?: string
 }
 
@@ -47,7 +46,6 @@ export interface CreateApplicationDto {
   coverLetterVersion?: string
   expectedSalary?: number
   currency?: string
-  notes?: string
 }
 
 export const applicationsApi = {

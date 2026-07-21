@@ -9,7 +9,6 @@ import {
   Download,
   FileText,
   Loader2,
-  StickyNote,
   UploadCloud,
   Wallet,
   Workflow,
@@ -115,7 +114,6 @@ interface ScalarFields {
   currency?: string
   resumeVersion?: string
   coverLetterVersion?: string
-  notes?: string
 }
 
 interface ApplicationsMutateDialogProps {
@@ -183,7 +181,6 @@ export function ApplicationsMutateDialog({
           currency: currentRow.currency,
           resumeVersion: currentRow.resumeVersion,
           coverLetterVersion: currentRow.coverLetterVersion,
-          notes: currentRow.notes,
         }
       : {
           currency: 'USD',
@@ -537,18 +534,6 @@ export function ApplicationsMutateDialog({
                 <Label>Resume Version</Label>
                 <Input {...register('resumeVersion')} placeholder='v1, tailored-stripe' className='rounded-xl' />
               </div>
-            </section>
-
-            <Separator />
-
-            <section className='space-y-3'>
-              <SectionHeading icon={StickyNote} title='Notes' />
-              <Textarea
-                {...register('notes')}
-                rows={3}
-                placeholder='Interview prep, referral details, anything worth remembering...'
-                className='resize-none rounded-xl'
-              />
             </section>
           </form>
         </div>

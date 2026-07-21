@@ -18,7 +18,6 @@ public class JobApplication : OwnedEntity
     public decimal? ActualOfferSalary { get; set; }
     public string? Currency { get; set; }
     public string? RejectionReason { get; set; }
-    public string? Notes { get; set; }
 
     public Candidate Candidate { get; set; } = null!;
     public JobRole JobRole { get; set; } = null!;

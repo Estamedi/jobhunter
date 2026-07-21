@@ -21,7 +21,6 @@ public record CreateJobApplicationCommand : IRequest<int>
     public string? CoverLetterVersion { get; init; }
     public decimal? ExpectedSalary { get; init; }
     public string? Currency { get; init; }
-    public string? Notes { get; init; }
 }
 
 public class CreateJobApplicationCommandHandler(IApplicationDbContext context)
@@ -44,8 +43,7 @@ public class CreateJobApplicationCommandHandler(IApplicationDbContext context)
             ResumeVersion = request.ResumeVersion,
             CoverLetterVersion = request.CoverLetterVersion,
             ExpectedSalary = request.ExpectedSalary,
-            Currency = request.Currency,
-            Notes = request.Notes
+            Currency = request.Currency
         };
         context.Applications.Add(entity);
         await context.SaveChangesAsync(cancellationToken);

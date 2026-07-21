@@ -42,6 +42,7 @@ bld/
 src/Web/wwwroot/openapi/v1.json
 src/Web/ClientApp/src/app/web-api-client.ts
 src/Web/ClientApp-React/src/web-api-client.ts
+src/Web/App_Data/uploads
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
