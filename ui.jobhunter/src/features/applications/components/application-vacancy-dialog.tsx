@@ -81,7 +81,7 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-h-[85vh] max-w-2xl overflow-y-auto rounded-2xl'>
+      <DialogContent className='max-h-[85vh] max-w-2xl overflow-y-auto rounded-2xl sm:max-w-2xl'>
         <DialogHeader>
           <DialogTitle>Edit vacancy</DialogTitle>
           <DialogDescription>Update the role details for this vacancy.</DialogDescription>

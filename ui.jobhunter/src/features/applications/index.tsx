@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
 import { applicationsApi, type JobApplication, type CreateApplicationDto } from './api'
 import { candidatesApi } from '@/features/candidates/api'
 import { ListPagination } from '@/components/list-pagination'
@@ -14,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List, Eye } from 'lucide-react'
 import { format } from 'date-fns'
+import { ApplicationDetailDialog } from './components/application-detail-dialog'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
 import { ApplicationsBoard } from './components/applications-board'
 import { CustomizeStagesDialog } from './components/customize-stages-dialog'
@@ -25,13 +25,19 @@ const PAGE_SIZE = 20
 
 export function Applications() {
   const qc = useQueryClient()
-  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string | undefined>()
   const [page, setPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobApplication | null>(null)
   const [customizeOpen, setCustomizeOpen] = useState(false)
+  const [viewingApplicationId, setViewingApplicationId] = useState<number | null>(null)
+  const [viewDialogOpen, setViewDialogOpen] = useState(false)
+
+  function openApplication(id: number) {
+    setViewingApplicationId(id)
+    setViewDialogOpen(true)
+  }
 
   const {
     stages,
@@ -112,7 +118,7 @@ export function Applications() {
               <Settings2 className='h-4 w-4 mr-1' /> Customize board
             </Button>
           </div>
-          <ApplicationsBoard stages={visibleStages} />
+          <ApplicationsBoard stages={visibleStages} onView={openApplication} />
         </TabsContent>
 
         <TabsContent value='all' className='mt-4 space-y-4'>
@@ -156,7 +162,7 @@ export function Applications() {
               <TableRow
                 key={a.id}
                 className='cursor-pointer'
-                onClick={() => navigate({ to: '/applications/$applicationId', params: { applicationId: String(a.id) } })}
+                onClick={() => openApplication(a.id)}
               >
                 <TableCell className='font-medium text-sm'>{a.candidateName || `#${a.candidateId}`}</TableCell>
                 <TableCell className='text-sm'>{a.companyName || `#${a.companyId}`}</TableCell>
@@ -213,10 +219,8 @@ export function Applications() {
                       <Button variant='ghost' size='icon' className='h-8 w-8'><MoreHorizontal className='h-4 w-4' /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end'>
-                      <DropdownMenuItem asChild>
-                        <Link to='/applications/$applicationId' params={{ applicationId: String(a.id) }}>
-                          <Eye className='h-4 w-4 mr-2' /> View details
-                        </Link>
+                      <DropdownMenuItem onClick={() => openApplication(a.id)}>
+                        <Eye className='h-4 w-4 mr-2' /> View details
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { setEditing(a); setDialogOpen(true) }}><Pencil className='h-4 w-4 mr-2' /> Edit</DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -257,6 +261,12 @@ export function Applications() {
         candidateId={candidateId}
         isPending={isBusy}
         onSubmit={handleSubmit}
+      />
+
+      <ApplicationDetailDialog
+        applicationId={viewingApplicationId}
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
       />
     </div>
   )

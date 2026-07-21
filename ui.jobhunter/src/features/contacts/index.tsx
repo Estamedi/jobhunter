@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { contactsApi, type JobContact, type CreateContactDto } from './api'
+import { ContactDetailDialog } from './components/contact-detail-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Search, Trash2, Pencil } from 'lucide-react'
+import { Plus, MoreHorizontal, Search, Trash2, Pencil, Eye } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 const WARMTH_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
@@ -73,6 +74,13 @@ export function Contacts() {
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobContact | null>(null)
+  const [viewingContactId, setViewingContactId] = useState<number | null>(null)
+  const [viewDialogOpen, setViewDialogOpen] = useState(false)
+
+  function openContact(id: number) {
+    setViewingContactId(id)
+    setViewDialogOpen(true)
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['contacts', search],
@@ -140,16 +148,27 @@ export function Contacts() {
                 <TableCell><Badge variant={WARMTH_COLORS[c.warmth] ?? 'secondary'}>{c.warmth}</Badge></TableCell>
                 <TableCell className='text-sm text-muted-foreground'>{c.email || '—'}</TableCell>
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant='ghost' size='icon' className='h-8 w-8'><MoreHorizontal className='h-4 w-4' /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end'>
-                      <DropdownMenuItem onClick={() => { setEditing(c); setDialogOpen(true) }}><Pencil className='h-4 w-4 mr-2' /> Edit</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(c.id)}><Trash2 className='h-4 w-4 mr-2' /> Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className='flex items-center justify-end gap-1'>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='h-8 w-8'
+                      aria-label='View contact'
+                      onClick={() => openContact(c.id)}
+                    >
+                      <Eye className='h-4 w-4' />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant='ghost' size='icon' className='h-8 w-8'><MoreHorizontal className='h-4 w-4' /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align='end'>
+                        <DropdownMenuItem onClick={() => { setEditing(c); setDialogOpen(true) }}><Pencil className='h-4 w-4 mr-2' /> Edit</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(c.id)}><Trash2 className='h-4 w-4 mr-2' /> Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -167,6 +186,8 @@ export function Contacts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ContactDetailDialog contactId={viewingContactId} open={viewDialogOpen} onOpenChange={setViewDialogOpen} />
     </div>
   )
 }

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import { format, formatDistanceToNowStrict } from 'date-fns'
 import {
-  ArrowLeft,
   Briefcase,
   Building2,
   CalendarClock,
@@ -45,6 +43,7 @@ import {
 import { applicationsApi, type CreateApplicationDto, type JobApplication } from '../api'
 import { PRIORITIES, STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
+import { ApplicationCompanyDialog } from './application-company-dialog'
 import { ApplicationJourney } from './application-journey'
 import { ApplicationMainContactDialog } from './application-main-contact-dialog'
 import { ApplicationNotes } from './application-notes'
@@ -125,15 +124,16 @@ function DetailSkeleton() {
 
 interface ApplicationDetailProps {
   applicationId: number
+  onClose?: () => void
 }
 
-export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
-  const navigate = useNavigate()
+export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailProps) {
   const qc = useQueryClient()
   const { stages } = useBoardStages()
   const [editOpen, setEditOpen] = useState(false)
   const [mainContactDialogOpen, setMainContactDialogOpen] = useState(false)
   const [vacancyDialogOpen, setVacancyDialogOpen] = useState(false)
+  const [companyDialogOpen, setCompanyDialogOpen] = useState(false)
 
   const detailKey = ['applications', 'detail', applicationId]
 
@@ -229,7 +229,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['applications'] })
       toast.success('Application deleted')
-      navigate({ to: '/applications' })
+      onClose?.()
     },
   })
 
@@ -238,9 +238,6 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
   if (!app) {
     return (
       <div className='space-y-4'>
-        <Button variant='ghost' size='sm' onClick={() => navigate({ to: '/applications' })}>
-          <ArrowLeft className='mr-1.5 size-4' /> Back to applications
-        </Button>
         <Panel className='text-center text-sm text-muted-foreground'>
           We couldn’t find that application. It may have been deleted.
         </Panel>
@@ -255,10 +252,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
 
   return (
     <div className='space-y-5'>
-      <div className='flex items-center justify-between'>
-        <Button variant='ghost' size='sm' onClick={() => navigate({ to: '/applications' })}>
-          <ArrowLeft className='mr-1.5 size-4' /> Back to applications
-        </Button>
+      <div className='flex items-center justify-end'>
         <div className='flex items-center gap-2'>
           <Button variant='outline' size='sm' onClick={() => setEditOpen(true)}>
             <Pencil className='mr-1.5 size-4' /> Edit
@@ -432,7 +426,23 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={Building2} title='Company' />
+            <SectionHeading
+              icon={Building2}
+              title='Company'
+              action={
+                company && (
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='size-7 text-muted-foreground hover:text-foreground'
+                    aria-label='Edit company'
+                    onClick={() => setCompanyDialogOpen(true)}
+                  >
+                    <Pencil className='size-3.5' />
+                  </Button>
+                )
+              }
+            />
             {company?.industry && <Field label='Industry'>{company.industry}</Field>}
             {company?.companySize && <Field label='Size'>{company.companySize}</Field>}
             {(company?.city || company?.country) && (
@@ -550,7 +560,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
       </div>
 
       <ApplicationsMutateDialog
-        key={editOpen ? 'open' : 'closed'}
+        key={`edit-${editOpen ? 'open' : 'closed'}`}
         open={editOpen}
         onOpenChange={setEditOpen}
         currentRow={app}
@@ -560,7 +570,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
       />
 
       <ApplicationMainContactDialog
-        key={mainContactDialogOpen ? 'open' : 'closed'}
+        key={`main-contact-${mainContactDialogOpen ? 'open' : 'closed'}`}
         open={mainContactDialogOpen}
         onOpenChange={setMainContactDialogOpen}
         application={app}
@@ -569,10 +579,19 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
 
       {jobRole && (
         <ApplicationVacancyDialog
-          key={vacancyDialogOpen ? 'open' : 'closed'}
+          key={`vacancy-${vacancyDialogOpen ? 'open' : 'closed'}`}
           open={vacancyDialogOpen}
           onOpenChange={setVacancyDialogOpen}
           jobRole={jobRole}
+        />
+      )}
+
+      {company && (
+        <ApplicationCompanyDialog
+          key={`company-${companyDialogOpen ? 'open' : 'closed'}`}
+          open={companyDialogOpen}
+          onOpenChange={setCompanyDialogOpen}
+          company={company}
         />
       )}
     </div>

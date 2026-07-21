@@ -38,9 +38,9 @@ const jobSeekerNavGroups: NavGroup[] = [
         icon: FileText,
       },
       {
-        title: 'Vacancies',
-        url: '/job-roles',
-        icon: Briefcase,
+        title: 'Contacts',
+        url: '/contacts',
+        icon: Contact2,
       },
       {
         title: 'CVs',

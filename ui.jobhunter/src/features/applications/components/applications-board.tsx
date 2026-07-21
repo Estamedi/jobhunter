@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import {
   DndContext,
   DragOverlay,
@@ -51,11 +50,10 @@ function CardContent({ application }: { application: JobApplication }) {
   )
 }
 
-function BoardCard({ application }: { application: JobApplication }) {
+function BoardCard({ application, onView }: { application: JobApplication; onView: (id: number) => void }) {
   // The dragged card stays put (just dimmed) — DragOverlay renders the copy that follows
   // the pointer, so this element doesn't also chase the cursor.
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: application.id })
-  const navigate = useNavigate()
 
   return (
     <motion.div
@@ -67,7 +65,7 @@ function BoardCard({ application }: { application: JobApplication }) {
       transition={CARD_SPRING}
       {...listeners}
       {...attributes}
-      onClick={() => navigate({ to: '/applications/$applicationId', params: { applicationId: String(application.id) } })}
+      onClick={() => onView(application.id)}
       className='cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing'
     >
       <CardContent application={application} />
@@ -75,7 +73,17 @@ function BoardCard({ application }: { application: JobApplication }) {
   )
 }
 
-function BoardColumn({ stage, applications, accent }: { stage: BoardStage; applications: JobApplication[]; accent: (typeof STAGE_ACCENTS)[number] }) {
+function BoardColumn({
+  stage,
+  applications,
+  accent,
+  onView,
+}: {
+  stage: BoardStage
+  applications: JobApplication[]
+  accent: (typeof STAGE_ACCENTS)[number]
+  onView: (id: number) => void
+}) {
   const { isOver, setNodeRef } = useDroppable({ id: stage.status })
 
   return (
@@ -100,7 +108,7 @@ function BoardColumn({ stage, applications, accent }: { stage: BoardStage; appli
         )}
         <AnimatePresence initial={false}>
           {applications.map((app) => (
-            <BoardCard key={app.id} application={app} />
+            <BoardCard key={app.id} application={app} onView={onView} />
           ))}
         </AnimatePresence>
       </div>
@@ -108,7 +116,7 @@ function BoardColumn({ stage, applications, accent }: { stage: BoardStage; appli
   )
 }
 
-export function ApplicationsBoard({ stages }: { stages: BoardStage[] }) {
+export function ApplicationsBoard({ stages, onView }: { stages: BoardStage[]; onView: (id: number) => void }) {
   const qc = useQueryClient()
   const [activeApp, setActiveApp] = useState<JobApplication | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
@@ -181,9 +189,17 @@ export function ApplicationsBoard({ stages }: { stages: BoardStage[] }) {
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className='flex gap-4 overflow-x-auto pb-4'>
           {stages.map((stage, i) => (
-            <BoardColumn key={stage.status} stage={stage} applications={grouped.get(stage.status) ?? []} accent={STAGE_ACCENTS[i % STAGE_ACCENTS.length]} />
+            <BoardColumn
+              key={stage.status}
+              stage={stage}
+              applications={grouped.get(stage.status) ?? []}
+              accent={STAGE_ACCENTS[i % STAGE_ACCENTS.length]}
+              onView={onView}
+            />
           ))}
-          {otherItems.length > 0 && <BoardColumn stage={OTHER_STAGE} applications={otherItems} accent={UNKNOWN_STAGE_ACCENT} />}
+          {otherItems.length > 0 && (
+            <BoardColumn stage={OTHER_STAGE} applications={otherItems} accent={UNKNOWN_STAGE_ACCENT} onView={onView} />
+          )}
         </div>
         <DragOverlay dropAnimation={null}>
           {activeApp && (

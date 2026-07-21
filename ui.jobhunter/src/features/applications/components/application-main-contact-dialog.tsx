@@ -129,7 +129,7 @@ export function ApplicationMainContactDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-md rounded-2xl'>
+      <DialogContent className='max-w-lg rounded-2xl sm:max-w-lg'>
         <DialogHeader>
           <DialogTitle>{contact ? 'Edit main contact' : 'Add main contact'}</DialogTitle>
           <DialogDescription>Who&apos;s your point of contact for this application?</DialogDescription>

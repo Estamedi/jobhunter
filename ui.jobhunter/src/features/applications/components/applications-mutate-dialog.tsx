@@ -280,7 +280,7 @@ export function ApplicationsMutateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl gap-0 overflow-hidden rounded-2xl border-border/80 p-0 shadow-lg'>
+      <DialogContent className='max-w-2xl gap-0 overflow-hidden rounded-2xl border-border/80 p-0 shadow-lg sm:max-w-2xl'>
         <DialogHeader className='gap-3 border-b bg-muted/20 px-6 py-5 sm:text-start'>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-2 text-xs font-bold tracking-wide text-violet-500 uppercase'>
