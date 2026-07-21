@@ -48,7 +48,7 @@ export const candidatesApi = {
     http.post<number>('/api/candidates', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateCandidateDto>) =>
-    http.put(`/api/candidates/${id}`, dto),
+    http.put(`/api/candidates/${id}`, { ...dto, id }),
 
   archive: (id: number) =>
     http.patch(`/api/candidates/${id}/archive`),

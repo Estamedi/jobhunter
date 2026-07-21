@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
   Pencil,
   Phone,
+  Plus,
   StickyNote,
   Trash2,
   Users,
@@ -43,6 +44,7 @@ import { applicationsApi, type CreateApplicationDto, type JobApplication } from 
 import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT, formatStatusLabel } from '../data/constants'
 import { useBoardStages } from '../hooks/use-board-stages'
 import { ApplicationJourney } from './application-journey'
+import { ApplicationMainContactDialog } from './application-main-contact-dialog'
 import { ApplicationNotes } from './application-notes'
 import { ApplicationsMutateDialog } from './applications-mutate-dialog'
 import { InterviewTimeline } from './interview-timeline'
@@ -94,6 +96,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
   const qc = useQueryClient()
   const { stages } = useBoardStages()
   const [editOpen, setEditOpen] = useState(false)
+  const [mainContactDialogOpen, setMainContactDialogOpen] = useState(false)
 
   const detailKey = ['applications', 'detail', applicationId]
 
@@ -360,7 +363,21 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={Users} title='Main contact' />
+            <SectionHeading
+              icon={Users}
+              title='Main contact'
+              action={
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='size-7 text-muted-foreground hover:text-foreground'
+                  aria-label={contact ? 'Edit main contact' : 'Add main contact'}
+                  onClick={() => setMainContactDialogOpen(true)}
+                >
+                  {contact ? <Pencil className='size-3.5' /> : <Plus className='size-3.5' />}
+                </Button>
+              }
+            />
             {contact ? (
               <>
                 <p className='text-sm font-semibold'>{contact.fullName}</p>
@@ -390,7 +407,7 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
                 </div>
               </>
             ) : (
-              <EmptyNote>No contact added yet — add one from Edit.</EmptyNote>
+              <EmptyNote>No contact added yet — add one above.</EmptyNote>
             )}
           </Panel>
 
@@ -433,6 +450,14 @@ export function ApplicationDetail({ applicationId }: ApplicationDetailProps) {
         candidateId={candidateId}
         isPending={update.isPending}
         onSubmit={(dto) => update.mutate(dto)}
+      />
+
+      <ApplicationMainContactDialog
+        key={mainContactDialogOpen ? 'open' : 'closed'}
+        open={mainContactDialogOpen}
+        onOpenChange={setMainContactDialogOpen}
+        application={app}
+        contact={contact}
       />
     </div>
   )

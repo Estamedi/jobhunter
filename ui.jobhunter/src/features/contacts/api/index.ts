@@ -42,7 +42,7 @@ export const contactsApi = {
     http.post<number>('/api/contacts', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateContactDto>) =>
-    http.put(`/api/contacts/${id}`, dto),
+    http.put(`/api/contacts/${id}`, { ...dto, id }),
 
   delete: (id: number) =>
     http.delete(`/api/contacts/${id}`),

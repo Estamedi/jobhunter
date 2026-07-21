@@ -273,6 +273,8 @@ export function ApplicationsMutateDialog({
       jobRoleId: jobRole.value,
       mainContactId: mainContact?.value,
       cvId,
+      actualOfferSalary: currentRow?.actualOfferSalary,
+      rejectionReason: currentRow?.rejectionReason,
     })
   }
 

@@ -39,7 +39,7 @@ export const activitiesApi = {
     http.post<number>('/api/activities', dto).then((r) => r.data),
 
   update: (id: number, dto: Partial<CreateActivityDto>) =>
-    http.put(`/api/activities/${id}`, dto),
+    http.put(`/api/activities/${id}`, { ...dto, id }),
 
   delete: (id: number) =>
     http.delete(`/api/activities/${id}`),
