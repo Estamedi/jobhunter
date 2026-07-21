@@ -22,7 +22,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__backend.jobhunterDb=Server=postgres;Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-password}
+      - ConnectionStrings__backend-jobhunterDb=Server=postgres;Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-password}
       - FileStorage__RootPath=/app/uploads/cvs
     ports:
       - "${BACKEND_PORT:-5290}:8080"
