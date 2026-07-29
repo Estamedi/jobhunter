@@ -1,12 +1,12 @@
 # Tapinti Job Saver — Chrome Extension
 
-Read the job posting on the current page, extract the details with AI (Claude), and save it to the Tapinti job-hunt CRM with one click.
+Read the job posting on the current page, extract the details with AI (Claude or OpenAI), and save it to the Tapinti job-hunt CRM with one click.
 
 ## How it works
 
 1. You open a job posting (LinkedIn, Indeed, a company careers page, …) and click the extension.
 2. The extension reads the page (visible text + any JSON-LD `JobPosting` structured data).
-3. The page content is sent to the **Claude API** (`claude-opus-4-8`, structured outputs) which returns clean JSON: title, company, location, work type, salary, description, requirements. If no Anthropic key is configured, a basic JSON-LD/heuristic parser is used instead.
+3. The page content is sent to whichever AI provider is configured — **Claude** (`claude-opus-4-8`) or **OpenAI** (`gpt-4o-mini`), both using structured outputs — which returns clean JSON: title, company, location, work type, salary, description, requirements. If you've set both keys, the **Preferred AI provider** setting picks which one is tried first; if only one key is set, that one is used regardless of the preference. If no key is configured at all, a basic JSON-LD/heuristic parser is used instead.
 4. You review/edit the pre-filled form and hit **Save to portal**, which calls the backend:
    - `GET/POST /api/Companies` — reuse the company if it already exists (matched by name), else create it
    - `POST /api/job-roles` — create the role
@@ -25,8 +25,12 @@ Auth uses the portal's Identity bearer tokens (`POST /api/Users/login`), with au
 1. Click the extension icon → sign in with your portal account (email/password, or Google — see below).
 2. Click the ⚙ icon:
    - **Portal API base URL** — defaults to `https://api.tapinti.com`; use `http://localhost:5290` (docker) or `http://localhost:5124` (dotnet run) for local dev.
-   - **Anthropic API key** — get one at <https://platform.claude.com>; needed for AI extraction. Stored only in `chrome.storage.local` on your machine.
+   - **Preferred AI provider** — Claude or OpenAI. Only matters if you set both keys below; with just one key set, that provider is used regardless of this setting.
+   - **Anthropic API key** — get one at <https://platform.claude.com>. Stored only in `chrome.storage.local` on your machine.
+   - **OpenAI API key** — get one at <https://platform.openai.com/api-keys>. Stored only in `chrome.storage.local` on your machine.
    - **Google client ID** — needed for "Continue with Google" (see below).
+
+   Never commit an API key into this repo or hardcode it in source — anything under `manifest.json`/`popup.html`/`src/` ships inside the installable extension and is fully readable by anyone who loads it. Keys only belong in the Settings form, which persists to `chrome.storage.local` (local to your browser profile, not part of the package).
 
 ### Setting up "Continue with Google"
 
@@ -54,12 +58,15 @@ Note: an unpacked extension's ID (and therefore its redirect URI) changes if you
 | `src/api/users.js` | `GET /api/Users/me` (cached per popup session) + JobSeeker role check |
 | `src/api/jobs.js` | Company/JobRole/Application creation, candidate-picker loading |
 | `src/extraction/page-reader.js` | Injected content script that reads the active tab's job posting |
-| `src/extraction/ai-extract.js` | Claude API call (structured output) for job-detail extraction |
+| `src/extraction/job-schema.js` | Shared structured-output JSON schema + prompt builder used by both AI providers |
+| `src/extraction/claude-extract.js` | Claude API call (structured output) for job-detail extraction |
+| `src/extraction/openai-extract.js` | OpenAI API call (structured output) for job-detail extraction |
+| `src/extraction/extract-job.js` | Picks Claude vs OpenAI vs basic parser based on configured keys/preference |
 | `src/extraction/basic-extract.js` | JSON-LD/heuristic fallback parser |
 | `src/ui/dom.js`, `src/ui/views.js`, `src/ui/form.js` | `$()` helper, view switching, form fill/read |
 
 ## Notes
 
 - The page is read only when you click the extension (`activeTab`), nothing runs in the background.
-- Your Anthropic key is sent only to `api.anthropic.com`; page content is sent to the Claude API for extraction.
-- Cost per save is a fraction of a cent (one small Claude request).
+- Your Anthropic key is sent only to `api.anthropic.com`, and your OpenAI key only to `api.openai.com`; page content is sent to whichever provider is used for extraction.
+- Cost per save is a fraction of a cent (one small AI request).
