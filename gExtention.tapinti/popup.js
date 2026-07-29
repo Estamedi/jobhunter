@@ -17,6 +17,22 @@ let settings = {
   candidateId: null,
 };
 
+// Cached per session — cleared on sign-out. A JobSeeker always manages exactly
+// their own Candidate profile, so the picker is only meaningful for
+// Recruiter/Administrator accounts juggling multiple candidates.
+let currentUser = null;
+
+function isJobSeeker(user) {
+  return (user?.roles || []).some((r) => r.toLowerCase() === "jobseeker");
+}
+
+async function getCurrentUser() {
+  if (!currentUser) {
+    currentUser = await api("/api/Users/me");
+  }
+  return currentUser;
+}
+
 // ---------------------------------------------------------------- views
 
 function show(view) {
@@ -435,7 +451,12 @@ function sourceFromUrl(url) {
 }
 
 async function loadCandidates() {
-  const data = await api("/api/Candidates?isActive=true&pageSize=50");
+  const [user, data] = await Promise.all([
+    getCurrentUser(),
+    api("/api/Candidates?isActive=true&pageSize=50"),
+  ]);
+  const jobSeeker = isJobSeeker(user);
+
   const select = $("#f-candidate");
   select.innerHTML = "";
   for (const c of data.items) {
@@ -448,6 +469,9 @@ async function loadCandidates() {
       data.items.some((c) => String(c.id) === String(settings.candidateId))) {
     select.value = settings.candidateId;
   }
+
+  $("#f-candidate-field").classList.toggle("hidden", jobSeeker);
+
   if (!data.items.length) {
     throw new Error("No candidates found in the portal — create one first.");
   }
@@ -565,6 +589,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   $("#btn-logout").addEventListener("click", async () => {
+    currentUser = null;
     await saveSettings({ accessToken: null, refreshToken: null });
     show("login");
   });

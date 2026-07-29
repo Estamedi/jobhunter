@@ -66,12 +66,18 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // Default roles
-        var administratorRole = new IdentityRole(Roles.Administrator);
+        // Default roles — seed all three so Recruiter exists in the database up front
+        // instead of only Administrator (JobSeeker is also lazily created on first
+        // signup by ApplicationUserManager, but seeding it here too keeps this the
+        // single source of truth for "what roles exist").
+        string[] defaultRoles = [Roles.Administrator, Roles.Recruiter, Roles.JobSeeker];
 
-        if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
+        foreach (var roleName in defaultRoles)
         {
-            await _roleManager.CreateAsync(administratorRole);
+            if (_roleManager.Roles.All(r => r.Name != roleName))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(roleName));
+            }
         }
 
         // Default users
@@ -80,11 +86,8 @@ public class ApplicationDbContextInitialiser
         if (_userManager.Users.All(u => u.UserName != administrator.UserName))
         {
             await _userManager.CreateAsync(administrator, "Administrator1!");
-            if (!string.IsNullOrWhiteSpace(administratorRole.Name))
-            {
-                await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
-                await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
-            }
+            await _userManager.AddToRolesAsync(administrator, [Roles.Administrator]);
+            await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
         }
 
         // No per-user CRM data is seeded here. Each job seeker gets their own Candidate row created by
