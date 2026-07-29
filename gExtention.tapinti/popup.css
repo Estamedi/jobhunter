@@ -56,6 +56,30 @@ input:focus, select:focus, textarea:focus {
 }
 textarea { resize: vertical; }
 
+.password-field {
+  position: relative;
+  margin-top: 3px;
+}
+.password-field input {
+  margin-top: 0;
+  padding-right: 30px;
+}
+.icon-btn-eye {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: #667085;
+  cursor: pointer;
+}
+.icon-btn-eye:hover { color: #344054; }
+
 .row { display: flex; gap: 8px; }
 .row > label, .row > button { flex: 1; }
 

@@ -47,7 +47,16 @@ Note: an unpacked extension's ID (and therefore its redirect URI) changes if you
 |---|---|
 | `manifest.json` | MV3 manifest — popup action, `activeTab`/`scripting`/`storage`/`identity` permissions |
 | `popup.html/css` | Popup UI: login (incl. Google sign-in), settings, and the editable job form |
-| `popup.js` | Page extraction (injected script), Claude API call, portal API client (incl. Google OAuth via `chrome.identity`), save flow |
+| `src/popup.js` | Entry point — wires DOM events, orchestrates the extract/save flows. Loaded as an ES module (`<script type="module">`), no build step |
+| `src/settings.js` | `chrome.storage.local`-backed settings (API base URL, tokens, keys) |
+| `src/api/client.js` | Portal `api()` fetch wrapper — auth header, 401 handling, refresh-token retry |
+| `src/api/auth.js` | Email/password login, Google sign-in (`chrome.identity.launchWebAuthFlow`) |
+| `src/api/users.js` | `GET /api/Users/me` (cached per popup session) + JobSeeker role check |
+| `src/api/jobs.js` | Company/JobRole/Application creation, candidate-picker loading |
+| `src/extraction/page-reader.js` | Injected content script that reads the active tab's job posting |
+| `src/extraction/ai-extract.js` | Claude API call (structured output) for job-detail extraction |
+| `src/extraction/basic-extract.js` | JSON-LD/heuristic fallback parser |
+| `src/ui/dom.js`, `src/ui/views.js`, `src/ui/form.js` | `$()` helper, view switching, form fill/read |
 
 ## Notes
 
