@@ -23,7 +23,12 @@ export async function api(path, options = {}, allowRetry = true) {
   }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`Portal API ${res.status} on ${path}\n${body.slice(0, 300)}`);
+    const problem = (() => { try { return JSON.parse(body); } catch { return null; } })();
+    const err = new Error(
+      problem?.detail || `Portal API ${res.status} on ${path}\n${body.slice(0, 300)}`,
+    );
+    err.status = res.status;
+    throw err;
   }
   if (res.status === 204) return null;
   return res.json();
