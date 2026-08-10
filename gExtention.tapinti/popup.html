@@ -53,19 +53,7 @@
     <label>Portal API base URL
       <input type="url" id="set-api-base" placeholder="https://api.tapinti.com" />
     </label>
-    <label>Preferred AI provider
-      <select id="set-ai-provider">
-        <option value="anthropic">Claude (Anthropic)</option>
-        <option value="openai">OpenAI (GPT)</option>
-      </select>
-    </label>
-    <label>Anthropic API key <small>(for AI page extraction)</small>
-      <input type="password" id="set-anthropic-key" placeholder="sk-ant-..." />
-    </label>
-    <label>OpenAI API key <small>(for AI page extraction)</small>
-      <input type="password" id="set-openai-key" placeholder="sk-..." />
-    </label>
-    <p class="hint">Set either key (or both). The preferred provider above is used when its key is set; otherwise the other configured provider is used. Without any key, the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
+    <p class="hint">AI extraction runs on the Tapinti backend, so no AI API key is needed here. If the backend extraction call fails, the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
     <label class="checkbox-label">
       <input type="checkbox" id="set-restrict-job-sites" />
       Only read known job sites

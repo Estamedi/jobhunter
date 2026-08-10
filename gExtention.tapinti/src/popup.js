@@ -116,9 +116,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   $("#btn-settings").addEventListener("click", () => {
     $("#set-api-base").value = settings.apiBaseUrl;
-    $("#set-ai-provider").value = settings.aiProvider;
-    $("#set-anthropic-key").value = settings.anthropicKey || "";
-    $("#set-openai-key").value = settings.openaiKey || "";
     $("#set-google-client-id").value = settings.googleClientId || "";
     $("#set-restrict-job-sites").checked = settings.restrictToJobSites;
     $("#redirect-uri-hint").textContent = chrome.identity.getRedirectURL();
@@ -128,9 +125,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("#btn-save-settings").addEventListener("click", async () => {
     await saveSettings({
       apiBaseUrl: ($("#set-api-base").value.trim() || DEFAULT_API_BASE).replace(/\/+$/, ""),
-      aiProvider: $("#set-ai-provider").value,
-      anthropicKey: $("#set-anthropic-key").value.trim() || null,
-      openaiKey: $("#set-openai-key").value.trim() || null,
       googleClientId: $("#set-google-client-id").value.trim() || null,
       restrictToJobSites: $("#set-restrict-job-sites").checked,
     });

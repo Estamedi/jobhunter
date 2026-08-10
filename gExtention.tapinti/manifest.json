@@ -10,8 +10,6 @@
   "permissions": ["activeTab", "scripting", "storage", "identity"],
   "host_permissions": [
     "https://api.tapinti.com/*",
-    "https://api.anthropic.com/*",
-    "https://api.openai.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
   ]

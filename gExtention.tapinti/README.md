@@ -1,12 +1,12 @@
 # Tapinti Job Saver — Chrome Extension
 
-Read the job posting on the current page, extract the details with AI (Claude or OpenAI), and save it to the Tapinti job-hunt CRM with one click.
+Read the job posting on the current page, extract the details with AI, and save it to the Tapinti job-hunt CRM with one click.
 
 ## How it works
 
 1. You open a job posting (LinkedIn, Indeed, a company careers page, …) and click the extension.
-2. The extension reads the page (visible text + any JSON-LD `JobPosting` structured data).
-3. The page content is sent to whichever AI provider is configured — **Claude** (`claude-opus-4-8`) or **OpenAI** (`gpt-4o-mini`), both using structured outputs — which returns clean JSON: title, company, location, work type, salary, description, requirements. If you've set both keys, the **Preferred AI provider** setting picks which one is tried first; if only one key is set, that one is used regardless of the preference. If no key is configured at all, a basic JSON-LD/heuristic parser is used instead.
+2. The extension reads the page (visible text + any JSON-LD `JobPosting` structured data), refusing to read pages that don't look like a job posting (see **Only read known job sites** below).
+3. The page content is sent to the backend's `POST /api/JobExtraction`, which calls whichever AI provider it has configured (Claude or OpenAI, both using structured outputs — see `backend.jobhunter/src/Infrastructure/AiExtraction`) and returns clean JSON: title, company, location, work type, salary, description, requirements. The extension never holds an AI API key — those live only in the backend's configuration. If that call fails (network issue, no provider configured, etc.), a basic JSON-LD/heuristic parser is used instead.
 4. You review/edit the pre-filled form and hit **Save to portal**, which calls the backend:
    - `GET/POST /api/Companies` — reuse the company if it already exists (matched by name), else create it
    - `POST /api/job-roles` — create the role
@@ -25,12 +25,10 @@ Auth uses the portal's Identity bearer tokens (`POST /api/Users/login`), with au
 1. Click the extension icon → sign in with your portal account (email/password, or Google — see below).
 2. Click the ⚙ icon:
    - **Portal API base URL** — defaults to `https://api.tapinti.com`; use `http://localhost:5290` (docker) or `http://localhost:5124` (dotnet run) for local dev.
-   - **Preferred AI provider** — Claude or OpenAI. Only matters if you set both keys below; with just one key set, that provider is used regardless of this setting.
-   - **Anthropic API key** — get one at <https://platform.claude.com>. Stored only in `chrome.storage.local` on your machine.
-   - **OpenAI API key** — get one at <https://platform.openai.com/api-keys>. Stored only in `chrome.storage.local` on your machine.
+   - **Only read known job sites** — on by default; restricts page reading to known job boards/ATS platforms (or pages with `JobPosting` structured data). Turn off to allow any page.
    - **Google client ID** — needed for "Continue with Google" (see below).
 
-   Never commit an API key into this repo or hardcode it in source — anything under `manifest.json`/`popup.html`/`src/` ships inside the installable extension and is fully readable by anyone who loads it. Keys only belong in the Settings form, which persists to `chrome.storage.local` (local to your browser profile, not part of the package).
+   AI provider API keys are configured server-side (`backend.jobhunter/src/Web/appsettings.json` → `AiExtraction`, or user-secrets) — never in the extension.
 
 ### Setting up "Continue with Google"
 
@@ -52,21 +50,20 @@ Note: an unpacked extension's ID (and therefore its redirect URI) changes if you
 | `manifest.json` | MV3 manifest — popup action, `activeTab`/`scripting`/`storage`/`identity` permissions |
 | `popup.html/css` | Popup UI: login (incl. Google sign-in), settings, and the editable job form |
 | `src/popup.js` | Entry point — wires DOM events, orchestrates the extract/save flows. Loaded as an ES module (`<script type="module">`), no build step |
-| `src/settings.js` | `chrome.storage.local`-backed settings (API base URL, tokens, keys) |
+| `src/settings.js` | `chrome.storage.local`-backed settings (API base URL, tokens, restrict-to-job-sites flag) |
 | `src/api/client.js` | Portal `api()` fetch wrapper — auth header, 401 handling, refresh-token retry |
 | `src/api/auth.js` | Email/password login, Google sign-in (`chrome.identity.launchWebAuthFlow`) |
 | `src/api/users.js` | `GET /api/Users/me` (cached per popup session) + JobSeeker role check |
 | `src/api/jobs.js` | Company/JobRole/Application creation, candidate-picker loading |
-| `src/extraction/page-reader.js` | Injected content script that reads the active tab's job posting |
-| `src/extraction/job-schema.js` | Shared structured-output JSON schema + prompt builder used by both AI providers |
-| `src/extraction/claude-extract.js` | Claude API call (structured output) for job-detail extraction |
-| `src/extraction/openai-extract.js` | OpenAI API call (structured output) for job-detail extraction |
-| `src/extraction/extract-job.js` | Picks Claude vs OpenAI vs basic parser based on configured keys/preference |
-| `src/extraction/basic-extract.js` | JSON-LD/heuristic fallback parser |
+| `src/api/extraction.js` | Calls the backend's `POST /api/JobExtraction` with the page content |
+| `src/extraction/page-reader.js` | Injected content script that reads the active tab's job posting; gates on known job-site hosts / `JobPosting` markup |
+| `src/extraction/job-hosts.js` | Allowlist of known job board/ATS hostnames |
+| `src/extraction/extract-job.js` | Calls the backend for AI extraction, falling back to the basic parser on failure |
+| `src/extraction/basic-extract.js` | JSON-LD/heuristic fallback parser (no network call, no AI) |
 | `src/ui/dom.js`, `src/ui/views.js`, `src/ui/form.js` | `$()` helper, view switching, form fill/read |
 
 ## Notes
 
 - The page is read only when you click the extension (`activeTab`), nothing runs in the background.
-- Your Anthropic key is sent only to `api.anthropic.com`, and your OpenAI key only to `api.openai.com`; page content is sent to whichever provider is used for extraction.
+- The extension holds no AI API keys; page content for extraction goes only to your own configured backend, which calls the AI provider server-side.
 - Cost per save is a fraction of a cent (one small AI request).
