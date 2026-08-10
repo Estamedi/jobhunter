@@ -487,6 +487,9 @@ $RECYCLE.BIN/
 *.swp
 .azure
 
+# Local dev secrets — never commit real API keys
+appsettings.Development.json
+
 # SQLite database files
 *.db
 *.db-shm
