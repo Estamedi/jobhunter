@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { applicationsApi, type GetApplicationsResult, type JobApplication } from '../api'
 import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT } from '../data/constants'
+import { toApiFilters, type ApplicationFilters } from '../data/filters'
 import type { BoardStage } from '../hooks/use-board-stages'
 
 // Standard column height so a column never resizes as cards move in/out — only the
@@ -116,28 +117,37 @@ function BoardColumn({
   )
 }
 
-export function ApplicationsBoard({ stages, onView }: { stages: BoardStage[]; onView: (id: number) => void }) {
+export function ApplicationsBoard({
+  stages,
+  onView,
+  filters,
+}: {
+  stages: BoardStage[]
+  onView: (id: number) => void
+  filters: ApplicationFilters
+}) {
   const qc = useQueryClient()
   const [activeApp, setActiveApp] = useState<JobApplication | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const boardQueryKey = ['applications', 'board', filters] as const
 
   const { data, isLoading } = useQuery({
-    queryKey: ['applications', 'board'],
-    queryFn: () => applicationsApi.list({ pageSize: BOARD_PAGE_SIZE }),
+    queryKey: boardQueryKey,
+    queryFn: () => applicationsApi.list({ ...toApiFilters(filters), pageSize: BOARD_PAGE_SIZE }),
   })
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => applicationsApi.updateStatus(id, status),
     onMutate: async ({ id, status }) => {
-      await qc.cancelQueries({ queryKey: ['applications', 'board'] })
-      const previous = qc.getQueryData<GetApplicationsResult>(['applications', 'board'])
-      qc.setQueryData<GetApplicationsResult>(['applications', 'board'], (old) =>
+      await qc.cancelQueries({ queryKey: boardQueryKey })
+      const previous = qc.getQueryData<GetApplicationsResult>(boardQueryKey)
+      qc.setQueryData<GetApplicationsResult>(boardQueryKey, (old) =>
         old ? { ...old, items: old.items.map((a) => (a.id === id ? { ...a, status } : a)) } : old
       )
       return { previous }
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) qc.setQueryData(['applications', 'board'], context.previous)
+      if (context?.previous) qc.setQueryData(boardQueryKey, context.previous)
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['applications'] })

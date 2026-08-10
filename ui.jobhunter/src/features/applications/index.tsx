@@ -4,20 +4,21 @@ import { applicationsApi, type JobApplication, type CreateApplicationDto } from 
 import { candidatesApi } from '@/features/candidates/api'
 import { ListPagination } from '@/components/list-pagination'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Search, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List, Eye } from 'lucide-react'
+import { Plus, MoreHorizontal, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List, Eye } from 'lucide-react'
 import { format } from 'date-fns'
 import { ApplicationDetailDialog } from './components/application-detail-dialog'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
 import { ApplicationsBoard } from './components/applications-board'
+import { ApplicationsFilterBar } from './components/applications-filter-bar'
 import { CustomizeStagesDialog } from './components/customize-stages-dialog'
 import { FOLLOWUP_COLORS, formatStatusLabel } from './data/constants'
+import { DEFAULT_FILTERS, toApiFilters, type ApplicationFilters } from './data/filters'
 import { useBoardStages } from './hooks/use-board-stages'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 
@@ -25,8 +26,7 @@ const PAGE_SIZE = 20
 
 export function Applications() {
   const qc = useQueryClient()
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string | undefined>()
+  const [filters, setFilters] = useState<ApplicationFilters>(DEFAULT_FILTERS)
   const [page, setPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobApplication | null>(null)
@@ -52,19 +52,14 @@ export function Applications() {
   } = useBoardStages()
   const stageByStatus = Object.fromEntries(stages.map((s) => [s.status, s]))
 
-  function handleSearchChange(value: string) {
-    setSearch(value)
-    setPage(1)
-  }
-
-  function handleStatusFilterChange(value: string | undefined) {
-    setStatusFilter(value)
+  function updateFilters(patch: Partial<ApplicationFilters>) {
+    setFilters((prev) => ({ ...prev, ...patch }))
     setPage(1)
   }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['applications', search, statusFilter, page],
-    queryFn: () => applicationsApi.list({ search: search || undefined, status: statusFilter, page, pageSize: PAGE_SIZE }),
+    queryKey: ['applications', filters, page],
+    queryFn: () => applicationsApi.list({ ...toApiFilters(filters), page, pageSize: PAGE_SIZE }),
   })
 
   const { data: myCandidate } = useQuery({
@@ -112,31 +107,18 @@ export function Applications() {
           </Button>
         </div>
 
+        <ApplicationsFilterBar filters={filters} onChange={updateFilters} statusOptions={stages} />
+
         <TabsContent value='board' className='mt-4 space-y-3'>
           <div className='flex justify-end'>
             <Button variant='outline' size='sm' onClick={() => setCustomizeOpen(true)}>
               <Settings2 className='h-4 w-4 mr-1' /> Customize board
             </Button>
           </div>
-          <ApplicationsBoard stages={visibleStages} onView={openApplication} />
+          <ApplicationsBoard stages={visibleStages} onView={openApplication} filters={filters} />
         </TabsContent>
 
         <TabsContent value='all' className='mt-4 space-y-4'>
-      <div className='flex flex-wrap items-center gap-2'>
-        <div className='relative flex-1 min-w-[200px] max-w-sm'>
-          <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-          <Input placeholder='Search applications...' className='pl-8' value={search} onChange={(e) => handleSearchChange(e.target.value)} />
-        </div>
-        <select
-          value={statusFilter ?? ''}
-          onChange={(e) => handleStatusFilterChange(e.target.value || undefined)}
-          className='flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm'
-        >
-          <option value=''>All statuses</option>
-          {stages.map((s) => <option key={s.status} value={s.status}>{s.label}</option>)}
-        </select>
-      </div>
-
       <div className='rounded-md border overflow-x-auto'>
         <Table>
           <TableHeader>

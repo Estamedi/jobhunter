@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, serializeQueryParams } from '@/lib/http'
 
 export interface JobApplication {
   id: number
@@ -7,6 +7,10 @@ export interface JobApplication {
   jobRoleId: number
   jobRoleTitle?: string
   jobRoleDescription?: string
+  jobRoleEmploymentType?: string
+  jobRoleCity?: string
+  jobRoleSalaryMin?: number
+  jobRoleSalaryMax?: number
   companyId: number
   companyName?: string
   mainContactId?: number
@@ -56,12 +60,27 @@ export const applicationsApi = {
     candidateId?: number
     companyId?: number
     status?: string
-    priority?: string
+    priority?: string[]
+    country?: string
+    workType?: string[]
+    employmentType?: string[]
+    jobTitle?: string
+    salaryMin?: number
+    salaryMax?: number
+    dateFrom?: string
+    dateTo?: string
+    followUpFrom?: string
+    followUpTo?: string
     followUpStatus?: string
     page?: number
     pageSize?: number
   } = {}) =>
-    http.get<GetApplicationsResult>('/api/applications', { params: filters }).then((r) => r.data),
+    http
+      .get<GetApplicationsResult>('/api/applications', {
+        params: filters,
+        paramsSerializer: { serialize: serializeQueryParams },
+      })
+      .then((r) => r.data),
 
   get: (id: number) =>
     http.get<JobApplication>(`/api/applications/${id}`).then((r) => r.data),
