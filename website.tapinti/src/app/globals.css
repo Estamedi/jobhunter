@@ -8,6 +8,7 @@
   --brand-primary: #4f46e5; /* indigo  */
   --brand-secondary: #06b6d4; /* cyan    */
   --brand-accent: #8b5cf6; /* violet  */
+  --brand-green: oklch(0.52 0.12 155); /* logo mark accent */
 
   /* Light theme surfaces */
   --background: #ffffff;
@@ -35,6 +36,7 @@
   --color-brand: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-accent: var(--brand-accent);
+  --color-brand-green: var(--brand-green);
 
   --color-background: var(--background);
   --color-background-subtle: var(--background-subtle);
@@ -46,6 +48,7 @@
   --color-ring: var(--ring);
 
   --font-sans: var(--font-app), ui-sans-serif, system-ui, sans-serif;
+  --font-logo: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 
   --radius-4xl: 2rem;
 

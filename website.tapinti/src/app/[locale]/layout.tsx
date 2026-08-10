@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Inter, Vazirmatn } from "next/font/google";
+import { Archivo, Inter, Vazirmatn } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { routing, rtlLocales, type Locale } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
 import "../globals.css";
 
 const inter = Inter({
@@ -16,6 +17,13 @@ const inter = Inter({
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
   variable: "--font-app",
+  display: "swap",
+});
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["600"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -95,7 +103,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={dir}
-      className={font.variable}
+      className={cn(font.variable, archivo.variable)}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
