@@ -50,6 +50,7 @@ upsert_env POSTGRES_PASSWORD "${POSTGRES_PASSWORD:-}"
 upsert_env VITE_API_BASE_URL "${VITE_API_BASE_URL:-}"
 upsert_env VITE_GOOGLE_CLIENT_ID "${VITE_GOOGLE_CLIENT_ID:-}"
 upsert_env AUTHENTICATION__GOOGLE__CLIENTID "${AUTHENTICATION__GOOGLE__CLIENTID:-}"
+upsert_env AIEXTRACTION__OPENAIAPIKEY "${AIEXTRACTION__OPENAIAPIKEY:-}"
 
 bootstrap_shared_postgres() {
   local postgres_container="${POSTGRES_HOST:-shared_postgres}"
