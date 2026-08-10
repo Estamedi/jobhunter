@@ -1,6 +1,5 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.jobhunter.Application.JobExtraction.Commands.ExtractJob;
 
