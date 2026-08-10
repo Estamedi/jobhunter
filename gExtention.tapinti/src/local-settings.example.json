@@ -1,0 +1,5 @@
+{
+  "_comment": "Copy this file to src/local-settings.json (gitignored) to pre-fill Settings on first load, so you don't have to paste keys in every time you reinstall the extension. Never commit local-settings.json — it's your own machine's secrets.",
+  "apiBaseUrl": "http://localhost:5124",
+  "googleClientId": null
+}

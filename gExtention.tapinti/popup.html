@@ -18,7 +18,21 @@
       <input type="email" id="login-email" autocomplete="username" />
     </label>
     <label>Password
-      <input type="password" id="login-password" autocomplete="current-password" />
+      <div class="password-field">
+        <input type="password" id="login-password" autocomplete="current-password" />
+        <button type="button" id="btn-toggle-password" class="icon-btn-eye" aria-label="Show password" title="Show password">
+          <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <svg class="eye-off-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+            <line x1="2" x2="22" y1="2" y2="22"/>
+          </svg>
+        </button>
+      </div>
     </label>
     <button id="btn-login" class="primary">Sign in</button>
     <div class="divider"><span>or</span></div>
@@ -39,10 +53,12 @@
     <label>Portal API base URL
       <input type="url" id="set-api-base" placeholder="https://api.tapinti.com" />
     </label>
-    <label>Anthropic API key <small>(for AI page extraction)</small>
-      <input type="password" id="set-anthropic-key" placeholder="sk-ant-..." />
+    <p class="hint">AI extraction runs on the Tapinti backend, so no AI API key is needed here. If the backend extraction call fails, the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
+    <label class="checkbox-label">
+      <input type="checkbox" id="set-restrict-job-sites" />
+      Only read known job sites
     </label>
-    <p class="hint">Without an Anthropic key the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
+    <p class="hint">When on, pages are only read on known job boards/ATS platforms (LinkedIn, Indeed, JobStreet, Greenhouse, etc.) or pages with job posting markup. Turn off to allow any page.</p>
     <label>Google client ID <small>(for "Continue with Google")</small>
       <input type="text" id="set-google-client-id" placeholder="xxxxx.apps.googleusercontent.com" />
     </label>
@@ -130,6 +146,6 @@
     <p id="main-success" class="success hidden"></p>
   </section>
 
-  <script src="popup.js"></script>
+  <script type="module" src="src/popup.js"></script>
 </body>
 </html>

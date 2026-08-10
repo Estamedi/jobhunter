@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tapinti Job Saver",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Read the job posting you're viewing, extract it with AI, and save it to your Tapinti job-hunt CRM.",
   "action": {
     "default_popup": "popup.html",
@@ -10,7 +10,6 @@
   "permissions": ["activeTab", "scripting", "storage", "identity"],
   "host_permissions": [
     "https://api.tapinti.com/*",
-    "https://api.anthropic.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
   ]
