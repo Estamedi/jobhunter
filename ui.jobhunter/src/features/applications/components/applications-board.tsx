@@ -13,6 +13,8 @@ import {
 } from '@dnd-kit/core'
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { format } from 'date-fns'
+import { ExternalLink } from 'lucide-react'
+import { IconLinkedin } from '@/assets/brand-icons'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { applicationsApi, type GetApplicationsResult, type JobApplication } from '../api'
@@ -32,10 +34,39 @@ const OTHER_STATUS = '__other__'
 const OTHER_STAGE: BoardStage = { status: OTHER_STATUS, label: 'Other', badgeVariant: 'outline', visible: true }
 
 function CardContent({ application }: { application: JobApplication }) {
+  const jobLink = application.jobRoleLink
+  const isLinkedIn = jobLink?.toLowerCase().includes('linkedin.com')
+
   return (
     <>
-      <p className='truncate text-sm font-semibold text-card-foreground'>{application.companyName || `#${application.companyId}`}</p>
-      <p className='mt-0.5 truncate text-xs text-muted-foreground'>{application.jobRoleTitle || `#${application.jobRoleId}`}</p>
+      <div className='flex items-start justify-between gap-2'>
+        <div className='min-w-0'>
+          <p className='truncate text-sm font-semibold text-card-foreground'>{application.companyName || `#${application.companyId}`}</p>
+          <p className='mt-0.5 truncate text-xs text-muted-foreground'>{application.jobRoleTitle || `#${application.jobRoleId}`}</p>
+        </div>
+        {jobLink && (
+          <a
+            href={jobLink}
+            target='_blank'
+            rel='noreferrer'
+            onClick={(e) => e.stopPropagation()}
+            title={`Open on ${application.jobRoleSource || 'job site'}`}
+            className='shrink-0 text-muted-foreground hover:text-foreground'
+          >
+            {isLinkedIn ? <IconLinkedin className='h-4 w-4' /> : <ExternalLink className='h-4 w-4' />}
+          </a>
+        )}
+      </div>
+      {(application.jobRoleWorkType || application.jobRoleEmploymentType) && (
+        <div className='mt-1.5 flex flex-wrap gap-1'>
+          {application.jobRoleWorkType && (
+            <Badge variant='outline' className='text-[10px]'>{application.jobRoleWorkType}</Badge>
+          )}
+          {application.jobRoleEmploymentType && (
+            <Badge variant='outline' className='text-[10px]'>{application.jobRoleEmploymentType}</Badge>
+          )}
+        </div>
+      )}
       <div className='mt-3 flex items-center justify-between'>
         <Badge
           variant={application.priority === 'High' ? 'destructive' : 'secondary'}

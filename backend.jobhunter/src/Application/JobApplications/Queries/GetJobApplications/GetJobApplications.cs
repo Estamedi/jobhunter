@@ -21,7 +21,8 @@ public record JobApplicationDto(
     string? JobRoleCountry, string? JobRoleWorkType, string? JobRoleDescription,
     DateTimeOffset Created, DateTimeOffset LastModified,
     string? JobRoleEmploymentType, string? JobRoleCity,
-    decimal? JobRoleSalaryMin, decimal? JobRoleSalaryMax
+    decimal? JobRoleSalaryMin, decimal? JobRoleSalaryMax,
+    string? JobRoleLink, string JobRoleSource
 );
 
 public record GetJobApplicationsResult(IReadOnlyList<JobApplicationDto> Items, int Total);
@@ -144,7 +145,8 @@ public class GetJobApplicationsQueryHandler(IApplicationDbContext context)
                 a.JobRole.Country, a.JobRole.WorkType, a.JobRole.Description,
                 a.Created, a.LastModified,
                 a.JobRole.EmploymentType, a.JobRole.City,
-                a.JobRole.SalaryMin, a.JobRole.SalaryMax))
+                a.JobRole.SalaryMin, a.JobRole.SalaryMax,
+                a.JobRole.JobLink, a.JobRole.Source))
             .ToListAsync(cancellationToken);
 
         return new GetJobApplicationsResult(items, total);

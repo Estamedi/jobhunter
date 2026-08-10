@@ -8,9 +8,12 @@ export interface JobApplication {
   jobRoleTitle?: string
   jobRoleDescription?: string
   jobRoleEmploymentType?: string
+  jobRoleWorkType?: string
   jobRoleCity?: string
   jobRoleSalaryMin?: number
   jobRoleSalaryMax?: number
+  jobRoleLink?: string
+  jobRoleSource?: string
   companyId: number
   companyName?: string
   mainContactId?: number
