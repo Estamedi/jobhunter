@@ -28,6 +28,13 @@ public class ProblemDetailsExceptionHandler : IExceptionHandler
                 Title = "The specified resource was not found.",
                 Detail = ne.Message
             }),
+            DuplicateJobApplicationException de => (StatusCodes.Status409Conflict, new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+                Title = "Job already saved",
+                Detail = de.Message
+            }),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, new ProblemDetails
             {
                 Status = StatusCodes.Status401Unauthorized,

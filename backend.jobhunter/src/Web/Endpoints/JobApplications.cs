@@ -30,13 +30,19 @@ public class JobApplications : IEndpointGroup
     [EndpointSummary("List applications with filters")]
     public static async Task<Ok<GetJobApplicationsResult>> GetApplications(
         ISender sender,
-        int? candidateId, int? companyId, string? status, string? priority,
-        string? country, string? workType, string? source,
-        DateTimeOffset? dateFrom, DateTimeOffset? dateTo, string? search,
+        int? candidateId, int? companyId, string? status, string[]? priority,
+        string? country, string[]? workType, string[]? employmentType, string? source,
+        string? jobTitle, decimal? salaryMin, decimal? salaryMax,
+        DateTimeOffset? dateFrom, DateTimeOffset? dateTo,
+        DateTimeOffset? followUpFrom, DateTimeOffset? followUpTo, string? followUpStatus,
+        string? search,
         int page = 1, int pageSize = 50,
         CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(
-            new GetJobApplicationsQuery(candidateId, companyId, status, priority, country, workType, source, dateFrom, dateTo, search, page, pageSize), ct));
+            new GetJobApplicationsQuery(
+                candidateId, companyId, status, priority, country, workType, employmentType, source,
+                jobTitle, salaryMin, salaryMax, dateFrom, dateTo, followUpFrom, followUpTo, followUpStatus,
+                search, page, pageSize), ct));
 
     [EndpointSummary("Get application by ID")]
     public static async Task<Ok<JobApplicationDetailDto>> GetApplication(ISender sender, int id, CancellationToken ct = default)

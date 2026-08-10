@@ -13,10 +13,13 @@ import {
 } from '@dnd-kit/core'
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { format } from 'date-fns'
+import { ExternalLink } from 'lucide-react'
+import { IconLinkedin } from '@/assets/brand-icons'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { applicationsApi, type GetApplicationsResult, type JobApplication } from '../api'
 import { STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT } from '../data/constants'
+import { toApiFilters, type ApplicationFilters } from '../data/filters'
 import type { BoardStage } from '../hooks/use-board-stages'
 
 // Standard column height so a column never resizes as cards move in/out — only the
@@ -31,10 +34,39 @@ const OTHER_STATUS = '__other__'
 const OTHER_STAGE: BoardStage = { status: OTHER_STATUS, label: 'Other', badgeVariant: 'outline', visible: true }
 
 function CardContent({ application }: { application: JobApplication }) {
+  const jobLink = application.jobRoleLink
+  const isLinkedIn = jobLink?.toLowerCase().includes('linkedin.com')
+
   return (
     <>
-      <p className='truncate text-sm font-semibold text-card-foreground'>{application.companyName || `#${application.companyId}`}</p>
-      <p className='mt-0.5 truncate text-xs text-muted-foreground'>{application.jobRoleTitle || `#${application.jobRoleId}`}</p>
+      <div className='flex items-start justify-between gap-2'>
+        <div className='min-w-0'>
+          <p className='truncate text-sm font-semibold text-card-foreground'>{application.companyName || `#${application.companyId}`}</p>
+          <p className='mt-0.5 truncate text-xs text-muted-foreground'>{application.jobRoleTitle || `#${application.jobRoleId}`}</p>
+        </div>
+        {jobLink && (
+          <a
+            href={jobLink}
+            target='_blank'
+            rel='noreferrer'
+            onClick={(e) => e.stopPropagation()}
+            title={`Open on ${application.jobRoleSource || 'job site'}`}
+            className='shrink-0 text-muted-foreground hover:text-foreground'
+          >
+            {isLinkedIn ? <IconLinkedin className='h-4 w-4' /> : <ExternalLink className='h-4 w-4' />}
+          </a>
+        )}
+      </div>
+      {(application.jobRoleWorkType || application.jobRoleEmploymentType) && (
+        <div className='mt-1.5 flex flex-wrap gap-1'>
+          {application.jobRoleWorkType && (
+            <Badge variant='outline' className='text-[10px]'>{application.jobRoleWorkType}</Badge>
+          )}
+          {application.jobRoleEmploymentType && (
+            <Badge variant='outline' className='text-[10px]'>{application.jobRoleEmploymentType}</Badge>
+          )}
+        </div>
+      )}
       <div className='mt-3 flex items-center justify-between'>
         <Badge
           variant={application.priority === 'High' ? 'destructive' : 'secondary'}
@@ -116,28 +148,37 @@ function BoardColumn({
   )
 }
 
-export function ApplicationsBoard({ stages, onView }: { stages: BoardStage[]; onView: (id: number) => void }) {
+export function ApplicationsBoard({
+  stages,
+  onView,
+  filters,
+}: {
+  stages: BoardStage[]
+  onView: (id: number) => void
+  filters: ApplicationFilters
+}) {
   const qc = useQueryClient()
   const [activeApp, setActiveApp] = useState<JobApplication | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const boardQueryKey = ['applications', 'board', filters] as const
 
   const { data, isLoading } = useQuery({
-    queryKey: ['applications', 'board'],
-    queryFn: () => applicationsApi.list({ pageSize: BOARD_PAGE_SIZE }),
+    queryKey: boardQueryKey,
+    queryFn: () => applicationsApi.list({ ...toApiFilters(filters), pageSize: BOARD_PAGE_SIZE }),
   })
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => applicationsApi.updateStatus(id, status),
     onMutate: async ({ id, status }) => {
-      await qc.cancelQueries({ queryKey: ['applications', 'board'] })
-      const previous = qc.getQueryData<GetApplicationsResult>(['applications', 'board'])
-      qc.setQueryData<GetApplicationsResult>(['applications', 'board'], (old) =>
+      await qc.cancelQueries({ queryKey: boardQueryKey })
+      const previous = qc.getQueryData<GetApplicationsResult>(boardQueryKey)
+      qc.setQueryData<GetApplicationsResult>(boardQueryKey, (old) =>
         old ? { ...old, items: old.items.map((a) => (a.id === id ? { ...a, status } : a)) } : old
       )
       return { previous }
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) qc.setQueryData(['applications', 'board'], context.previous)
+      if (context?.previous) qc.setQueryData(boardQueryKey, context.previous)
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['applications'] })

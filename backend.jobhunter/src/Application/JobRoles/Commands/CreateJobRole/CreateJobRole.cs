@@ -29,6 +29,18 @@ public class CreateJobRoleCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateJobRoleCommand request, CancellationToken cancellationToken)
     {
+        // Same posting saved before (same company + link)? Reuse that role instead
+        // of creating a duplicate row.
+        if (!string.IsNullOrWhiteSpace(request.JobLink))
+        {
+            var existingId = await context.JobRoles
+                .Where(r => r.CompanyId == request.CompanyId && r.JobLink == request.JobLink)
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (existingId != 0) return existingId;
+        }
+
         var entity = new JobRole
         {
             CompanyId = request.CompanyId,

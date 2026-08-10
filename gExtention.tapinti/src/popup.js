@@ -52,8 +52,8 @@ async function onSubmit(e) {
   btn.disabled = true;
   btn.textContent = "Saving…";
 
+  const job = readForm();
   try {
-    const job = readForm();
     if (!job.jobTitle || !job.companyName) {
       throw new Error("Job title and company are required.");
     }
@@ -64,7 +64,13 @@ async function onSubmit(e) {
     $("#main-success").classList.remove("hidden");
     $("#job-form").classList.add("hidden");
   } catch (err) {
-    setError("#main-error", err.message);
+    if (err.status === 409) {
+      $("#main-success").textContent = `You've already saved this job (${job.companyName} — ${job.jobTitle}).`;
+      $("#main-success").classList.remove("hidden");
+      $("#job-form").classList.add("hidden");
+    } else {
+      setError("#main-error", err.message);
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = "Save to portal";

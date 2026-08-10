@@ -15,6 +15,17 @@ export const STATUSES = ['Wishlist', 'Applied', 'Interview', 'Rejected']
 
 export const PRIORITIES = ['Low', 'High']
 
+export const WORK_TYPES = ['Remote', 'OnSite', 'Hybrid']
+
+export const EMPLOYMENT_TYPES = ['FullTime', 'PartTime', 'Contract', 'Internship', 'Temporary']
+
+export const FOLLOW_UP_STATUSES = [
+  { value: 'Overdue', label: 'Overdue' },
+  { value: 'DueToday', label: 'Due today' },
+  { value: 'ThisWeek', label: 'This week' },
+  { value: 'NotNeeded', label: 'Not needed' },
+]
+
 export const CURRENCIES = [
   'USD',
   'EUR',

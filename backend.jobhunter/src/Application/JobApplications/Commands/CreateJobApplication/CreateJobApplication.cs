@@ -1,3 +1,4 @@
+using backend.jobhunter.Application.Common.Exceptions;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
 using backend.jobhunter.Domain.Entities;
@@ -28,6 +29,13 @@ public class CreateJobApplicationCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateJobApplicationCommand request, CancellationToken cancellationToken)
     {
+        var existingId = await context.Applications
+            .Where(a => a.CandidateId == request.CandidateId && a.JobRoleId == request.JobRoleId)
+            .Select(a => a.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existingId != 0) throw new DuplicateJobApplicationException(existingId);
+
         var entity = new JobApplication
         {
             CandidateId = request.CandidateId,
