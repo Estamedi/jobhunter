@@ -83,6 +83,17 @@ textarea { resize: vertical; }
 .row { display: flex; gap: 8px; }
 .row > label, .row > button { flex: 1; }
 
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.checkbox-label input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+  margin-top: 0;
+}
+
 button.primary, button.danger {
   width: 100%;
   padding: 8px;

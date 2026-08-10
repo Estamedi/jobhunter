@@ -34,6 +34,7 @@ async function startMainFlow() {
       onFallback: (err) =>
         setError("#main-error", `AI extraction failed, used basic parsing instead.\n${err.message}`),
     });
+    console.log("Extracted job:", job);
 
     fillForm(job, page.url);
     status.classList.add("hidden");
@@ -119,6 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     $("#set-anthropic-key").value = settings.anthropicKey || "";
     $("#set-openai-key").value = settings.openaiKey || "";
     $("#set-google-client-id").value = settings.googleClientId || "";
+    $("#set-restrict-job-sites").checked = settings.restrictToJobSites;
     $("#redirect-uri-hint").textContent = chrome.identity.getRedirectURL();
     show("settings");
   });
@@ -130,6 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       anthropicKey: $("#set-anthropic-key").value.trim() || null,
       openaiKey: $("#set-openai-key").value.trim() || null,
       googleClientId: $("#set-google-client-id").value.trim() || null,
+      restrictToJobSites: $("#set-restrict-job-sites").checked,
     });
     settings.accessToken ? startMainFlow() : show("login");
   });
