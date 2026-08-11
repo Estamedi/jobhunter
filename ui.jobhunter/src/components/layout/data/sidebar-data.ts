@@ -1,3 +1,4 @@
+import { Logo } from '@/assets/logo'
 import {
   LayoutDashboard,
   Users,
@@ -169,7 +170,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: 'Job Hunter CRM',
-      logo: Briefcase,
+      logo: Logo,
       plan: 'Job Search Manager',
     },
   ],

@@ -192,8 +192,8 @@ export function Onboarding() {
               </button>
               <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
             </div>
-            <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
-              <span className='size-2 rounded-full bg-violet-500' />
+            <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
+              <span className='size-2 rounded-full bg-primary' />
               Step 2 of 3
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
@@ -339,8 +339,8 @@ export function Onboarding() {
               </button>
               <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
             </div>
-            <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
-              <span className='size-2 rounded-full bg-violet-500' />
+            <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
+              <span className='size-2 rounded-full bg-primary' />
               Step 1 of 3
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
@@ -436,8 +436,8 @@ export function Onboarding() {
       <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
         <CardHeader className='border-b px-8 py-7'>
           <div className='mb-4 flex items-center justify-between'>
-            <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-violet-500 uppercase'>
-              <span className='size-2 rounded-full bg-violet-500' />
+            <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
+              <span className='size-2 rounded-full bg-primary' />
               Step 1 of 3
             </div>
             <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
@@ -461,8 +461,8 @@ export function Onboarding() {
             onDrop={handleDrop}
             className={`flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed px-6 text-center transition-colors ${
               isDragging
-                ? 'border-violet-500 bg-violet-100/70 dark:border-violet-500 dark:bg-violet-950/40'
-                : 'border-violet-200 bg-violet-50/40 hover:border-violet-400 hover:bg-violet-50 dark:border-violet-900 dark:bg-violet-950/20 dark:hover:border-violet-600'
+                ? 'border-primary bg-accent/70 dark:border-primary dark:bg-primary/40'
+                : 'border-primary/20 bg-accent/40 hover:border-primary hover:bg-accent dark:border-primary/30 dark:bg-primary/20 dark:hover:border-primary'
             }`}
           >
             <input
@@ -476,7 +476,7 @@ export function Onboarding() {
             {selectedFile ? (
               <div className='w-full max-w-sm rounded-3xl border bg-background p-5 text-start shadow-sm'>
                 <div className='flex items-start gap-3'>
-                  <div className='flex size-12 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-950'>
+                  <div className='flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary dark:bg-primary/15'>
                     <FileText className='size-6' />
                   </div>
                   <div className='min-w-0 flex-1'>
@@ -504,14 +504,14 @@ export function Onboarding() {
               </div>
             ) : (
               <>
-                <div className='mb-5 flex size-18 items-center justify-center rounded-3xl border border-violet-200 bg-violet-100 text-violet-600 shadow-sm dark:border-violet-800 dark:bg-violet-950'>
+                <div className='mb-5 flex size-18 items-center justify-center rounded-3xl border border-primary/20 bg-accent text-primary shadow-sm dark:border-primary/40 dark:bg-primary/15'>
                   <Upload className='size-8' />
                 </div>
                 <p className='text-lg font-bold'>Drop your CV here</p>
                 <p className='mt-1 text-sm text-muted-foreground'>
                   PDF, DOC, DOCX or MD - up to 10 MB
                 </p>
-                <span className='mt-5 inline-flex h-10 items-center justify-center rounded-md bg-violet-600 px-8 text-sm font-medium text-white shadow-xs hover:bg-violet-700'>
+                <span className='mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-white shadow-xs hover:bg-primary/90'>
                   Upload CV
                 </span>
               </>

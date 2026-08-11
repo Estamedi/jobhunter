@@ -57,7 +57,7 @@ export interface StageAccent {
 // between the kanban board columns and the pipeline stage picker so a stage reads the same
 // color everywhere it appears.
 export const STAGE_ACCENTS: StageAccent[] = [
-  { top: 'border-t-violet-500', dot: 'bg-violet-500', tint: 'bg-violet-50 dark:bg-violet-500/10', ring: 'ring-violet-400/50' },
+  { top: 'border-t-primary', dot: 'bg-primary', tint: 'bg-accent dark:bg-primary/10', ring: 'ring-primary/50' },
   { top: 'border-t-blue-500', dot: 'bg-blue-500', tint: 'bg-blue-50 dark:bg-blue-500/10', ring: 'ring-blue-400/50' },
   { top: 'border-t-emerald-500', dot: 'bg-emerald-500', tint: 'bg-emerald-50 dark:bg-emerald-500/10', ring: 'ring-emerald-400/50' },
   { top: 'border-t-amber-500', dot: 'bg-amber-500', tint: 'bg-amber-50 dark:bg-amber-500/10', ring: 'ring-amber-400/50' },

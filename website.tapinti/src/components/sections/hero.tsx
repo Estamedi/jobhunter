@@ -1,17 +1,10 @@
 "use client";
 
-import { useRef } from "react";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  type Variants,
-} from "motion/react";
+import { motion, type Variants } from "motion/react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { ArrowRight, Play, ShieldCheck, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { DashboardMockup } from "@/components/dashboard-mockup";
 import { SIGN_UP_URL } from "@/lib/links";
 
 const container: Variants = {
@@ -30,30 +23,6 @@ const item: Variants = {
 
 export function Hero() {
   const t = useTranslations("hero");
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  // Mouse-parallax tilt for the dashboard preview
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]), {
-    stiffness: 150,
-    damping: 18,
-  });
-  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 18,
-  });
-
-  function onMove(e: React.MouseEvent<HTMLDivElement>) {
-    const rect = wrapRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    mx.set((e.clientX - rect.left) / rect.width - 0.5);
-    my.set((e.clientY - rect.top) / rect.height - 0.5);
-  }
-  function onLeave() {
-    mx.set(0);
-    my.set(0);
-  }
 
   return (
     <section id="top" className="relative overflow-hidden pt-28 sm:pt-36">
@@ -122,34 +91,68 @@ export function Hero() {
             className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground lg:justify-start"
           >
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-500" />
+              <ShieldCheck className="size-4 text-brand" />
               {t("noCard")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-500" />
+              <ShieldCheck className="size-4 text-brand" />
               {t("freeForever")}
             </span>
           </motion.div>
         </motion.div>
 
-        {/* Dashboard preview with parallax tilt */}
+        {/* Hero illustration */}
         <motion.div
-          ref={wrapRef}
-          onMouseMove={onMove}
-          onMouseLeave={onLeave}
           initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          style={{ perspective: 1200 }}
           className="relative"
         >
-          <motion.div
-            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-            className="relative"
-          >
+          <div className="relative">
             <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-brand/20 via-brand-accent/10 to-brand-secondary/20 blur-2xl" />
-            <DashboardMockup />
-          </motion.div>
+            <motion.div
+              animate={{ x: [0, 16, -12, 0], y: [0, -10, 6, 0] }}
+              transition={{
+                duration: 22,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Image
+                src="/H02.webp"
+                alt="Clouds carrying job titles like Software Engineer, Designer, Nurse and Pilot"
+                width={1697}
+                height={927}
+                priority
+                className="h-auto w-full"
+              />
+            </motion.div>
+
+            <motion.div
+              className="absolute"
+              style={{ left: "44.7%", width: "13.8%", bottom: "3%" }}
+              animate={{
+                y: [0, 0, -1, 0, 0],
+                scaleX: [1, 1, 1, 1.03, 1],
+                scaleY: [1, 1, 1, 0.97, 1],
+              }}
+              transition={{
+                duration: 2.4,
+                times: [0, 0.3, 0.45, 0.7, 1],
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Image
+                src="/jobseeker01.webp"
+                alt="A job seeker jumping up to reach for a job title"
+                width={442}
+                height={1182}
+                className="h-auto w-full"
+                style={{ transformOrigin: "bottom center" }}
+              />
+            </motion.div>
+          </div>
         </motion.div>
       </div>
     </section>

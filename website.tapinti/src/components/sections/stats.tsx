@@ -58,7 +58,7 @@ export function Stats() {
             >
               <dt className="sr-only">{t(`items.${s.key}`)}</dt>
               <dd>
-                <span className="block text-4xl font-bold tracking-tight text-gradient sm:text-5xl">
+                <span className="font-mono block text-4xl font-semibold tracking-tight text-gradient sm:text-5xl">
                   <CountUp value={s.value} suffix={s.suffix} />
                 </span>
                 <span className="mt-2 block text-sm text-muted-foreground">
