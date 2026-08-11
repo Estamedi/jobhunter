@@ -128,6 +128,19 @@ export function Hero() {
               />
             </motion.div>
 
+            <div
+              className="absolute"
+              style={{ left: "41.6%", width: "20%", bottom: "0%" }}
+            >
+              <Image
+                src="/table01.webp"
+                alt="A desk with a resume, a checklist, and a notebook and pen"
+                width={1667}
+                height={943}
+                className="h-auto w-full"
+              />
+            </div>
+
             <motion.div
               className="absolute"
               style={{ left: "44.7%", width: "13.8%", bottom: "3%" }}
