@@ -119,7 +119,7 @@ export function Hero() {
               }}
             >
               <Image
-                src="/H02.png"
+                src="/H02.webp"
                 alt="Clouds carrying job titles like Software Engineer, Designer, Nurse and Pilot"
                 width={1697}
                 height={927}
@@ -144,7 +144,7 @@ export function Hero() {
               }}
             >
               <Image
-                src="/jobseeker01.png"
+                src="/jobseeker01.webp"
                 alt="A job seeker jumping up to reach for a job title"
                 width={442}
                 height={1182}
