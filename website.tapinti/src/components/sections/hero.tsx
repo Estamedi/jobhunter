@@ -25,7 +25,10 @@ export function Hero() {
   const t = useTranslations("hero");
 
   return (
-    <section id="top" className="relative overflow-hidden pt-28 sm:pt-36">
+    <section
+      id="top"
+      className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24"
+    >
       {/* Ambient gradient blobs */}
       <div
         aria-hidden
@@ -36,13 +39,13 @@ export function Hero() {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       </div>
 
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Copy */}
         <motion.div
           variants={container}
           initial="hidden"
           animate="visible"
-          className="text-center lg:text-start"
+          className="mx-auto max-w-2xl text-center"
         >
           <motion.span
             variants={item}
@@ -62,14 +65,14 @@ export function Hero() {
 
           <motion.p
             variants={item}
-            className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0"
+            className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground"
           >
             {t("subtitle")}
           </motion.p>
 
           <motion.div
             variants={item}
-            className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start"
+            className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
           >
             <ButtonLink href={SIGN_UP_URL} size="lg" className="w-full sm:w-auto">
               {t("primaryCta")}
@@ -88,7 +91,7 @@ export function Hero() {
 
           <motion.div
             variants={item}
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground lg:justify-start"
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
           >
             <span className="inline-flex items-center gap-1.5">
               <ShieldCheck className="size-4 text-brand" />
@@ -106,7 +109,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
+          className="relative mt-12 sm:mt-16"
         >
           <div className="relative">
             <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-brand/20 via-brand-accent/10 to-brand-secondary/20 blur-2xl" />
@@ -127,6 +130,19 @@ export function Hero() {
                 className="h-auto w-full"
               />
             </motion.div>
+
+            <div
+              className="absolute"
+              style={{ left: "35.6%", width: "32%", bottom: "0%" }}
+            >
+              <Image
+                src="/table01.webp"
+                alt="A desk with a resume, a checklist, and a notebook and pen"
+                width={1667}
+                height={943}
+                className="h-auto w-full"
+              />
+            </div>
 
             <motion.div
               className="absolute"
