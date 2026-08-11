@@ -25,7 +25,10 @@ export function Hero() {
   const t = useTranslations("hero");
 
   return (
-    <section id="top" className="relative overflow-hidden pt-28 sm:pt-36">
+    <section
+      id="top"
+      className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24"
+    >
       {/* Ambient gradient blobs */}
       <div
         aria-hidden
