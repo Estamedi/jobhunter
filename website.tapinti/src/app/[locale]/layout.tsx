@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Archivo, Inter, Vazirmatn } from "next/font/google";
+import { Archivo, JetBrains_Mono, Vazirmatn } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { routing, rtlLocales, type Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import "../globals.css";
 
-const inter = Inter({
+const archivoApp = Archivo({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-app",
   display: "swap",
 });
@@ -24,6 +25,13 @@ const archivo = Archivo({
   subsets: ["latin"],
   weight: ["600"],
   variable: "--font-archivo",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -97,20 +105,20 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const dir = rtlLocales.includes(locale as Locale) ? "rtl" : "ltr";
-  const font = locale === "en" ? inter : vazirmatn;
+  const font = locale === "en" ? archivoApp : vazirmatn;
 
   return (
     <html
       lang={locale}
       dir={dir}
-      className={cn(font.variable, archivo.variable)}
+      className={cn(font.variable, archivo.variable, jetbrainsMono.variable)}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body className="min-h-dvh bg-background text-foreground antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

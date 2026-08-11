@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Organize your career. Track every company, recruiter, application, resume, interview and follow-up in one place.",
     start_url: "/",
     display: "standalone",
-    background_color: "#05060f",
-    theme_color: "#16171B",
+    background_color: "#FAF9F7",
+    theme_color: "#FAF9F7",
     icons: [
       {
         src: "/icon",
@@ -17,9 +17,9 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
       {
-        src: "/favicon.ico",
-        sizes: "any",
-        type: "image/x-icon",
+        src: "/apple-icon",
+        sizes: "180x180",
+        type: "image/png",
       },
     ],
   };

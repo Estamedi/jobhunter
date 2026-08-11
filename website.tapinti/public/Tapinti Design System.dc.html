@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #FAF9F7; }
+  a { color: oklch(0.46 0.11 155); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: oklch(0.36 0.09 155); }
+</style>
+</helmet>
+
+<div style="background: #FAF9F7; font-family: 'Archivo', system-ui, sans-serif; color: #16171B;">
+
+  <section data-screen-label="Cover" style="padding: 96px 72px 72px; display: flex; flex-direction: column; gap: 72px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 48px; flex-wrap: wrap;">
+      <div style="display: flex; flex-direction: column; gap: 14px; max-width: 620px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8A8880;">Brand system · v1.0 · Aug 2026</div>
+        <h1 style="margin: 0; font-size: 52px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.02;">Tapinti identity</h1>
+        <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #55534C; text-wrap: pretty;">{{ intro }}</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.9; color: #8A8880;">
+        <div>01 &nbsp;The mark</div>
+        <div>02 &nbsp;Construction</div>
+        <div>03 &nbsp;Sizes</div>
+        <div>04 &nbsp;Misuse</div>
+        <div>05 &nbsp;Color</div>
+        <div>06 &nbsp;Type</div>
+        <div>07 &nbsp;UI kit</div>
+        <div>08 &nbsp;Applications</div>
+      </div>
+    </div>
+
+    <div style="padding: 90px 40px; display: flex; align-items: center; justify-content: center; gap: 30px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+      <div style="position: relative; width: 106px; height: 78px;">
+        <div style="position: absolute; left: 50%; top: 50%; width: 62px; height: 45px; border-radius: 10px; border: 3.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 62px; height: 45px; border-radius: 10px; border: 3.5px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 62px; height: 45px; border-radius: 10px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+      </div>
+      <div style="font-size: 48px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;">tapinti</div>
+    </div>
+  </section>
+
+  <section data-screen-label="The mark" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">01</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">The mark</h2>
+    </div>
+    <p style="margin: 0; max-width: 720px; font-size: 15px; line-height: 1.7; color: #55534C; text-wrap: pretty;">Three cards fanned out: the pile of applications a jobseeker is running at once, with the live one in front and filled. The stack is the product's core object — an application and everything attached to it. The mark never appears without at least one card filled in Signal green.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Primary lockup</div>
+        <div style="flex: 1; padding: 44px 24px; display: flex; align-items: center; justify-content: center; gap: 18px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+          <div style="font-size: 26px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Reversed</div>
+        <div style="flex: 1; padding: 44px 24px; display: flex; align-items: center; justify-content: center; gap: 18px; background: #16171B; border: 1px solid #16171B; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #FAF9F7; background: #16171B; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #FAF9F7; background: #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.62 0.14 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+          <div style="font-size: 26px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #FAF9F7;">tapinti</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">One-color / print</div>
+        <div style="flex: 1; padding: 44px 24px; display: flex; align-items: center; justify-content: center; gap: 18px; background: #FAF9F7; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FAF9F7; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FAF9F7; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: #16171B; transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+          <div style="font-size: 26px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Stacked (narrow)</div>
+        <div style="flex: 1; padding: 36px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+          <div style="font-size: 20px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Construction" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">02</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Construction &amp; clear space</h2>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch;">
+      <div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Card geometry</div>
+        <div style="flex: 1; padding: 56px 48px 48px; display: flex; align-items: center; justify-content: center; background: #FCFBF9; border: 1px solid #E8E5DE; border-radius: 4px; background-image: linear-gradient(#F0EEE8 1px, transparent 1px), linear-gradient(90deg, #F0EEE8 1px, transparent 1px); background-size: 14px 14px;">
+          <div style="position: relative; width: 300px; height: 212px;">
+
+            <div style="position: absolute; box-sizing: border-box; left: 34px; top: 8px; width: 212px; height: 158px; border: 1px dashed #C9C5BB;"></div>
+
+            <div style="position: absolute; box-sizing: border-box; left: 48px; top: 22px; width: 182px; height: 130px; border-radius: 29px; border: 7px solid #16171B; background: #FCFBF9;"></div>
+
+            <div style="position: absolute; box-sizing: border-box; left: 52px; top: 26px; width: 29px; height: 29px; border-top: 1px dashed #55534C; border-left: 1px dashed #55534C;"></div>
+            <div style="position: absolute; left: 88px; top: 40px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #55534C;">r = .22h</div>
+
+            <div style="position: absolute; left: 62px; top: 116px; width: 7px; height: 14px; background: #16171B;"></div>
+            <div style="position: absolute; left: 78px; top: 118px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #55534C;">stroke = .055h</div>
+
+            <div style="position: absolute; box-sizing: border-box; left: 48px; top: 176px; width: 182px; height: 12px; border-left: 1px solid #55534C; border-right: 1px solid #55534C; border-top: 1px solid #55534C;"></div>
+            <div style="position: absolute; left: 48px; top: 192px; width: 182px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">7</div>
+
+            <div style="position: absolute; box-sizing: border-box; left: 258px; top: 22px; width: 12px; height: 130px; border-top: 1px solid #55534C; border-bottom: 1px solid #55534C; border-right: 1px solid #55534C;"></div>
+            <div style="position: absolute; left: 276px; top: 80px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">5</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; color: #55534C;">
+          <div>Card ratio &nbsp;<span style="color: #16171B;">7 : 5</span></div>
+          <div>Corner radius &nbsp;<span style="color: #16171B;">0.22 × height</span></div>
+          <div>Stroke &nbsp;<span style="color: #16171B;">0.055 × height</span></div>
+          <div>Rotations &nbsp;<span style="color: #16171B;">−16° / −2° / +13°</span></div>
+          <div>Overlap &nbsp;<span style="color: #16171B;">28% of card width</span></div>
+          <div>Front card &nbsp;<span style="color: #16171B;">always filled</span></div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Clear space = x (height of one card)</div>
+        <div style="flex: 1; padding: 40px; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="padding: 46px; border: 1px dashed #C9C5BB; background: #FCFBF9;">
+            <div style="display: flex; align-items: center; gap: 18px;">
+              <div style="position: relative; width: 62px; height: 46px;">
+                <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FCFBF9; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+                <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FCFBF9; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+                <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+              </div>
+              <div style="font-size: 26px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; color: #55534C;">
+          <div>Clear space &nbsp;<span style="color: #16171B;">≥ 1x all sides</span></div>
+          <div>Mark → wordmark &nbsp;<span style="color: #16171B;">0.7x</span></div>
+          <div>Wordmark cap height &nbsp;<span style="color: #16171B;">0.58 × mark height</span></div>
+          <div>Tracking &nbsp;<span style="color: #16171B;">0.16em, never tighter</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Sizes" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">03</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Sizes &amp; the icon</h2>
+    </div>
+    <p style="margin: 0; max-width: 720px; font-size: 15px; line-height: 1.7; color: #55534C; text-wrap: pretty;">Below 24px the middle card is dropped — two cards only. Below 16px use the solid green card alone. Full lockup minimum: 96px wide.</p>
+
+    <div style="padding: 48px 40px; display: flex; align-items: flex-end; gap: 48px; flex-wrap: wrap; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+        <div style="position: relative; width: 84px; height: 62px;">
+          <div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 36px; border-radius: 8px; border: 3px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 36px; border-radius: 8px; border: 3px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 36px; border-radius: 8px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">64 · three cards</div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+        <div style="position: relative; width: 42px; height: 32px;">
+          <div style="position: absolute; left: 50%; top: 50%; width: 25px; height: 18px; border-radius: 4px; border: 2px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 25px; height: 18px; border-radius: 4px; border: 2px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 25px; height: 18px; border-radius: 4px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">32 · three cards</div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+        <div style="position: relative; width: 30px; height: 22px;">
+          <div style="position: absolute; left: 50%; top: 50%; width: 18px; height: 13px; border-radius: 3px; border: 1.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 18px; height: 13px; border-radius: 3px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">22 · two cards</div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+        <div style="width: 16px; height: 12px; border-radius: 2px; background: oklch(0.52 0.12 155); transform: rotate(13deg);"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">16 · one card</div>
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: flex-end; gap: 20px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+          <div style="width: 72px; height: 72px; border-radius: 18px; background: #16171B; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 50px; height: 38px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 30px; height: 22px; border-radius: 5px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 30px; height: 22px; border-radius: 5px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 30px; height: 22px; border-radius: 5px; background: oklch(0.62 0.14 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">App icon</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: oklch(0.52 0.12 155); display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 28px; height: 21px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 17px; height: 13px; border-radius: 3px; border: 1.5px solid #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 17px; height: 13px; border-radius: 3px; background: #FFFFFF; transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">Favicon</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Misuse" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">04</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Misuse</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="height: 130px; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: oklch(0.46 0.11 155); font-weight: 600;">✓ Correct fan &amp; fill</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="height: 130px; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px; transform: rotate(-24deg);">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: oklch(0.52 0.16 25); font-weight: 600;">✕ Don't rotate the whole mark</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="height: 130px; display: flex; align-items: center; justify-content: center; background: linear-gradient(120deg, oklch(0.62 0.16 300), oklch(0.72 0.15 200)); border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; border: 2.5px solid #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: oklch(0.52 0.16 25); font-weight: 600;">✕ No busy or gradient grounds</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="height: 130px; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 62px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.72 0.15 60); transform: translate(-78%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.55 0.14 280); transform: translate(-50%, -54%) rotate(-2deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 36px; height: 26px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: oklch(0.52 0.16 25); font-weight: 600;">✕ Never colour every card</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="height: 130px; display: flex; align-items: center; justify-content: center; gap: 4px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="position: relative; width: 46px; height: 46px;">
+            <div style="position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; border-radius: 6px; border: 2.5px solid #16171B; background: #FFFFFF; transform: translate(-70%, -50%) rotate(-16deg);"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; border-radius: 6px; background: oklch(0.52 0.12 155); transform: translate(-30%, -46%) rotate(13deg);"></div>
+          </div>
+          <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; text-transform: capitalize;">Tapinti</div>
+        </div>
+        <div style="font-size: 12px; color: oklch(0.52 0.16 25); font-weight: 600;">✕ Don't restretch or retype</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Color" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">05</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Color</h2>
+    </div>
+    <p style="margin: 0; max-width: 720px; font-size: 15px; line-height: 1.7; color: #55534C; text-wrap: pretty;">Ink and paper carry the interface; Signal green is reserved — the mark, primary actions, and "offer" state. Everything else is warm neutral. Stage colors are a separate, functional palette and never used decoratively.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Core</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: oklch(0.52 0.12 155);"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Signal</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">oklch(.52 .12 155)</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: oklch(0.62 0.14 155);"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Signal / dark UI</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">oklch(.62 .14 155)</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: oklch(0.94 0.03 155);"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Signal wash</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">oklch(.94 .03 155)</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: #16171B;"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Ink</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">#16171B</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: #55534C;"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Graphite</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">#55534C</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: #E8E5DE;"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Line</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">#E8E5DE</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+            <div style="height: 92px; background: #FAF9F7;"></div>
+            <div style="padding: 12px 14px; background: #FFFFFF; display: flex; flex-direction: column; gap: 3px;">
+              <div style="font-size: 13px; font-weight: 600;">Paper</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8A8880;">#FAF9F7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Pipeline stages · functional only</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E8E5DE;">
+            <div style="width: 9px; height: 9px; border-radius: 50%; background: #A19E95;"></div>
+            <div style="font-size: 13px; font-weight: 500;">Saved</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">#A19E95</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E8E5DE;">
+            <div style="width: 9px; height: 9px; border-radius: 50%; background: oklch(0.55 0.12 250);"></div>
+            <div style="font-size: 13px; font-weight: 500;">Applied</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">oklch(.55 .12 250)</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E8E5DE;">
+            <div style="width: 9px; height: 9px; border-radius: 50%; background: oklch(0.70 0.14 75);"></div>
+            <div style="font-size: 13px; font-weight: 500;">Interview</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">oklch(.70 .14 75)</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E8E5DE;">
+            <div style="width: 9px; height: 9px; border-radius: 50%; background: oklch(0.52 0.12 155);"></div>
+            <div style="font-size: 13px; font-weight: 500;">Offer</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">oklch(.52 .12 155)</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E8E5DE;">
+            <div style="width: 9px; height: 9px; border-radius: 50%; background: oklch(0.56 0.15 22);"></div>
+            <div style="font-size: 13px; font-weight: 500;">Closed</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">oklch(.56 .15 22)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Type" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">06</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Typography</h2>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+      <div style="flex: 1 1 320px; padding: 32px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em;">Archivo</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">400 · 500 · 600 · 700</div>
+        </div>
+        <div style="font-size: 46px; font-weight: 600; letter-spacing: -0.03em; line-height: 1;">Aa Gg 1234</div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.7; color: #55534C;">Wordmark, headings and all interface text. Uppercase + 0.16em tracking for the logo only.</p>
+      </div>
+      <div style="flex: 1 1 320px; padding: 32px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 500;">JetBrains Mono</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #A19E95;">400 · 500</div>
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 400; letter-spacing: -0.02em; line-height: 1;">Aa Gg 1234</div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.7; color: #55534C;">Dates, salary figures, application IDs, labels, follow-up counters — anything the user scans as data.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden; background: #FFFFFF;">
+      <sc-for list="{{ typeScale }}" as="row" hint-placeholder-count="6">
+        <div style="padding: 18px 24px; display: flex; align-items: baseline; gap: 28px; border-bottom: 1px solid #F0EEE8;">
+          <div style="width: 130px; flex: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #A19E95;">{{ row.name }}</div>
+          <div style="width: 170px; flex: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">{{ row.spec }}</div>
+          <div style="{{ row.style }}">Track every application</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="UI kit" style="padding: 72px; display: flex; flex-direction: column; gap: 36px; border-bottom: 1px solid #E8E5DE;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">07</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">UI kit</h2>
+    </div>
+    <p style="margin: 0; max-width: 720px; font-size: 15px; line-height: 1.7; color: #55534C; text-wrap: pretty;">The card geometry from the mark sets the interface: 10px radius, 1px warm line, generous 24px padding, no drop shadows. Radii 4 / 10 / 999. Spacing steps 4 · 8 · 12 · 16 · 24 · 36 · 56.</p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+      <div style="flex: 1 1 300px; padding: 28px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Buttons</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+          <div style="padding: 12px 20px; border-radius: 10px; background: oklch(0.52 0.12 155); color: #FFFFFF; font-size: 14px; font-weight: 600; min-height: 44px; display: flex; align-items: center;" style-hover="background: oklch(0.46 0.11 155);">Log application</div>
+          <div style="padding: 12px 20px; border-radius: 10px; background: #16171B; color: #FAF9F7; font-size: 14px; font-weight: 600; min-height: 44px; display: flex; align-items: center;">Upload CV</div>
+          <div style="padding: 12px 20px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9C5BB; color: #16171B; font-size: 14px; font-weight: 600; min-height: 44px; display: flex; align-items: center;">Cancel</div>
+          <div style="padding: 12px 4px; color: oklch(0.46 0.11 155); font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">View history</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Input</div>
+          <div style="padding: 13px 16px; border-radius: 10px; border: 1px solid #C9C5BB; background: #FCFBF9; font-size: 14px; color: #A19E95;">Company or role…</div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 340px; padding: 28px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; display: flex; flex-direction: column; gap: 18px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Stage indicator — the mark as UI</div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.65; color: #55534C;">Cards fill left to right as an application advances. One filled = saved, three filled = offer.</p>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; gap: 5px;">
+              <div style="width: 20px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 20px; height: 14px; border-radius: 3px; border: 1.5px solid #C9C5BB;"></div>
+              <div style="width: 20px; height: 14px; border-radius: 3px; border: 1.5px solid #C9C5BB;"></div>
+            </div>
+            <div style="font-size: 13px; color: #55534C;">Applied</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; gap: 5px;">
+              <div style="width: 20px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 20px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 20px; height: 14px; border-radius: 3px; border: 1.5px solid #C9C5BB;"></div>
+            </div>
+            <div style="font-size: 13px; color: #55534C;">Interviewing</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; gap: 5px;">
+              <div style="width: 20px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 20px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 20px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+            </div>
+            <div style="font-size: 13px; color: #55534C;">Offer</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 340px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Application card</div>
+        <div style="padding: 24px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 10px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Senior Product Designer</div>
+              <div style="font-size: 14px; color: #55534C;">Northwind Labs · Remote</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 999px; background: oklch(0.96 0.03 75);">
+              <div style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.70 0.14 75);"></div>
+              <div style="font-size: 12px; font-weight: 600; color: oklch(0.45 0.09 75);">Interview</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div style="padding: 6px 11px; border-radius: 999px; border: 1px solid #E8E5DE; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">CV v3</div>
+            <div style="padding: 6px 11px; border-radius: 999px; border: 1px solid #E8E5DE; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">Cover letter</div>
+            <div style="padding: 6px 11px; border-radius: 999px; border: 1px solid #E8E5DE; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">3 claims logged</div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid #F0EEE8;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #A19E95;">Applied 12 Jul · follow-up in 2d</div>
+            <div style="display: flex; gap: 4px;">
+              <div style="width: 16px; height: 11px; border-radius: 2px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 16px; height: 11px; border-radius: 2px; background: oklch(0.52 0.12 155);"></div>
+              <div style="width: 16px; height: 11px; border-radius: 2px; border: 1.5px solid #C9C5BB;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Applications" style="padding: 72px; display: flex; flex-direction: column; gap: 36px;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #8A8880;">08</div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Applications</h2>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+      <div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Product header</div>
+        <div style="border: 1px solid #E8E5DE; border-radius: 4px; background: #FFFFFF; overflow: hidden;">
+          <div style="height: 58px; padding: 0 20px; display: flex; align-items: center; gap: 24px; border-bottom: 1px solid #F0EEE8;">
+            <div style="display: flex; align-items: center; gap: 11px;">
+              <div style="position: relative; width: 32px; height: 24px;">
+                <div style="position: absolute; left: 50%; top: 50%; width: 19px; height: 14px; border-radius: 3px; border: 1.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+                <div style="position: absolute; left: 50%; top: 50%; width: 19px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+              </div>
+              <div style="font-size: 14px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+            </div>
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #55534C;">
+              <div style="color: #16171B; font-weight: 600;">Pipeline</div>
+              <div>Documents</div>
+              <div>Claims</div>
+            </div>
+            <div style="margin-left: auto; width: 30px; height: 30px; border-radius: 999px; background: #16171B; color: #FAF9F7; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">AM</div>
+          </div>
+          <div style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <div style="height: 84px; border-radius: 6px; background: #F4F2ED;"></div>
+            <div style="height: 84px; border-radius: 6px; background: #F4F2ED;"></div>
+            <div style="height: 84px; border-radius: 6px; background: #F4F2ED;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Icons &amp; avatar</div>
+        <div style="flex: 1; padding: 32px; display: flex; align-items: center; justify-content: center; gap: 20px; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px;">
+          <div style="width: 64px; height: 64px; border-radius: 16px; background: #16171B; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 44px; height: 33px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 19px; border-radius: 4px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 19px; border-radius: 4px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 19px; border-radius: 4px; background: oklch(0.62 0.14 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+          <div style="width: 64px; height: 64px; border-radius: 16px; background: oklch(0.52 0.12 155); display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 44px; height: 33px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 19px; border-radius: 4px; border: 2px solid #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 19px; border-radius: 4px; border: 2px solid #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 19px; border-radius: 4px; background: #FFFFFF; transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+          <div style="width: 64px; height: 64px; border-radius: 999px; background: #FAF9F7; border: 1px solid #E8E5DE; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 38px; height: 28px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 23px; height: 17px; border-radius: 4px; border: 2px solid #16171B; background: #FAF9F7; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 23px; height: 17px; border-radius: 4px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">Card</div>
+        <div style="flex: 1; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; background: #16171B; border-radius: 4px; min-height: 190px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="position: relative; width: 40px; height: 30px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 24px; height: 17px; border-radius: 4px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 24px; height: 17px; border-radius: 4px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 24px; height: 17px; border-radius: 4px; background: oklch(0.62 0.14 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+            <div style="font-size: 16px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #FAF9F7;">tapinti</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 15px; font-weight: 600; color: #FAF9F7;">Own your job hunt.</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8A8880;">tapinti.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;intro&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;The fan mark (2a), its rules, and the interface language it generates — colour, type, components and applications for the job-hunt CRM.&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const base = "font-family: 'Archivo', sans-serif; color: #16171B; ";
+    return {
+      intro: this.props.intro ?? "The fan mark (2a), its rules, and the interface language it generates — colour, type, components and applications for the job-hunt CRM.",
+      typeScale: [
+        { name: "Display", spec: "44 / 1.05 / 600 / −0.03em", style: base + "font-size: 44px; line-height: 1.05; font-weight: 600; letter-spacing: -0.03em;" },
+        { name: "Heading", spec: "28 / 1.15 / 600 / −0.02em", style: base + "font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em;" },
+        { name: "Subhead", spec: "19 / 1.35 / 600", style: base + "font-size: 19px; line-height: 1.35; font-weight: 600;" },
+        { name: "Body", spec: "15 / 1.65 / 400", style: base + "font-size: 15px; line-height: 1.65;" },
+        { name: "Small", spec: "13 / 1.6 / 400", style: base + "font-size: 13px; line-height: 1.6; color: #55534C;" },
+        { name: "Data / meta", spec: "11 / 1.5 / mono", style: "font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5; color: #55534C;" },
+        { name: "Wordmark", spec: "600 / 0.16em / uppercase", style: base + "font-size: 20px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

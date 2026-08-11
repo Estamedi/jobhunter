@@ -4,32 +4,37 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Brand palette */
-  --brand-primary: #4f46e5; /* indigo  */
-  --brand-secondary: #06b6d4; /* cyan    */
-  --brand-accent: #8b5cf6; /* violet  */
+  /* Brand palette — Tapinti identity system */
+  --brand-primary: oklch(0.52 0.12 155); /* Signal */
+  --brand-secondary: #55534c; /* Graphite — decorative use only, warm neutral */
+  --brand-accent: #16171b; /* Ink — decorative use only, warm neutral */
   --brand-green: oklch(0.52 0.12 155); /* logo mark accent */
 
   /* Light theme surfaces */
-  --background: #ffffff;
-  --background-subtle: #f8fafc;
-  --foreground: #0b1120;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --background: #faf9f7; /* Paper */
+  --background-subtle: #f4f2ed;
+  --foreground: #16171b; /* Ink */
+  --muted: #f0eee8;
+  --muted-foreground: #55534c; /* Graphite */
   --card: #ffffff;
-  --border: #e2e8f0;
-  --ring: #4f46e5;
+  --border: #e8e5de; /* Line */
+  --ring: oklch(0.52 0.12 155);
 }
 
 .dark {
-  --background: #05060f;
-  --background-subtle: #0a0d1c;
-  --foreground: #f8fafc;
-  --muted: #131829;
-  --muted-foreground: #94a3b8;
-  --card: #0c1022;
-  --border: #1e2438;
-  --ring: #6366f1;
+  --brand-primary: oklch(0.62 0.14 155); /* Signal / dark UI */
+  --brand-secondary: #a19e95;
+  --brand-accent: #c9c5bb;
+  --brand-green: oklch(0.62 0.14 155);
+
+  --background: #16171b; /* Ink */
+  --background-subtle: #1c1d22;
+  --foreground: #faf9f7; /* Paper */
+  --muted: #232429;
+  --muted-foreground: #a19e95;
+  --card: #1b1c21;
+  --border: #2a2b31;
+  --ring: oklch(0.62 0.14 155);
 }
 
 @theme inline {
@@ -49,6 +54,7 @@
 
   --font-sans: var(--font-app), ui-sans-serif, system-ui, sans-serif;
   --font-logo: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "JetBrains Mono", monospace;
 
   --radius-4xl: 2rem;
 
@@ -105,9 +111,8 @@ body {
 .text-gradient {
   background-image: linear-gradient(
     100deg,
-    var(--brand-primary),
-    var(--brand-accent) 45%,
-    var(--brand-secondary)
+    var(--foreground),
+    var(--brand-primary) 75%
   );
   -webkit-background-clip: text;
   background-clip: text;

@@ -9,9 +9,9 @@ import {
   type Variants,
 } from "motion/react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { ArrowRight, Play, ShieldCheck, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { DashboardMockup } from "@/components/dashboard-mockup";
 import { SIGN_UP_URL } from "@/lib/links";
 
 const container: Variants = {
@@ -32,7 +32,7 @@ export function Hero() {
   const t = useTranslations("hero");
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Mouse-parallax tilt for the dashboard preview
+  // Mouse-parallax tilt for the hero illustration
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]), {
@@ -122,17 +122,17 @@ export function Hero() {
             className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground lg:justify-start"
           >
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-500" />
+              <ShieldCheck className="size-4 text-brand" />
               {t("noCard")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-500" />
+              <ShieldCheck className="size-4 text-brand" />
               {t("freeForever")}
             </span>
           </motion.div>
         </motion.div>
 
-        {/* Dashboard preview with parallax tilt */}
+        {/* Hero illustration with parallax tilt */}
         <motion.div
           ref={wrapRef}
           onMouseMove={onMove}
@@ -148,7 +148,14 @@ export function Hero() {
             className="relative"
           >
             <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-brand/20 via-brand-accent/10 to-brand-secondary/20 blur-2xl" />
-            <DashboardMockup />
+            <Image
+              src="/H01.webp"
+              alt="A hand reviewing a printed resume at a desk"
+              width={1408}
+              height={768}
+              priority
+              className="h-auto w-full"
+            />
           </motion.div>
         </motion.div>
       </div>

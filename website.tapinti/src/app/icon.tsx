@@ -3,8 +3,9 @@ import { ImageResponse } from "next/og";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-// Same "2a — fan" mark as the site logo, rendered for the browser tab icon.
-// Positions are the same fan geometry as the design spec, converted from
+// Design spec §03 "Favicon": Signal-green ground, two white cards (outline +
+// solid) — distinct from the Ink-ground three-card "App icon" treatment used
+// by apple-icon.tsx. Positions are the fan geometry converted from
 // percentage-based transforms to explicit px offsets (Satori's CSS subset
 // doesn't reliably support combined percentage-translate + rotate).
 export default function Icon() {
@@ -15,7 +16,7 @@ export default function Icon() {
           width: 32,
           height: 32,
           borderRadius: 8,
-          background: "#16171B",
+          background: "#177C49",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -32,37 +33,24 @@ export default function Icon() {
           <div
             style={{
               position: "absolute",
-              left: 1.1,
+              left: 0,
               top: 3.5,
-              width: 14,
+              width: 15,
               height: 11,
               borderRadius: 3,
-              border: "1.5px solid #FAF9F7",
+              border: "1.6px solid #FFFFFF",
               transform: "rotate(-16deg)",
             }}
           />
           <div
             style={{
               position: "absolute",
-              left: 5,
-              top: 3.1,
-              width: 14,
+              left: 8,
+              top: 4,
+              width: 15,
               height: 11,
               borderRadius: 3,
-              border: "1.5px solid #FAF9F7",
-              background: "#16171B",
-              transform: "rotate(-2deg)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              left: 8.9,
-              top: 3.9,
-              width: 14,
-              height: 11,
-              borderRadius: 3,
-              background: "#177C49",
+              background: "#FFFFFF",
               transform: "rotate(13deg)",
             }}
           />
