@@ -8,6 +8,7 @@ import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconGmail } from '@/assets/brand-icons'
 import { authApi } from '@/features/auth/api'
+import { getGoogleIdToken } from '@/features/auth/google-identity'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -31,57 +32,6 @@ const formSchema = z.object({
     .min(1, 'Please enter your password.')
     .min(7, 'Password must be at least 7 characters long.'),
 })
-
-interface GoogleTokenResponse {
-  access_token?: string
-}
-
-interface GoogleAccountsOauth2 {
-  initTokenClient: (options: {
-    client_id: string
-    scope: string
-    callback: (response: GoogleTokenResponse) => void
-  }) => {
-    requestAccessToken: () => void
-  }
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts?: {
-        oauth2?: GoogleAccountsOauth2
-      }
-    }
-  }
-}
-
-function loadGoogleIdentityScript() {
-  return new Promise<void>((resolve, reject) => {
-    if (window.google?.accounts?.oauth2) {
-      resolve()
-      return
-    }
-
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[src="https://accounts.google.com/gsi/client"]'
-    )
-
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(), { once: true })
-      existingScript.addEventListener('error', () => reject(), { once: true })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://accounts.google.com/gsi/client'
-    script.async = true
-    script.defer = true
-    script.onload = () => resolve()
-    script.onerror = () => reject()
-    document.head.appendChild(script)
-  })
-}
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
   redirectTo?: string
@@ -150,45 +100,6 @@ export function UserAuthForm({
     } finally {
       setIsLoading(false)
     }
-  }
-
-  async function getGoogleIdToken() {
-    const configuredToken = import.meta.env.VITE_GOOGLE_ID_TOKEN as
-      | string
-      | undefined
-
-    if (configuredToken) {
-      return configuredToken
-    }
-
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
-
-    if (!clientId) {
-      throw new Error('Google client id is not configured.')
-    }
-
-    await loadGoogleIdentityScript()
-
-    return new Promise<string>((resolve, reject) => {
-      const tokenClient = window.google?.accounts?.oauth2?.initTokenClient({
-        client_id: clientId,
-        scope: 'openid email profile',
-        callback: (response) => {
-          if (response.access_token) {
-            resolve(response.access_token)
-          } else {
-            reject(new Error('Google did not return a token.'))
-          }
-        },
-      })
-
-      if (!tokenClient) {
-        reject(new Error('Google sign-in is not available.'))
-        return
-      }
-
-      tokenClient.requestAccessToken()
-    })
   }
 
   async function onGoogleSignIn() {

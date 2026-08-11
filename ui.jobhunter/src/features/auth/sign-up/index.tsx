@@ -33,10 +33,10 @@ export function SignUp() {
           <div className='absolute -right-24 bottom-0 size-72 rounded-full bg-foreground/20 blur-3xl' />
 
           <div className='relative space-y-10'>
-            <div className='flex items-center gap-3'>
+            <a href='https://tapinti.com' className='flex w-fit items-center gap-3'>
               <Logo className='size-9' />
               <span className='text-xl font-bold'>Job Hunter CRM</span>
-            </div>
+            </a>
 
             <div className='space-y-4'>
               <h1 className='max-w-xl text-5xl font-black tracking-tight text-balance'>
@@ -105,10 +105,13 @@ export function SignUp() {
         </section>
 
         <section className='mx-auto w-full max-w-md'>
-          <div className='mb-6 flex items-center justify-center gap-3 lg:hidden'>
+          <a
+            href='https://tapinti.com'
+            className='mb-6 flex items-center justify-center gap-3 lg:hidden'
+          >
             <Logo className='size-9' />
             <span className='text-xl font-bold'>Job Hunter CRM</span>
-          </div>
+          </a>
 
           <div className='rounded-[2rem] border border-border bg-card shadow-lg shadow-border/70 dark:shadow-none'>
             <div className='px-7 pt-7 pb-5'>
@@ -116,7 +119,7 @@ export function SignUp() {
                 Create account
               </h2>
               <p className='mt-2 text-sm leading-6 text-muted-foreground'>
-                Start organizing your job hunt. Already have an account?{' '}
+                Already have an account?{' '}
                 <Link
                   to='/sign-in'
                   className='font-semibold text-primary underline-offset-4 hover:underline'

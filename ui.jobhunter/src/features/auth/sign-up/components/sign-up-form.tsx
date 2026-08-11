@@ -6,7 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
-import { IconFacebook, IconGithub } from '@/assets/brand-icons'
+import { IconGmail } from '@/assets/brand-icons'
+import { authApi } from '@/features/auth/api'
+import { getGoogleIdToken } from '@/features/auth/google-identity'
+import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -69,7 +72,9 @@ export function SignUpForm({
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const navigate = useNavigate()
+  const { auth } = useAuthStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,6 +107,56 @@ export function SignUpForm({
       )
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function loadCurrentUser(fallbackEmail: string) {
+    try {
+      const me = await authApi.me()
+      auth.setUser({
+        accountNo: me.id,
+        email: me.email,
+        role: me.roles,
+        exp: 0,
+        onboardingStatus: me.onboardingStatus,
+        hasPassword: me.hasPassword,
+      })
+    } catch {
+      auth.setUser({
+        accountNo: '',
+        email: fallbackEmail,
+        role: [],
+        exp: 0,
+        onboardingStatus: 'Pending',
+        hasPassword: false,
+      })
+    }
+  }
+
+  async function onGoogleSignUp() {
+    setIsGoogleLoading(true)
+
+    try {
+      const idToken = await getGoogleIdToken()
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/Users/google-login`,
+        { idToken },
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+      const { accessToken } = res.data as {
+        accessToken: string
+        tokenType: string
+      }
+
+      auth.setAccessToken(accessToken)
+      await loadCurrentUser('')
+      toast.success('Signed up with Google.')
+      navigate({ to: '/', replace: true })
+    } catch {
+      toast.error('Failed to sign up with Google. Please try again.')
+    } finally {
+      setIsGoogleLoading(false)
     }
   }
 
@@ -167,24 +222,19 @@ export function SignUpForm({
           </div>
         </div>
 
-        <div className='grid grid-cols-2 gap-2'>
-          <Button
-            variant='outline'
-            className='w-full'
-            type='button'
-            disabled={isLoading}
-          >
-            <IconGithub className='h-4 w-4' /> GitHub
-          </Button>
-          <Button
-            variant='outline'
-            className='w-full'
-            type='button'
-            disabled={isLoading}
-          >
-            <IconFacebook className='h-4 w-4' /> Facebook
-          </Button>
-        </div>
+        <Button
+          variant='outline'
+          type='button'
+          disabled={isLoading || isGoogleLoading}
+          onClick={onGoogleSignUp}
+        >
+          {isGoogleLoading ? (
+            <Loader2 className='animate-spin' />
+          ) : (
+            <IconGmail className='h-4 w-4' />
+          )}
+          Continue with Google
+        </Button>
       </form>
     </Form>
   )
