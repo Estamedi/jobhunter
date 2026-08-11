@@ -101,7 +101,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
       <Panel className='space-y-4'>
         <div className='flex flex-wrap items-start justify-between gap-4'>
           <div className='flex min-w-0 items-start gap-4'>
-            <div className='flex size-14 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-400'>
+            <div className='flex size-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary dark:bg-primary/15 dark:text-primary'>
               <Contact2 className='size-6' />
             </div>
             <div className='min-w-0'>
@@ -162,7 +162,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
 
       <Panel className='space-y-3'>
         <div className='flex items-center gap-3'>
-          <div className='flex size-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-400'>
+          <div className='flex size-9 items-center justify-center rounded-xl bg-accent text-primary dark:bg-primary/15 dark:text-primary'>
             <StickyNote className='size-4' />
           </div>
           <h4 className='text-sm font-semibold'>Notes</h4>

@@ -283,8 +283,8 @@ export function ApplicationsMutateDialog({
       <DialogContent className='max-w-2xl gap-0 overflow-hidden rounded-2xl border-border/80 p-0 shadow-lg sm:max-w-2xl'>
         <DialogHeader className='gap-3 border-b bg-muted/20 px-6 py-5 sm:text-start'>
           <div className='flex items-center justify-between gap-2'>
-            <div className='flex items-center gap-2 text-xs font-bold tracking-wide text-violet-500 uppercase'>
-              <span className='size-2 rounded-full bg-violet-500' />
+            <div className='flex items-center gap-2 text-xs font-bold tracking-wide text-primary uppercase'>
+              <span className='size-2 rounded-full bg-primary' />
               {isUpdate ? 'Editing application' : 'New application'}
             </div>
             {liveStatus && (
@@ -484,7 +484,7 @@ export function ApplicationsMutateDialog({
               <SectionHeading icon={FileText} title='Documents' />
               <div className='space-y-1'>
                 <Label>Resume</Label>
-                <div className='space-y-3 rounded-2xl border border-dashed border-violet-200 bg-violet-50/40 p-4 dark:border-violet-900 dark:bg-violet-950/20'>
+                <div className='space-y-3 rounded-2xl border border-dashed border-primary/20 bg-accent/40 p-4 dark:border-primary/30 dark:bg-primary/20'>
                   <div className='flex items-center gap-2'>
                     <div className='min-w-0 flex-1'>
                       <EntityCombobox

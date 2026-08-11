@@ -37,7 +37,7 @@ export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }
                   'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
                   iv.status === 'Completed' && 'bg-emerald-500 text-white',
                   iv.status === 'Cancelled' || iv.status === 'NoShow' ? 'bg-muted text-muted-foreground' : '',
-                  iv.status === 'Scheduled' || iv.status === 'Rescheduled' ? 'bg-violet-500 text-white' : ''
+                  iv.status === 'Scheduled' || iv.status === 'Rescheduled' ? 'bg-primary text-white' : ''
                 )}
               >
                 {i + 1}
@@ -62,7 +62,7 @@ export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }
                   <User className='size-3.5' />
                   {iv.interviewerName}
                   {iv.interviewerEmail && (
-                    <a href={`mailto:${iv.interviewerEmail}`} className='inline-flex items-center gap-1 text-violet-600 hover:underline dark:text-violet-400'>
+                    <a href={`mailto:${iv.interviewerEmail}`} className='inline-flex items-center gap-1 text-primary hover:underline dark:text-primary'>
                       <Mail className='size-3' />
                       {iv.interviewerEmail}
                     </a>
@@ -74,7 +74,7 @@ export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }
                   href={iv.meetingLink}
                   target='_blank'
                   rel='noopener noreferrer'
-                  className='mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-600 hover:underline dark:text-violet-400'
+                  className='mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline dark:text-primary'
                 >
                   Join meeting <ExternalLink className='size-3' />
                 </a>

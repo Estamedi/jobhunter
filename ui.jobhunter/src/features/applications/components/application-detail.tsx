@@ -58,7 +58,7 @@ const FOLLOWUP_TINTS: Record<string, string> = {
   DueToday: 'border-orange-200 bg-orange-50/70 text-orange-700 dark:border-orange-900 dark:bg-orange-950/20 dark:text-orange-400',
   ThisWeek: 'border-amber-200 bg-amber-50/70 text-amber-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-400',
 }
-const DEFAULT_FOLLOWUP_TINT = 'border-violet-200 bg-violet-50/70 text-violet-700 dark:border-violet-900 dark:bg-violet-950/20 dark:text-violet-400'
+const DEFAULT_FOLLOWUP_TINT = 'border-primary/20 bg-accent/70 text-primary/90 dark:border-primary/30 dark:bg-primary/20 dark:text-primary'
 
 function Panel({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={cn('rounded-2xl border bg-card p-5', className)}>{children}</div>
@@ -99,7 +99,7 @@ function ExpandableText({ text }: { text: string }) {
       {canExpand && (
         <button
           type='button'
-          className='mt-1 text-xs font-medium text-violet-600 hover:underline dark:text-violet-400'
+          className='mt-1 text-xs font-medium text-primary hover:underline dark:text-primary'
           onClick={() => setExpanded((e) => !e)}
         >
           {expanded ? 'Show less' : 'Show more'}
@@ -275,7 +275,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
       <Panel className='space-y-5'>
         <div className='flex flex-wrap items-start justify-between gap-4'>
           <div className='flex min-w-0 items-start gap-4'>
-            <div className='flex size-14 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-400'>
+            <div className='flex size-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary dark:bg-primary/15 dark:text-primary'>
               <Building2 className='size-6' />
             </div>
             <div className='min-w-0'>
@@ -371,7 +371,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                 href={jobRole.jobLink}
                 target='_blank'
                 rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:underline dark:text-violet-400'
+                className='inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline dark:text-primary'
               >
                 View original posting <ExternalLink className='size-3.5' />
               </a>
