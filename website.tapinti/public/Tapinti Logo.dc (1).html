@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #FAF9F7; }
+  a { color: oklch(0.52 0.12 155); }
+  a:hover { color: oklch(0.42 0.12 155); }
+</style>
+</helmet>
+
+<section style="padding: 64px 64px 24px; display: flex; flex-direction: column; gap: 40px; background: #FAF9F7; font-family: 'Space Grotesk', system-ui, sans-serif; color: #16171B;">
+
+  <div style="display: flex; flex-direction: column; gap: 10px; max-width: 780px;">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #8A8880;">Round 2 · the stack direction, three ways</div>
+    <h1 style="margin: 0; font-size: 40px; font-weight: 500; letter-spacing: -0.03em;">Tapinti — stack marks</h1>
+    <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #55534C; text-wrap: pretty;">{{ tagline }}</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch;">
+
+    <div id="2a" style="position: relative; flex: 1 1 460px; min-width: 440px; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+      <div style="position: absolute; top: 16px; left: 16px; z-index: 2; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; padding: 4px 8px; border-radius: 3px; background: #16171B; color: #FAF9F7;">2a</div>
+
+      <div style="padding: 76px 40px 64px; display: flex; align-items: center; justify-content: center; gap: 24px; border-bottom: 1px solid #F0EEE8;">
+        <div style="position: relative; width: 84px; height: 62px;">
+          <div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 36px; border-radius: 8px; border: 3px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 36px; border-radius: 8px; border: 3px solid #16171B; background: #FFFFFF; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 36px; border-radius: 8px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+        </div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 38px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;">tapinti</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr;">
+        <div style="padding: 36px; display: flex; align-items: center; justify-content: center; background: #16171B; border-right: 1px solid #F0EEE8;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="position: relative; width: 52px; height: 40px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 31px; height: 23px; border-radius: 5px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 31px; height: 23px; border-radius: 5px; border: 2px solid #FAF9F7; background: #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 31px; height: 23px; border-radius: 5px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #FAF9F7;">tapinti</div>
+          </div>
+        </div>
+        <div style="padding: 36px; display: flex; align-items: center; justify-content: center; background: #FAF9F7;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="position: relative; width: 52px; height: 40px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 31px; height: 23px; border-radius: 5px; border: 2px solid #16171B; background: #FAF9F7; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 31px; height: 23px; border-radius: 5px; border: 2px solid #16171B; background: #FAF9F7; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 31px; height: 23px; border-radius: 5px; background: #16171B; transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showSpecs }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 24px 36px; display: flex; align-items: center; gap: 28px; border-top: 1px solid #F0EEE8; background: #FCFBF9;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A19E95;">App icon</div>
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: #16171B; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 24px; height: 18px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 14px; height: 11px; border-radius: 3px; border: 1.5px solid #FAF9F7; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 14px; height: 11px; border-radius: 3px; border: 1.5px solid #FAF9F7; background: #16171B; transform: translate(-50%, -54%) rotate(-2deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 14px; height: 11px; border-radius: 3px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+          <div style="width: 20px; height: 20px; border-radius: 5px; background: #16171B; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 15px; height: 11px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 9px; height: 7px; border-radius: 2px; border: 1px solid #FAF9F7; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 9px; height: 7px; border-radius: 2px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+            <div style="width: 14px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">oklch(.52 .12 155)</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="padding: 28px 36px 32px; border-top: 1px solid #F0EEE8; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">Fan — many applications</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.65; color: #55534C; text-wrap: pretty;">Three cards fanned out: the pile of applications you are running at once, with the live one in front. Most energetic of the set; the fan angle is a nice loading/empty-state animation later.</p>
+      </div>
+    </div>
+
+    <div id="2b" style="position: relative; flex: 1 1 460px; min-width: 440px; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+      <div style="position: absolute; top: 16px; left: 16px; z-index: 2; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; padding: 4px 8px; border-radius: 3px; background: #16171B; color: #FAF9F7;">2b</div>
+
+      <div style="padding: 76px 40px 64px; display: flex; align-items: center; justify-content: center; gap: 24px; border-bottom: 1px solid #F0EEE8;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+          <div style="width: 68px; height: 24px; border-radius: 7px; background: #16171B;"></div>
+          <div style="width: 24px; height: 38px; border-radius: 7px; background: oklch(0.52 0.12 155);"></div>
+        </div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 38px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;">tapinti</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr;">
+        <div style="padding: 36px; display: flex; align-items: center; justify-content: center; background: #16171B; border-right: 1px solid #F0EEE8;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <div style="width: 42px; height: 15px; border-radius: 4px; background: #FAF9F7;"></div>
+              <div style="width: 15px; height: 23px; border-radius: 4px; background: oklch(0.52 0.12 155);"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #FAF9F7;">tapinti</div>
+          </div>
+        </div>
+        <div style="padding: 36px; display: flex; align-items: center; justify-content: center; background: #FAF9F7;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <div style="width: 42px; height: 15px; border-radius: 4px; background: #16171B;"></div>
+              <div style="width: 15px; height: 23px; border-radius: 4px; background: #16171B;"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showSpecs }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 24px 36px; display: flex; align-items: center; gap: 28px; border-top: 1px solid #F0EEE8; background: #FCFBF9;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A19E95;">App icon</div>
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: #16171B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;">
+            <div style="width: 19px; height: 7px; border-radius: 2px; background: #FAF9F7;"></div>
+            <div style="width: 7px; height: 10px; border-radius: 2px; background: oklch(0.52 0.12 155);"></div>
+          </div>
+          <div style="width: 20px; height: 20px; border-radius: 5px; background: #16171B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+            <div style="width: 12px; height: 4px; border-radius: 1px; background: #FAF9F7;"></div>
+            <div style="width: 4px; height: 7px; border-radius: 1px; background: oklch(0.52 0.12 155);"></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+            <div style="width: 14px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">oklch(.52 .12 155)</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="padding: 28px 36px 32px; border-top: 1px solid #F0EEE8; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">T monogram — two blocks</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.65; color: #55534C; text-wrap: pretty;">The same card shapes locked into a "T". Ownable as a letter, unmistakable at 16px, and the two blocks still read as document + record. The most brandable long-term: a monogram survives a product that keeps adding features.</p>
+      </div>
+    </div>
+
+    <div id="2c" style="position: relative; flex: 1 1 460px; min-width: 440px; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+      <div style="position: absolute; top: 16px; left: 16px; z-index: 2; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; padding: 4px 8px; border-radius: 3px; background: #16171B; color: #FAF9F7;">2c</div>
+
+      <div style="padding: 76px 40px 64px; display: flex; align-items: center; justify-content: center; gap: 24px; border-bottom: 1px solid #F0EEE8;">
+        <div style="position: relative; width: 76px; height: 68px;">
+          <div style="position: absolute; right: 0; top: 0; width: 56px; height: 44px; border-radius: 10px; background: oklch(0.52 0.12 155);"></div>
+          <div style="position: absolute; left: 0; bottom: 0; width: 56px; height: 44px; border-radius: 10px; border: 3px solid #16171B; background: #FFFFFF;"></div>
+        </div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 38px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;">tapinti</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr;">
+        <div style="padding: 36px; display: flex; align-items: center; justify-content: center; background: #16171B; border-right: 1px solid #F0EEE8;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="position: relative; width: 46px; height: 41px;">
+              <div style="position: absolute; right: 0; top: 0; width: 34px; height: 27px; border-radius: 7px; background: oklch(0.52 0.12 155);"></div>
+              <div style="position: absolute; left: 0; bottom: 0; width: 34px; height: 27px; border-radius: 7px; border: 2px solid #FAF9F7; background: #16171B;"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #FAF9F7;">tapinti</div>
+          </div>
+        </div>
+        <div style="padding: 36px; display: flex; align-items: center; justify-content: center; background: #FAF9F7;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="position: relative; width: 46px; height: 41px;">
+              <div style="position: absolute; right: 0; top: 0; width: 34px; height: 27px; border-radius: 7px; background: #16171B;"></div>
+              <div style="position: absolute; left: 0; bottom: 0; width: 34px; height: 27px; border-radius: 7px; border: 2px solid #16171B; background: #FAF9F7;"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showSpecs }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 24px 36px; display: flex; align-items: center; gap: 28px; border-top: 1px solid #F0EEE8; background: #FCFBF9;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A19E95;">App icon</div>
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: #16171B; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 22px; height: 20px;">
+              <div style="position: absolute; right: 0; top: 0; width: 16px; height: 13px; border-radius: 4px; background: oklch(0.52 0.12 155);"></div>
+              <div style="position: absolute; left: 0; bottom: 0; width: 16px; height: 13px; border-radius: 4px; border: 1.5px solid #FAF9F7; background: #16171B;"></div>
+            </div>
+          </div>
+          <div style="width: 20px; height: 20px; border-radius: 5px; background: #16171B; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 14px; height: 13px;">
+              <div style="position: absolute; right: 0; top: 0; width: 10px; height: 8px; border-radius: 2px; background: oklch(0.52 0.12 155);"></div>
+              <div style="position: absolute; left: 0; bottom: 0; width: 10px; height: 8px; border-radius: 2px; border: 1px solid #FAF9F7; background: #16171B;"></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+            <div style="width: 14px; height: 14px; border-radius: 3px; background: oklch(0.52 0.12 155);"></div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #55534C;">oklch(.52 .12 155)</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="padding: 28px 36px 32px; border-top: 1px solid #F0EEE8; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">Offset — aligned pair</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.65; color: #55534C; text-wrap: pretty;">1c with the tilt removed: two cards on a strict grid, filled behind, outlined in front. Calmer and more precise — reads as "record kept" rather than "papers". Cleanest to reproduce at any size or in embroidery/print.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <sc-if value="{{ showUsage }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; padding-top: 8px;">
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">In context · 2a</div>
+        <div style="border: 1px solid #E8E5DE; border-radius: 4px; background: #FFFFFF; overflow: hidden;">
+          <div style="height: 48px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #F0EEE8;">
+            <div style="position: relative; width: 30px; height: 22px;">
+              <div style="position: absolute; left: 50%; top: 50%; width: 17px; height: 13px; border-radius: 3px; border: 1.5px solid #16171B; background: #FFFFFF; transform: translate(-78%, -50%) rotate(-16deg);"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 17px; height: 13px; border-radius: 3px; background: oklch(0.52 0.12 155); transform: translate(-22%, -46%) rotate(13deg);"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+          </div>
+          <div style="padding: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">In context · 2b</div>
+        <div style="border: 1px solid #E8E5DE; border-radius: 4px; background: #FFFFFF; overflow: hidden;">
+          <div style="height: 48px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #F0EEE8;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
+              <div style="width: 24px; height: 8px; border-radius: 2px; background: #16171B;"></div>
+              <div style="width: 8px; height: 13px; border-radius: 2px; background: oklch(0.52 0.12 155);"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+          </div>
+          <div style="padding: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A19E95;">In context · 2c</div>
+        <div style="border: 1px solid #E8E5DE; border-radius: 4px; background: #FFFFFF; overflow: hidden;">
+          <div style="height: 48px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #F0EEE8;">
+            <div style="position: relative; width: 26px; height: 23px;">
+              <div style="position: absolute; right: 0; top: 0; width: 19px; height: 15px; border-radius: 4px; background: oklch(0.52 0.12 155);"></div>
+              <div style="position: absolute; left: 0; bottom: 0; width: 19px; height: 15px; border-radius: 4px; border: 1.5px solid #16171B; background: #FFFFFF;"></div>
+            </div>
+            <div style="font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;">tapinti</div>
+          </div>
+          <div style="padding: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+            <div style="height: 60px; border-radius: 3px; background: #F4F2ED;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</section>
+
+<section style="padding: 24px 64px 64px; display: flex; flex-direction: column; gap: 28px; background: #FAF9F7; font-family: 'Space Grotesk', system-ui, sans-serif; color: #16171B;">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-top: 1px solid #E8E5DE; padding-top: 32px;">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #8A8880;">Round 1 · kept</div>
+    <div style="font-size: 15px; color: #8A8880;">the direction round 2 builds on</div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+    <div id="1c" style="position: relative; flex: 0 1 460px; min-width: 440px; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #E8E5DE; border-radius: 4px; overflow: hidden;">
+      <div style="position: absolute; top: 16px; left: 16px; z-index: 2; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; padding: 4px 8px; border-radius: 3px; background: #16171B; color: #FAF9F7;">1c</div>
+
+      <div style="padding: 76px 40px 64px; display: flex; align-items: center; justify-content: center; gap: 22px; border-bottom: 1px solid #F0EEE8;">
+        <div style="position: relative; width: 72px; height: 66px;">
+          <div style="position: absolute; left: 0; top: 8px; width: 50px; height: 38px; border-radius: 8px; border: 3px solid #16171B; background: #FFFFFF; transform: rotate(-9deg);"></div>
+          <div style="position: absolute; right: 0; bottom: 4px; width: 50px; height: 38px; border-radius: 8px; background: oklch(0.52 0.12 155); transform: rotate(5deg);"></div>
+        </div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 38px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;">tapinti</div>
+      </div>
+
+      <div style="padding: 24px 36px 28px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">Stack</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.65; color: #55534C; text-wrap: pretty;">Two offset cards — the application and its record.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tagline&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Same family as 1c: geometric cards, ink + one green, uppercase Archivo wordmark. Each shown as a lockup, reversed on dark, in mono, and at icon size.&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showSpecs&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showUsage&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      tagline: this.props.tagline ?? "Same family as 1c: geometric cards, ink + one green, uppercase Archivo wordmark. Each shown as a lockup, reversed on dark, in mono, and at icon size.",
+      showSpecs: this.props.showSpecs ?? true,
+      showUsage: this.props.showUsage ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>
