@@ -10,6 +10,7 @@ import { Features } from "@/components/sections/features";
 import { Mindset } from "@/components/sections/mindset";
 import { Stats } from "@/components/sections/stats";
 import { Testimonials } from "@/components/sections/testimonials";
+import { Team } from "@/components/sections/team";
 import { Pricing } from "@/components/sections/pricing";
 import { Faq } from "@/components/sections/faq";
 import { FinalCta } from "@/components/sections/final-cta";
@@ -35,6 +36,7 @@ export default async function Home({
         <Mindset />
         <Stats />
         <Testimonials />
+        <Team />
         <Pricing />
         <Faq />
         <FinalCta />
