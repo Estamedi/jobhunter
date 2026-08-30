@@ -203,6 +203,16 @@
       }
     }
   },
+  "team": {
+    "eyebrow": "الفريق",
+    "title": "الأشخاص وراء Tapinti.",
+    "members": {
+      "saber": { "name": "Saber Motamedi" },
+      "mobina": { "name": "Mobina Maleki" },
+      "nadia": { "name": "Nadia Maleki" },
+      "nazanin": { "name": "Nazanin" }
+    }
+  },
   "pricing": {
     "eyebrow": "الأسعار",
     "title": "ابدأ مجانًا، وارتقِ عندما يثبت لك قيمته.",

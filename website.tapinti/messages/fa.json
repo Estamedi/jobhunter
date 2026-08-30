@@ -203,6 +203,16 @@
       }
     }
   },
+  "team": {
+    "eyebrow": "تیم",
+    "title": "آدم‌های پشت Tapinti.",
+    "members": {
+      "saber": { "name": "Saber Motamedi" },
+      "mobina": { "name": "Mobina Maleki" },
+      "nadia": { "name": "Nadia Maleki" },
+      "nazanin": { "name": "Nazanin" }
+    }
+  },
   "pricing": {
     "eyebrow": "تعرفه‌ها",
     "title": "رایگان شروع کن. هر وقت دیدی می‌ارزد، ارتقا بده.",
