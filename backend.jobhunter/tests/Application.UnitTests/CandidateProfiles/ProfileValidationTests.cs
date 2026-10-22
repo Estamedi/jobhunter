@@ -2,6 +2,7 @@ using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileEducati
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileLanguage;
 using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateContact;
 using NUnit.Framework;
 using Shouldly;
 
@@ -121,5 +122,28 @@ public class ProfileValidationTests
         };
         validator.Validate(new ImportProfileCommand { CandidateId = 1, Experiences = [badExperience] })
             .IsValid.ShouldBeFalse();
+    }
+
+    [Test]
+    public void ShouldValidateContactDetails()
+    {
+        var validator = new UpdateCandidateContactCommandValidator();
+
+        validator.Validate(new UpdateCandidateContactCommand
+        {
+            CandidateId = 1, FullName = "Jane Sample", Email = "jane@example.com",
+            Phone = "(+968) 9221 8568", CurrentLocation = "Muscat, Oman",
+        }).IsValid.ShouldBeTrue();
+
+        validator.Validate(new UpdateCandidateContactCommand { CandidateId = 1, FullName = "Jane", Email = "jane@example.com" })
+            .IsValid.ShouldBeTrue();
+        validator.Validate(new UpdateCandidateContactCommand { CandidateId = 1, FullName = "Jane", Email = "not-an-email" })
+            .IsValid.ShouldBeFalse();
+        validator.Validate(new UpdateCandidateContactCommand { CandidateId = 1, FullName = "", Email = "jane@example.com" })
+            .IsValid.ShouldBeFalse();
+        validator.Validate(new UpdateCandidateContactCommand
+        {
+            CandidateId = 1, FullName = "Jane", Email = "jane@example.com", Phone = new string('1', 51),
+        }).IsValid.ShouldBeFalse();
     }
 }

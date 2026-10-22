@@ -7,6 +7,7 @@ export interface JobApplication {
   jobRoleId: number
   jobRoleTitle?: string
   jobRoleDescription?: string
+  jobRoleRequirements?: string
   jobRoleEmploymentType?: string
   jobRoleWorkType?: string
   jobRoleCity?: string
@@ -58,26 +59,28 @@ export interface CreateApplicationDto {
 }
 
 export const applicationsApi = {
-  list: (filters: {
-    search?: string
-    candidateId?: number
-    companyId?: number
-    status?: string
-    priority?: string[]
-    country?: string
-    workType?: string[]
-    employmentType?: string[]
-    jobTitle?: string
-    salaryMin?: number
-    salaryMax?: number
-    dateFrom?: string
-    dateTo?: string
-    followUpFrom?: string
-    followUpTo?: string
-    followUpStatus?: string
-    page?: number
-    pageSize?: number
-  } = {}) =>
+  list: (
+    filters: {
+      search?: string
+      candidateId?: number
+      companyId?: number
+      status?: string
+      priority?: string[]
+      country?: string
+      workType?: string[]
+      employmentType?: string[]
+      jobTitle?: string
+      salaryMin?: number
+      salaryMax?: number
+      dateFrom?: string
+      dateTo?: string
+      followUpFrom?: string
+      followUpTo?: string
+      followUpStatus?: string
+      page?: number
+      pageSize?: number
+    } = {}
+  ) =>
     http
       .get<GetApplicationsResult>('/api/applications', {
         params: filters,
@@ -89,13 +92,19 @@ export const applicationsApi = {
     http.get<JobApplication>(`/api/applications/${id}`).then((r) => r.data),
 
   followUpsToday: () =>
-    http.get<GetApplicationsResult>('/api/applications/follow-ups/today').then((r) => r.data),
+    http
+      .get<GetApplicationsResult>('/api/applications/follow-ups/today')
+      .then((r) => r.data),
 
   followUpsOverdue: () =>
-    http.get<GetApplicationsResult>('/api/applications/follow-ups/overdue').then((r) => r.data),
+    http
+      .get<GetApplicationsResult>('/api/applications/follow-ups/overdue')
+      .then((r) => r.data),
 
   followUpsThisWeek: () =>
-    http.get<GetApplicationsResult>('/api/applications/follow-ups/week').then((r) => r.data),
+    http
+      .get<GetApplicationsResult>('/api/applications/follow-ups/week')
+      .then((r) => r.data),
 
   create: (dto: CreateApplicationDto) =>
     http.post<number>('/api/applications', dto).then((r) => r.data),
@@ -103,9 +112,11 @@ export const applicationsApi = {
   update: (id: number, dto: Partial<CreateApplicationDto>) =>
     http.put(`/api/applications/${id}`, { ...dto, id }),
 
+  attachCv: (id: number, cvId: number) =>
+    http.patch(`/api/applications/${id}/cv`, { id, cvId }),
+
   updateStatus: (id: number, status: string) =>
     http.patch(`/api/applications/${id}/status`, { id, status }),
 
-  delete: (id: number) =>
-    http.delete(`/api/applications/${id}`),
+  delete: (id: number) => http.delete(`/api/applications/${id}`),
 }

@@ -23,6 +23,7 @@ import {
   type SaveExperienceDto,
 } from '../api'
 import { educationRange, formatMonthYear } from '../lib/experience'
+import { ImportProgress } from './import-progress'
 
 type Step = 'choose' | 'review'
 
@@ -173,7 +174,15 @@ export function ImportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {step === 'choose' && (
+        {step === 'choose' && analyze.isPending && (
+          <ImportProgress
+            fileName={
+              file?.name ?? cvs?.items.find((c) => c.id === cvId)?.fileName
+            }
+          />
+        )}
+
+        {step === 'choose' && !analyze.isPending && (
           <div className='space-y-4'>
             <div className='space-y-1'>
               <Label htmlFor='import-file'>Upload a new CV</Label>

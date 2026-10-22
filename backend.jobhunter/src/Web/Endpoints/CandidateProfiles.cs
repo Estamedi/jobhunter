@@ -6,6 +6,7 @@ using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileEduc
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateContact;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileExperience;
@@ -36,6 +37,7 @@ public class CandidateProfiles : IEndpointGroup
 
         group.MapGet(GetProfile);
         group.MapPut(UpdateProfile, "about");
+        group.MapPut(UpdateContact, "contact");
         group.MapPost(PreviewImport, "import-preview");
         group.MapPost(Import, "import");
         group.MapPost(AddExperience, "experiences");
@@ -70,6 +72,15 @@ public class CandidateProfiles : IEndpointGroup
     public static async Task<Ok<int>> UpdateProfile(
         ISender sender, UpdateCandidateProfileCommand command, CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(command, ct));
+
+    [EndpointSummary("Update the contact details shown on the CV")]
+    [EndpointDescription("Updates the candidate's name, email, phone and location (the CV header).")]
+    public static async Task<NoContent> UpdateContact(
+        ISender sender, UpdateCandidateContactCommand command, CancellationToken ct = default)
+    {
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
 
     [EndpointSummary("Preview a profile import from an uploaded CV")]
     [EndpointDescription("Reads the text of an uploaded CV (PDF or DOCX) and has the AI extract the headline, summary and experiences. Nothing is saved.")]

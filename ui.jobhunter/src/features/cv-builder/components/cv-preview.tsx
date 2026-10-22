@@ -75,7 +75,11 @@ export function CvPreview({
   content: CvContent
   onRefine?: (section: CvSection) => void
 }) {
-  const contact = [header.location, header.phone, header.email].filter(Boolean)
+  const contact = [
+    { label: 'Resident', value: header.location },
+    { label: 'Phone', value: header.phone },
+    { label: 'email', value: header.email },
+  ].filter((c) => c.value)
 
   return (
     <article className='mx-auto w-full max-w-[816px] bg-white px-12 py-10 text-[12px] leading-[1.35] text-[#202124] shadow-sm'>
@@ -88,8 +92,13 @@ export function CvPreview({
             {content.headline}
           </div>
         )}
-        <div className='mt-0.5 text-[11px]' style={{ color: MUTED }}>
-          {contact.join('  |  ')}
+        <div className='mt-0.5 text-[12px]' style={{ color: MUTED }}>
+          {contact.map((c, i) => (
+            <Fragment key={c.label}>
+              {i > 0 && ' |  '}
+              {c.label}: <strong>{c.value}</strong>
+            </Fragment>
+          ))}
         </div>
         {onRefine && (
           <button
