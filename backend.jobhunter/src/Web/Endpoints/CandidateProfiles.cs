@@ -1,8 +1,13 @@
 using backend.jobhunter.Application.CandidateProfiles;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileExperience;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileSkill;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileExperience;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateProfile;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidateProfile;
 using backend.jobhunter.Application.CandidateProfiles.Queries.PreviewProfileImport;
@@ -24,6 +29,11 @@ public class CandidateProfiles : IEndpointGroup
         group.MapPost(AddExperience, "experiences");
         group.MapPut(UpdateExperience, "experiences/{id}");
         group.MapDelete(DeleteExperience, "experiences/{id}");
+        group.MapPost(AddEducation, "educations");
+        group.MapPut(UpdateEducation, "educations/{id}");
+        group.MapDelete(DeleteEducation, "educations/{id}");
+        group.MapPost(AddSkill, "skills");
+        group.MapDelete(DeleteSkill, "skills/{id}");
     }
 
     [EndpointSummary("Get a candidate's profile")]
@@ -63,6 +73,46 @@ public class CandidateProfiles : IEndpointGroup
     {
         if (id != command.Id) return TypedResults.BadRequest();
         await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Add an education")]
+    public static async Task<Created<int>> AddEducation(
+        ISender sender, AddProfileEducationCommand command, CancellationToken ct = default)
+    {
+        var id = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/CandidateProfiles/educations/{id}", id);
+    }
+
+    [EndpointSummary("Update an education")]
+    public static async Task<Results<NoContent, BadRequest>> UpdateEducation(
+        ISender sender, int id, UpdateProfileEducationCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Delete an education")]
+    public static async Task<NoContent> DeleteEducation(ISender sender, int id, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteProfileEducationCommand(id), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Add a skill")]
+    [EndpointDescription("Adds a skill to the profile; a skill that is already there returns the existing one.")]
+    public static async Task<Created<int>> AddSkill(
+        ISender sender, AddProfileSkillCommand command, CancellationToken ct = default)
+    {
+        var id = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/CandidateProfiles/skills/{id}", id);
+    }
+
+    [EndpointSummary("Delete a skill")]
+    public static async Task<NoContent> DeleteSkill(ISender sender, int id, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteProfileSkillCommand(id), ct);
         return TypedResults.NoContent();
     }
 

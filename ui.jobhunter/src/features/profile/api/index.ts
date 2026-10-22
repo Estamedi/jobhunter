@@ -24,12 +24,41 @@ export interface ProfileExperience {
   skills: string[]
 }
 
+export interface ProfileEducation {
+  id: number
+  institution: string
+  degree: string
+  fieldOfStudy?: string | null
+  location?: string | null
+  startDate?: string | null
+  endDate?: string | null
+  details?: string | null
+}
+
+export interface ProfileSkill {
+  id: number
+  name: string
+  category?: string | null
+}
+
 export interface CandidateProfile {
   id?: number | null
   candidateId: number
   headline?: string | null
   summary?: string | null
   experiences: ProfileExperience[]
+  educations: ProfileEducation[]
+  skills: ProfileSkill[]
+}
+
+export interface SaveEducationDto {
+  institution: string
+  degree: string
+  fieldOfStudy?: string | null
+  location?: string | null
+  startDate?: string | null
+  endDate?: string | null
+  details?: string | null
 }
 
 export interface SaveExperienceDto {
@@ -58,10 +87,27 @@ export interface ParsedExperience {
   skills: string[]
 }
 
+export interface ParsedEducation {
+  institution: string
+  degree: string
+  fieldOfStudy?: string | null
+  location?: string | null
+  startDate?: string | null
+  endDate?: string | null
+  details?: string | null
+}
+
+export interface ParsedSkill {
+  name: string
+  category?: string | null
+}
+
 export interface ParsedProfile {
   headline?: string | null
   summary?: string | null
   experiences: ParsedExperience[]
+  educations: ParsedEducation[]
+  skills: ParsedSkill[]
 }
 
 export type ImportMode = 'Merge' | 'Replace'
@@ -73,6 +119,8 @@ export interface ImportProfileDto {
   headline?: string | null
   summary?: string | null
   experiences: SaveExperienceDto[]
+  educations: SaveEducationDto[]
+  skills: ParsedSkill[]
 }
 
 export interface UpdateAboutDto {
@@ -115,4 +163,32 @@ export const profileApi = {
 
   deleteExperience: (id: number) =>
     http.delete(`/api/CandidateProfiles/experiences/${id}`),
+
+  addEducation: (candidateId: number, dto: SaveEducationDto) =>
+    http
+      .post<number>('/api/CandidateProfiles/educations', {
+        candidateId,
+        ...dto,
+      })
+      .then((r) => r.data),
+
+  updateEducation: (id: number, dto: SaveEducationDto) =>
+    http
+      .put(`/api/CandidateProfiles/educations/${id}`, { id, ...dto })
+      .then(() => id),
+
+  deleteEducation: (id: number) =>
+    http.delete(`/api/CandidateProfiles/educations/${id}`),
+
+  addSkill: (candidateId: number, name: string, category?: string | null) =>
+    http
+      .post<number>('/api/CandidateProfiles/skills', {
+        candidateId,
+        name,
+        category: category || null,
+      })
+      .then((r) => r.data),
+
+  deleteSkill: (id: number) =>
+    http.delete(`/api/CandidateProfiles/skills/${id}`),
 }

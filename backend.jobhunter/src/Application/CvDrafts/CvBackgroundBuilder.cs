@@ -13,6 +13,8 @@ public static class CvBackgroundBuilder
     {
         var profile = await context.CandidateProfiles.AsNoTracking()
             .Include(p => p.Experiences)
+            .Include(p => p.Educations)
+            .Include(p => p.Skills)
             .FirstOrDefaultAsync(p => p.CandidateId == candidateId, cancellationToken);
 
         return Build(profile, extraNotes);
@@ -45,6 +47,30 @@ public static class CvBackgroundBuilder
                     if (!string.IsNullOrWhiteSpace(e.Description)) sb.AppendLine(Indent(e.Description));
                     if (e.Skills.Count > 0) sb.AppendLine($"  Skills: {string.Join(", ", e.Skills)}");
                 }
+            }
+        }
+
+        if (profile is { Educations.Count: > 0 })
+        {
+            sb.AppendLine().AppendLine("Education:");
+            foreach (var e in profile.Educations.OrderByDescending(e => e.EndDate ?? DateOnly.MaxValue))
+            {
+                var dates = string.Join(" - ", new[] { e.StartDate?.ToString("yyyy"), e.EndDate?.ToString("yyyy") }
+                    .Where(v => v is not null));
+                sb.AppendLine($"- {e.Degree}" +
+                              (string.IsNullOrWhiteSpace(e.FieldOfStudy) ? "" : $", {e.FieldOfStudy}") +
+                              $" at {e.Institution}" +
+                              (dates.Length == 0 ? "" : $" | {dates}"));
+                if (!string.IsNullOrWhiteSpace(e.Details)) sb.AppendLine(Indent(e.Details));
+            }
+        }
+
+        if (profile is { Skills.Count: > 0 })
+        {
+            sb.AppendLine().AppendLine("Skills:");
+            foreach (var group in profile.Skills.OrderBy(s => s.SortOrder).GroupBy(s => s.Category ?? "General"))
+            {
+                sb.AppendLine($"- {group.Key}: {string.Join(", ", group.Select(s => s.Name))}");
             }
         }
 

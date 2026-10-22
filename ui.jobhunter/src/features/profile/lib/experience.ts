@@ -126,3 +126,14 @@ export function groupByCompany(
     }
   })
 }
+
+export const formatYear = (value?: string | null) =>
+  parseYearMonth(value)?.year.toString() ?? ''
+
+export const educationRange = (start?: string | null, end?: string | null) =>
+  [formatYear(start), formatYear(end)].filter(Boolean).join(' - ')
+
+export const YEARS = Array.from(
+  { length: 60 },
+  (_, i) => new Date().getFullYear() + 1 - i
+)

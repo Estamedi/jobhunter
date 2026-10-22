@@ -22,7 +22,7 @@ import {
   type ParsedProfile,
   type SaveExperienceDto,
 } from '../api'
-import { formatMonthYear } from '../lib/experience'
+import { educationRange, formatMonthYear } from '../lib/experience'
 
 type Step = 'choose' | 'review'
 
@@ -45,6 +45,8 @@ export function ImportDialog({
   const [parsed, setParsed] = useState<ParsedProfile | null>(null)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [mode, setMode] = useState<ImportMode>('Merge')
+  const [selectedEdu, setSelectedEdu] = useState<Set<number>>(new Set())
+  const [importSkills, setImportSkills] = useState(false)
 
   const { data: cvs } = useQuery({
     queryKey: ['cvs', candidateId, 'import'],
@@ -68,6 +70,8 @@ export function ImportDialog({
             .filter((i) => i >= 0)
         )
       )
+      setSelectedEdu(new Set(result.educations.map((_, i) => i)))
+      setImportSkills(result.skills.length > 0)
       setStep('review')
     },
     onError: () =>
@@ -99,6 +103,18 @@ export function ImportDialog({
         headline: parsed!.headline ?? null,
         summary: parsed!.summary ?? null,
         experiences,
+        educations: parsed!.educations
+          .filter((_, i) => selectedEdu.has(i))
+          .map((e) => ({
+            institution: e.institution,
+            degree: e.degree,
+            fieldOfStudy: e.fieldOfStudy ?? null,
+            location: e.location ?? null,
+            startDate: e.startDate ?? null,
+            endDate: e.endDate ?? null,
+            details: e.details ?? null,
+          })),
+        skills: importSkills ? parsed!.skills : [],
       })
     },
     onSuccess: (added) => onImported(added),
@@ -228,7 +244,69 @@ export function ImportDialog({
 
             <div className='space-y-2'>
               <p className='text-sm font-medium'>
-                If you already have experience on your profile
+                Education ({selectedEdu.size} of {parsed.educations.length}{' '}
+                selected)
+              </p>
+              {parsed.educations.length === 0 && (
+                <p className='text-sm text-muted-foreground'>
+                  No education was found in this CV.
+                </p>
+              )}
+              {parsed.educations.map((e, i) => (
+                <label
+                  key={i}
+                  className='flex cursor-pointer items-start gap-3 rounded-md border p-3'
+                >
+                  <Checkbox
+                    className='mt-1'
+                    checked={selectedEdu.has(i)}
+                    onCheckedChange={() =>
+                      setSelectedEdu((prev) => {
+                        const next = new Set(prev)
+                        if (next.has(i)) next.delete(i)
+                        else next.add(i)
+                        return next
+                      })
+                    }
+                  />
+                  <div className='min-w-0 text-sm'>
+                    <p className='font-semibold'>{e.institution}</p>
+                    <p>
+                      {[e.degree, e.fieldOfStudy].filter(Boolean).join(', ')}
+                    </p>
+                    <p className='text-muted-foreground'>
+                      {educationRange(e.startDate, e.endDate)}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {parsed.skills.length > 0 && (
+              <div className='space-y-2'>
+                <label className='flex cursor-pointer items-center gap-2 text-sm font-medium'>
+                  <Checkbox
+                    checked={importSkills}
+                    onCheckedChange={(v) => setImportSkills(v === true)}
+                  />
+                  Skills ({parsed.skills.length})
+                </label>
+                <div className='flex flex-wrap gap-2'>
+                  {parsed.skills.map((sk, i) => (
+                    <span
+                      key={i}
+                      className='rounded-full bg-muted px-3 py-1 text-sm'
+                    >
+                      {sk.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className='space-y-2'>
+              <p className='text-sm font-medium'>
+                If you already have content on your profile
               </p>
               <RadioGroup
                 value={mode}
@@ -237,13 +315,14 @@ export function ImportDialog({
                 <div className='flex items-center gap-2'>
                   <RadioGroupItem value='Merge' id='mode-merge' />
                   <Label htmlFor='mode-merge' className='font-normal'>
-                    Merge: add only roles that are not there yet
+                    Merge: add only what is not there yet
                   </Label>
                 </div>
                 <div className='flex items-center gap-2'>
                   <RadioGroupItem value='Replace' id='mode-replace' />
                   <Label htmlFor='mode-replace' className='font-normal'>
-                    Replace: remove my current experience first
+                    Replace: clear my current experience, education and skills
+                    first
                   </Label>
                 </div>
               </RadioGroup>
@@ -271,7 +350,11 @@ export function ImportDialog({
             <Button
               disabled={
                 save.isPending ||
-                (selected.size === 0 && !parsed?.headline && !parsed?.summary)
+                (selected.size === 0 &&
+                  selectedEdu.size === 0 &&
+                  !importSkills &&
+                  !parsed?.headline &&
+                  !parsed?.summary)
               }
               onClick={() => save.mutate()}
             >

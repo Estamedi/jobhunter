@@ -14,6 +14,8 @@ public class GetCandidateProfileQueryHandler(IApplicationDbContext context)
     {
         var profile = await context.CandidateProfiles.AsNoTracking()
             .Include(p => p.Experiences)
+            .Include(p => p.Educations)
+            .Include(p => p.Skills)
             .FirstOrDefaultAsync(p => p.CandidateId == request.CandidateId, cancellationToken);
 
         if (profile is not null) return profile.ToDto();
@@ -24,6 +26,6 @@ public class GetCandidateProfileQueryHandler(IApplicationDbContext context)
         }
 
         // No profile yet: an empty one is returned and created on the first save.
-        return new CandidateProfileDto(null, request.CandidateId, null, null, []);
+        return new CandidateProfileDto(null, request.CandidateId, null, null, [], [], []);
     }
 }

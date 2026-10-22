@@ -27,71 +27,14 @@ import {
 } from '../api'
 import {
   EMPLOYMENT_TYPES,
-  MONTHS,
   WORKPLACE_TYPES,
   parseYearMonth,
   toDateString,
 } from '../lib/experience'
+import { MonthYear } from './month-year'
 
 const DESCRIPTION_MAX = 2000
 const NONE = '__none__'
-const THIS_YEAR = new Date().getFullYear()
-const YEARS = Array.from({ length: 60 }, (_, i) => THIS_YEAR + 1 - i)
-
-function MonthYear({
-  label,
-  required,
-  month,
-  year,
-  onChange,
-}: {
-  label: string
-  required?: boolean
-  month: number | null
-  year: number | null
-  onChange: (month: number | null, year: number | null) => void
-}) {
-  return (
-    <div className='space-y-1'>
-      <Label>
-        {label}
-        {required && '*'}
-      </Label>
-      <div className='grid grid-cols-2 gap-3'>
-        <Select
-          value={month ? String(month) : ''}
-          onValueChange={(v) => onChange(Number(v), year)}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Month' />
-          </SelectTrigger>
-          <SelectContent>
-            {MONTHS.map((m, i) => (
-              <SelectItem key={m} value={String(i + 1)}>
-                {m}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={year ? String(year) : ''}
-          onValueChange={(v) => onChange(month, Number(v))}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Year' />
-          </SelectTrigger>
-          <SelectContent>
-            {YEARS.map((y) => (
-              <SelectItem key={y} value={String(y)}>
-                {y}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  )
-}
 
 export function ExperienceDialog({
   open,

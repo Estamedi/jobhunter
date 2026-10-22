@@ -19,6 +19,23 @@ public record ImportedExperience : IExperienceInput
     public IReadOnlyList<string>? Skills { get; init; }
 }
 
+public record ImportedEducation : IEducationInput
+{
+    public required string Institution { get; init; }
+    public required string Degree { get; init; }
+    public string? FieldOfStudy { get; init; }
+    public string? Location { get; init; }
+    public DateOnly? StartDate { get; init; }
+    public DateOnly? EndDate { get; init; }
+    public string? Details { get; init; }
+}
+
+public record ImportedSkill
+{
+    public required string Name { get; init; }
+    public string? Category { get; init; }
+}
+
 // Saves the user-reviewed result of a CV import. Mode "Merge" adds the experiences that aren't
 // already on the profile and fills the headline/summary only when empty; "Replace" overwrites all.
 [Authorize]
@@ -30,6 +47,8 @@ public record ImportProfileCommand : IRequest<int>
     public string? Headline { get; init; }
     public string? Summary { get; init; }
     public IReadOnlyList<ImportedExperience> Experiences { get; init; } = [];
+    public IReadOnlyList<ImportedEducation> Educations { get; init; } = [];
+    public IReadOnlyList<ImportedSkill> Skills { get; init; } = [];
 }
 
 public class ImportProfileCommandHandler(IApplicationDbContext context)
@@ -49,11 +68,21 @@ public class ImportProfileCommandHandler(IApplicationDbContext context)
         var existing = profile.Id == 0
             ? []
             : await context.ProfileExperiences.Where(e => e.ProfileId == profile.Id).ToListAsync(cancellationToken);
+        var existingEducations = profile.Id == 0
+            ? []
+            : await context.ProfileEducations.Where(e => e.ProfileId == profile.Id).ToListAsync(cancellationToken);
+        var existingSkills = profile.Id == 0
+            ? []
+            : await context.ProfileSkills.Where(s => s.ProfileId == profile.Id).ToListAsync(cancellationToken);
 
         if (replace)
         {
             context.ProfileExperiences.RemoveRange(existing);
+            context.ProfileEducations.RemoveRange(existingEducations);
+            context.ProfileSkills.RemoveRange(existingSkills);
             existing = [];
+            existingEducations = [];
+            existingSkills = [];
             profile.Headline = request.Headline?.Trim();
             profile.Summary = request.Summary?.Trim();
         }
@@ -86,6 +115,45 @@ public class ImportProfileCommandHandler(IApplicationDbContext context)
 
             context.ProfileExperiences.Add(entity);
             added++;
+        }
+
+        var knownEducations = existingEducations
+            .Select(e => $"{e.Institution.Trim().ToLowerInvariant()}|{e.Degree.Trim().ToLowerInvariant()}")
+            .ToHashSet();
+        foreach (var item in request.Educations)
+        {
+            if (!knownEducations.Add($"{item.Institution.Trim().ToLowerInvariant()}|{item.Degree.Trim().ToLowerInvariant()}"))
+            {
+                continue;
+            }
+
+            context.ProfileEducations.Add(new ProfileEducation
+            {
+                Profile = profile,
+                Institution = item.Institution.Trim(),
+                Degree = item.Degree.Trim(),
+                FieldOfStudy = item.FieldOfStudy?.Trim(),
+                Location = item.Location?.Trim(),
+                StartDate = item.StartDate,
+                EndDate = item.EndDate,
+                Details = item.Details?.Trim(),
+            });
+        }
+
+        var knownSkills = existingSkills.Select(s => s.Name.Trim().ToLowerInvariant()).ToHashSet();
+        var nextSkillOrder = existingSkills.Count == 0 ? 0 : existingSkills.Max(s => s.SortOrder) + 1;
+        foreach (var item in request.Skills)
+        {
+            var name = item.Name.Trim();
+            if (!knownSkills.Add(name.ToLowerInvariant())) continue;
+
+            context.ProfileSkills.Add(new ProfileSkill
+            {
+                Profile = profile,
+                Name = name,
+                Category = string.IsNullOrWhiteSpace(item.Category) ? null : item.Category.Trim(),
+                SortOrder = nextSkillOrder++,
+            });
         }
 
         profile.ImportedFromCvId = request.CvId;

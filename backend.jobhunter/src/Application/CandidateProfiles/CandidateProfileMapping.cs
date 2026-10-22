@@ -18,12 +18,27 @@ public record ProfileExperienceDto(
     IReadOnlyList<string> Skills
 );
 
+public record ProfileEducationDto(
+    int Id,
+    string Institution,
+    string Degree,
+    string? FieldOfStudy,
+    string? Location,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    string? Details
+);
+
+public record ProfileSkillDto(int Id, string Name, string? Category);
+
 public record CandidateProfileDto(
     int? Id,
     int CandidateId,
     string? Headline,
     string? Summary,
-    IReadOnlyList<ProfileExperienceDto> Experiences
+    IReadOnlyList<ProfileExperienceDto> Experiences,
+    IReadOnlyList<ProfileEducationDto> Educations,
+    IReadOnlyList<ProfileSkillDto> Skills
 );
 
 internal static class CandidateProfileMapping
@@ -34,7 +49,15 @@ internal static class CandidateProfileMapping
 
     public static CandidateProfileDto ToDto(this CandidateProfile p) => new(
         p.Id, p.CandidateId, p.Headline, p.Summary,
-        p.Experiences.OrderByDescending(e => e.StartDate).Select(e => e.ToDto()).ToList());
+        p.Experiences.OrderByDescending(e => e.StartDate).Select(e => e.ToDto()).ToList(),
+        p.Educations.OrderByDescending(e => e.EndDate ?? DateOnly.MaxValue).ThenByDescending(e => e.StartDate)
+            .Select(e => e.ToDto()).ToList(),
+        p.Skills.OrderBy(s => s.SortOrder).ThenBy(s => s.Id).Select(s => s.ToDto()).ToList());
+
+    public static ProfileEducationDto ToDto(this ProfileEducation e) => new(
+        e.Id, e.Institution, e.Degree, e.FieldOfStudy, e.Location, e.StartDate, e.EndDate, e.Details);
+
+    public static ProfileSkillDto ToDto(this ProfileSkill s) => new(s.Id, s.Name, s.Category);
 
     // Skills are trimmed, de-duplicated (case-insensitive) and capped; empty entries dropped.
     public static List<string> CleanSkills(IEnumerable<string>? skills) =>

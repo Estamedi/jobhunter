@@ -7,13 +7,18 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { candidatesApi } from '@/features/candidates/api'
 import {
   profileApi,
+  type ProfileEducation,
   type ProfileExperience,
+  type SaveEducationDto,
   type SaveExperienceDto,
 } from './api'
 import { AboutCard } from './components/about-card'
+import { EducationDialog } from './components/education-dialog'
+import { EducationSection } from './components/education-section'
 import { ExperienceDialog } from './components/experience-dialog'
 import { ExperienceSection } from './components/experience-section'
 import { ImportDialog } from './components/import-dialog'
+import { SkillsSection } from './components/skills-section'
 
 export function Profile() {
   const qc = useQueryClient()
@@ -23,6 +28,9 @@ export function Profile() {
   )
 
   const [importOpen, setImportOpen] = useState(false)
+  const [editingEducation, setEditingEducation] = useState<
+    ProfileEducation | null | undefined
+  >(undefined)
 
   const { data: candidatesResult, isLoading: candidateLoading } = useQuery({
     queryKey: ['candidates', 'me'],
@@ -75,6 +83,42 @@ export function Profile() {
     onError: () => toast.error('Failed to delete experience'),
   })
 
+  const saveEducation = useMutation({
+    mutationFn: (dto: SaveEducationDto) =>
+      editingEducation
+        ? profileApi.updateEducation(editingEducation.id, dto)
+        : profileApi.addEducation(candidate!.id, dto),
+    onSuccess: () => {
+      refresh()
+      setEditingEducation(undefined)
+      toast.success('Education saved')
+    },
+    onError: () => toast.error('Failed to save education'),
+  })
+
+  const removeEducation = useMutation({
+    mutationFn: (id: number) => profileApi.deleteEducation(id),
+    onSuccess: () => {
+      refresh()
+      setEditingEducation(undefined)
+      toast.success('Education deleted')
+    },
+    onError: () => toast.error('Failed to delete education'),
+  })
+
+  const addSkill = useMutation({
+    mutationFn: (v: { name: string; category: string }) =>
+      profileApi.addSkill(candidate!.id, v.name, v.category),
+    onSuccess: refresh,
+    onError: () => toast.error('Failed to add skill'),
+  })
+
+  const removeSkill = useMutation({
+    mutationFn: (id: number) => profileApi.deleteSkill(id),
+    onSuccess: refresh,
+    onError: () => toast.error('Failed to remove skill'),
+  })
+
   if (!candidateLoading && !candidate) {
     return (
       <div className='rounded-md border py-12 text-center text-muted-foreground'>
@@ -110,6 +154,33 @@ export function Profile() {
         onAdd={() => setEditing(null)}
         onEdit={(role) => setEditing(role)}
       />
+
+      <EducationSection
+        educations={profile.educations}
+        onAdd={() => setEditingEducation(null)}
+        onEdit={(e) => setEditingEducation(e)}
+      />
+
+      <SkillsSection
+        skills={profile.skills}
+        isAdding={addSkill.isPending}
+        onAdd={(name, category) => addSkill.mutate({ name, category })}
+        onRemove={(skill) => removeSkill.mutate(skill.id)}
+      />
+
+      {editingEducation !== undefined && (
+        <EducationDialog
+          key={editingEducation?.id ?? 'new'}
+          education={editingEducation}
+          isSaving={saveEducation.isPending}
+          isDeleting={removeEducation.isPending}
+          onOpenChange={(open) => !open && setEditingEducation(undefined)}
+          onSave={(dto) => saveEducation.mutate(dto)}
+          onDelete={() =>
+            editingEducation && removeEducation.mutate(editingEducation.id)
+          }
+        />
+      )}
 
       {importOpen && (
         <ImportDialog
