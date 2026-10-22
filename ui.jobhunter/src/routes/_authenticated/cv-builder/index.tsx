@@ -1,3 +1,4 @@
+import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -5,7 +6,14 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { CvBuilder } from '@/features/cv-builder'
 
+const searchSchema = z.object({
+  applicationId: z.coerce.number().int().positive().optional().catch(undefined),
+  jobRoleId: z.coerce.number().int().positive().optional().catch(undefined),
+})
+
 function CvBuilderPage() {
+  const { applicationId, jobRoleId } = Route.useSearch()
+
   return (
     <>
       <Header>
@@ -22,12 +30,13 @@ function CvBuilderPage() {
             PDF
           </p>
         </div>
-        <CvBuilder />
+        <CvBuilder applicationId={applicationId} jobRoleId={jobRoleId} />
       </Main>
     </>
   )
 }
 
 export const Route = createFileRoute('/_authenticated/cv-builder/')({
+  validateSearch: searchSchema,
   component: CvBuilderPage,
 })

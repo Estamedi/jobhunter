@@ -16,9 +16,11 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { applicationsApi } from '@/features/applications/api'
 import { candidatesApi } from '@/features/candidates/api'
 import { cvsApi } from '@/features/cvs/api'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
+import { jobRolesApi } from '@/features/job-roles/api'
 import {
   cvBuilderApi,
   type CvContent,
@@ -70,13 +72,17 @@ interface GenerateFormData {
 
 function GenerateForm({
   isPending,
+  initial,
   onSubmit,
 }: {
   isPending: boolean
+  initial?: { jobTitle: string; jobDescription: string }
   onSubmit: (data: GenerateFormData) => void
 }) {
-  const [jobTitle, setJobTitle] = useState('')
-  const [jobDescription, setJobDescription] = useState('')
+  const [jobTitle, setJobTitle] = useState(initial?.jobTitle ?? '')
+  const [jobDescription, setJobDescription] = useState(
+    initial?.jobDescription ?? ''
+  )
   const [instructions, setInstructions] = useState('')
   const [backgroundText, setBackgroundText] = useState(loadBackground)
   const [tone, setTone] = useState('')
@@ -165,7 +171,13 @@ function GenerateForm({
   )
 }
 
-export function CvBuilder() {
+export function CvBuilder({
+  applicationId,
+  jobRoleId,
+}: {
+  applicationId?: number
+  jobRoleId?: number
+}) {
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState(false)
@@ -180,6 +192,31 @@ export function CvBuilder() {
     queryFn: () => candidatesApi.list({ pageSize: 1 }),
   })
   const candidate = candidatesResult?.items[0]
+
+  // Pre-fill the form when opened from an application ("Tailor CV") or a vacancy.
+  const { data: prefill, isLoading: prefillLoading } = useQuery({
+    queryKey: ['cv-builder-prefill', applicationId, jobRoleId],
+    queryFn: async () => {
+      if (applicationId) {
+        const app = await applicationsApi.get(applicationId)
+        return {
+          jobTitle: app.jobRoleTitle ?? '',
+          jobDescription: app.jobRoleDescription ?? '',
+        }
+      }
+      const role = await jobRolesApi.get(jobRoleId!)
+      return {
+        jobTitle: role.title,
+        jobDescription: [
+          role.description,
+          role.requirements && `Requirements:\n${role.requirements}`,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
+    },
+    enabled: !!applicationId || !!jobRoleId,
+  })
 
   const { data: draftsResult, isLoading: draftsLoading } = useQuery({
     queryKey: ['cv-drafts', candidate?.id],
@@ -204,6 +241,7 @@ export function CvBuilder() {
       cvBuilderApi.generate({
         candidateId: candidate!.id,
         jobTitle: data.jobTitle,
+        jobApplicationId: applicationId,
         jobDescription: data.jobDescription || undefined,
         instructions: data.instructions || undefined,
         backgroundText: data.backgroundText || undefined,
@@ -296,10 +334,16 @@ export function CvBuilder() {
       <div className='space-y-6'>
         <div className='rounded-md border p-4'>
           <h2 className='mb-3 font-semibold'>New CV</h2>
-          <GenerateForm
-            isPending={generate.isPending || !candidate}
-            onSubmit={(d) => generate.mutate(d)}
-          />
+          {prefillLoading ? (
+            <Skeleton className='h-64 w-full' />
+          ) : (
+            <GenerateForm
+              key={`${applicationId}-${jobRoleId}`}
+              initial={prefill}
+              isPending={generate.isPending || !candidate}
+              onSubmit={(d) => generate.mutate(d)}
+            />
+          )}
         </div>
 
         <div className='rounded-md border p-4'>

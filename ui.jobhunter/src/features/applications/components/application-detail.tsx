@@ -16,11 +16,13 @@ import {
   Pencil,
   Phone,
   Plus,
+  Sparkles,
   StickyNote,
   Trash2,
   Users,
   Wallet,
 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { IconWhatsapp } from '@/assets/brand-icons'
@@ -254,6 +256,11 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
     <div className='space-y-5'>
       <div className='flex items-center justify-end'>
         <div className='flex items-center gap-2'>
+          <Button variant='outline' size='sm' asChild>
+            <Link to='/cv-builder' search={{ applicationId: app.id }}>
+              <Sparkles className='mr-1.5 size-4' /> Tailor CV
+            </Link>
+          </Button>
           <Button variant='outline' size='sm' onClick={() => setEditOpen(true)}>
             <Pencil className='mr-1.5 size-4' /> Edit
           </Button>
