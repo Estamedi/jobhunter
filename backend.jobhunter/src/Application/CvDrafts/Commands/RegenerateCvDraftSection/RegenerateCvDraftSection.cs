@@ -41,6 +41,9 @@ public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext contex
         var section = request.Section.ToLowerInvariant();
         var current = CvDraftContent.Deserialize(draft.ContentJson);
 
+        var background = await CvBackgroundBuilder.BuildAsync(
+            context, draft.CandidateId, request.BackgroundText, cancellationToken);
+
         var refined = await aiService.RefineSectionAsync(new CvSectionRefineRequest
         {
             Current = current,
@@ -48,7 +51,7 @@ public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext contex
             Instruction = request.Instruction,
             JobTitle = draft.JobTitle,
             JobDescription = draft.JobDescription,
-            BackgroundText = request.BackgroundText,
+            BackgroundText = background,
         }, cancellationToken);
 
         // Take only the requested section from the AI result so nothing else can drift.

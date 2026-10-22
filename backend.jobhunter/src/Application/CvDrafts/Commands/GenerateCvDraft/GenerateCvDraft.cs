@@ -42,6 +42,9 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             throw new NotFoundException(nameof(JobApplication), request.JobApplicationId.Value);
         }
 
+        var background = await CvBackgroundBuilder.BuildAsync(
+            context, request.CandidateId, request.BackgroundText, cancellationToken);
+
         var generated = await aiService.GenerateAsync(new CvGenerationRequest
         {
             FullName = candidate.FullName,
@@ -51,7 +54,7 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             JobTitle = request.JobTitle,
             JobDescription = request.JobDescription,
             Instructions = request.Instructions,
-            BackgroundText = request.BackgroundText,
+            BackgroundText = background,
             Tone = request.Tone,
             Language = request.Language,
         }, cancellationToken);
