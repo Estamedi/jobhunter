@@ -388,20 +388,44 @@ export function CvBuilder({
 
   const exportPdf = useMutation({
     mutationFn: async () => {
-      const cvId = await cvBuilderApi.exportPdf(draft!.id)
+      const result = await cvBuilderApi.exportPdf(draft!.id)
       const list = await cvsApi.list({
         candidateId: draft!.candidateId,
         pageSize: 1,
       })
-      const cv = list.items.find((c) => c.id === cvId)
+      const cv = list.items.find((c) => c.id === result.cvId)
       await downloadCvFile({
-        id: cvId,
+        id: result.cvId,
         fileName: cv?.fileName ?? `${draft!.title}.pdf`,
       })
+      return result
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['cvs'] })
-      toast.success('PDF saved to your CVs')
+      qc.invalidateQueries({ queryKey: ['applications'] })
+
+      if (result.attachedApplicationId) {
+        toast.success('PDF saved and attached to the application')
+      } else if (result.existingCvKept && draft?.jobApplicationId) {
+        // The application already has a CV; replacing it is the user's call.
+        const applicationId = draft.jobApplicationId
+        toast('PDF saved to your CVs', {
+          description: 'The application already has a CV attached.',
+          action: {
+            label: 'Use this one instead',
+            onClick: () =>
+              applicationsApi
+                .attachCv(applicationId, result.cvId)
+                .then(() => {
+                  qc.invalidateQueries({ queryKey: ['applications'] })
+                  toast.success('CV replaced on the application')
+                })
+                .catch(() => toast.error('Failed to replace the CV')),
+          },
+        })
+      } else {
+        toast.success('PDF saved to your CVs')
+      }
     },
     onError: () => toast.error('Failed to export PDF'),
   })

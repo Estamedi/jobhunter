@@ -61,11 +61,11 @@ public class CvGeneration : IEndpointGroup
     }
 
     [EndpointSummary("Export a CV draft to PDF")]
-    [EndpointDescription("Renders the draft with its template and saves the PDF as a regular CV; returns the new CV id.")]
-    public static async Task<Created<int>> ExportCvDraft(ISender sender, int id, CancellationToken ct = default)
+    [EndpointDescription("Renders the draft with its template and saves the PDF as a regular CV. If the draft is linked to an application without a CV, the PDF is attached to it.")]
+    public static async Task<Created<ExportCvDraftResult>> ExportCvDraft(ISender sender, int id, CancellationToken ct = default)
     {
-        var cvId = await sender.Send(new ExportCvDraftCommand(id), ct);
-        return TypedResults.Created($"/api/Cvs/{cvId}", cvId);
+        var result = await sender.Send(new ExportCvDraftCommand(id), ct);
+        return TypedResults.Created($"/api/Cvs/{result.CvId}", result);
     }
 
     [EndpointSummary("Delete a CV draft")]

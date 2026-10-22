@@ -112,6 +112,9 @@ export const applicationsApi = {
   update: (id: number, dto: Partial<CreateApplicationDto>) =>
     http.put(`/api/applications/${id}`, { ...dto, id }),
 
+  attachCv: (id: number, cvId: number) =>
+    http.patch(`/api/applications/${id}/cv`, { id, cvId }),
+
   updateStatus: (id: number, status: string) =>
     http.patch(`/api/applications/${id}/status`, { id, status }),
 

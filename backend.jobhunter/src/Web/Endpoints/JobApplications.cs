@@ -1,3 +1,4 @@
+using backend.jobhunter.Application.JobApplications.Commands.AttachCvToJobApplication;
 using backend.jobhunter.Application.JobApplications.Commands.CreateJobApplication;
 using backend.jobhunter.Application.JobApplications.Commands.DeleteJobApplication;
 using backend.jobhunter.Application.JobApplications.Commands.UpdateJobApplication;
@@ -24,6 +25,7 @@ public class JobApplications : IEndpointGroup
         group.MapPost(CreateApplication);
         group.MapPut(UpdateApplication, "{id}");
         group.MapPatch(UpdateApplicationStatus, "{id}/status");
+        group.MapPatch(AttachCv, "{id}/cv");
         group.MapDelete(DeleteApplication, "{id}");
     }
 
@@ -43,6 +45,16 @@ public class JobApplications : IEndpointGroup
                 candidateId, companyId, status, priority, country, workType, employmentType, source,
                 jobTitle, salaryMin, salaryMax, dateFrom, dateTo, followUpFrom, followUpTo, followUpStatus,
                 search, page, pageSize), ct));
+
+    [EndpointSummary("Attach a CV to an application")]
+    [EndpointDescription("Sets the CV the application was sent with, replacing any CV already attached.")]
+    public static async Task<Results<NoContent, BadRequest>> AttachCv(
+        ISender sender, int id, AttachCvToJobApplicationCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
 
     [EndpointSummary("Get application by ID")]
     public static async Task<Ok<JobApplicationDetailDto>> GetApplication(ISender sender, int id, CancellationToken ct = default)

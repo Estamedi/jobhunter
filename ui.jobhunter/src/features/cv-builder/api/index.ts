@@ -73,6 +73,12 @@ export interface GetCvDraftsResult {
   total: number
 }
 
+export interface ExportCvResult {
+  cvId: number
+  attachedApplicationId?: number | null
+  existingCvKept: boolean
+}
+
 export interface GenerateCvDraftDto {
   candidateId: number
   jobTitle: string
@@ -126,7 +132,9 @@ export const cvBuilderApi = {
       .then((r) => r.data),
 
   exportPdf: (id: number) =>
-    http.post<number>(`/api/CvGeneration/${id}/export`).then((r) => r.data),
+    http
+      .post<ExportCvResult>(`/api/CvGeneration/${id}/export`)
+      .then((r) => r.data),
 
   delete: (id: number) => http.delete(`/api/CvGeneration/${id}`),
 }
