@@ -28,6 +28,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<JobInterview> Interviews => Set<JobInterview>();
     public DbSet<Cv> Cvs => Set<Cv>();
     public DbSet<CvDraft> CvDrafts => Set<CvDraft>();
+    public DbSet<CandidateProfile> CandidateProfiles => Set<CandidateProfile>();
+    public DbSet<ProfileLink> ProfileLinks => Set<ProfileLink>();
+    public DbSet<ProfileExperience> ProfileExperiences => Set<ProfileExperience>();
+    public DbSet<ProfileEducation> ProfileEducations => Set<ProfileEducation>();
+    public DbSet<ProfileSkill> ProfileSkills => Set<ProfileSkill>();
+    public DbSet<ProfileProject> ProfileProjects => Set<ProfileProject>();
+    public DbSet<ProfileCertification> ProfileCertifications => Set<ProfileCertification>();
+    public DbSet<ProfileLanguage> ProfileLanguages => Set<ProfileLanguage>();
     public DbSet<Note> Notes => Set<Note>();
 
     private Guid? CurrentOwnerId => Guid.TryParse(_user.Id, out var id) ? id : null;
