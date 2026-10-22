@@ -33,6 +33,7 @@ import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedOnboardingIndexRouteImport } from './routes/_authenticated/onboarding/index'
 import { Route as AuthenticatedNotesIndexRouteImport } from './routes/_authenticated/notes/index'
 import { Route as AuthenticatedJobTitlesIndexRouteImport } from './routes/_authenticated/job-titles/index'
@@ -177,6 +178,12 @@ const AuthenticatedReportsIndexRoute =
   AuthenticatedReportsIndexRouteImport.update({
     id: '/reports/',
     path: '/reports/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/profile/',
+    path: '/profile/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedOnboardingIndexRoute =
@@ -367,6 +374,7 @@ export interface FileRoutesByFullPath {
   '/job-titles/': typeof AuthenticatedJobTitlesIndexRoute
   '/notes/': typeof AuthenticatedNotesIndexRoute
   '/onboarding/': typeof AuthenticatedOnboardingIndexRoute
+  '/profile/': typeof AuthenticatedProfileIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -414,6 +422,7 @@ export interface FileRoutesByTo {
   '/job-titles': typeof AuthenticatedJobTitlesIndexRoute
   '/notes': typeof AuthenticatedNotesIndexRoute
   '/onboarding': typeof AuthenticatedOnboardingIndexRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -466,6 +475,7 @@ export interface FileRoutesById {
   '/_authenticated/job-titles/': typeof AuthenticatedJobTitlesIndexRoute
   '/_authenticated/notes/': typeof AuthenticatedNotesIndexRoute
   '/_authenticated/onboarding/': typeof AuthenticatedOnboardingIndexRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/job-titles/'
     | '/notes/'
     | '/onboarding/'
+    | '/profile/'
     | '/reports/'
     | '/settings/'
     | '/tasks/'
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/job-titles'
     | '/notes'
     | '/onboarding'
+    | '/profile'
     | '/reports'
     | '/settings'
     | '/tasks'
@@ -614,6 +626,7 @@ export interface FileRouteTypes {
     | '/_authenticated/job-titles/'
     | '/_authenticated/notes/'
     | '/_authenticated/onboarding/'
+    | '/_authenticated/profile/'
     | '/_authenticated/reports/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
@@ -807,6 +820,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports/'
       preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding/': {
@@ -1032,6 +1052,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobTitlesIndexRoute: typeof AuthenticatedJobTitlesIndexRoute
   AuthenticatedNotesIndexRoute: typeof AuthenticatedNotesIndexRoute
   AuthenticatedOnboardingIndexRoute: typeof AuthenticatedOnboardingIndexRoute
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
@@ -1057,6 +1078,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobTitlesIndexRoute: AuthenticatedJobTitlesIndexRoute,
   AuthenticatedNotesIndexRoute: AuthenticatedNotesIndexRoute,
   AuthenticatedOnboardingIndexRoute: AuthenticatedOnboardingIndexRoute,
+  AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
