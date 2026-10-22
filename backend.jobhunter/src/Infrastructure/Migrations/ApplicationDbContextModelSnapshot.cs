@@ -272,6 +272,76 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.ToTable("Cvs");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CvDraft", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<int?>("JobApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("JobDescription")
+                        .HasMaxLength(20000)
+                        .HasColumnType("character varying(20000)");
+
+                    b.Property<string>("JobTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("SourceCvId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TemplateId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.HasIndex("SourceCvId");
+
+                    b.ToTable("CvDrafts");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.Property<int>("Id")
@@ -949,6 +1019,31 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Navigation("Candidate");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CvDraft", b =>
+                {
+                    b.HasOne("backend.jobhunter.Domain.Entities.Candidate", "Candidate")
+                        .WithMany("CvDrafts")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "JobApplication")
+                        .WithMany()
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.jobhunter.Domain.Entities.Cv", "SourceCv")
+                        .WithMany()
+                        .HasForeignKey("SourceCvId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Candidate");
+
+                    b.Navigation("JobApplication");
+
+                    b.Navigation("SourceCv");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "Application")
@@ -1093,6 +1188,8 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Navigation("Activities");
 
                     b.Navigation("Applications");
+
+                    b.Navigation("CvDrafts");
 
                     b.Navigation("Cvs");
 
