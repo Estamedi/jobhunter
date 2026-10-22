@@ -41,6 +41,48 @@ export interface ProfileSkill {
   category?: string | null
 }
 
+export type LanguageProficiency =
+  | 'Elementary'
+  | 'LimitedWorking'
+  | 'ProfessionalWorking'
+  | 'FullProfessional'
+  | 'NativeOrBilingual'
+
+export interface ProfileProject {
+  id: number
+  name: string
+  description?: string | null
+  url?: string | null
+  startDate?: string | null
+  endDate?: string | null
+}
+
+export interface ProfileCertification {
+  id: number
+  name: string
+  issuer?: string | null
+  issuedDate?: string | null
+  expiryDate?: string | null
+  credentialUrl?: string | null
+}
+
+export interface ProfileLanguage {
+  id: number
+  name: string
+  proficiency: LanguageProficiency
+}
+
+export interface ProfileLink {
+  id: number
+  label: string
+  url: string
+}
+
+export type SaveProjectDto = Omit<ProfileProject, 'id'>
+export type SaveCertificationDto = Omit<ProfileCertification, 'id'>
+export type SaveLanguageDto = Omit<ProfileLanguage, 'id'>
+export type SaveLinkDto = Omit<ProfileLink, 'id'>
+
 export interface CandidateProfile {
   id?: number | null
   candidateId: number
@@ -49,6 +91,10 @@ export interface CandidateProfile {
   experiences: ProfileExperience[]
   educations: ProfileEducation[]
   skills: ProfileSkill[]
+  projects: ProfileProject[]
+  certifications: ProfileCertification[]
+  languages: ProfileLanguage[]
+  links: ProfileLink[]
 }
 
 export interface SaveEducationDto {
@@ -102,12 +148,21 @@ export interface ParsedSkill {
   category?: string | null
 }
 
+export interface ParsedLanguage {
+  name: string
+  proficiency?: LanguageProficiency | null
+}
+
 export interface ParsedProfile {
   headline?: string | null
   summary?: string | null
   experiences: ParsedExperience[]
   educations: ParsedEducation[]
   skills: ParsedSkill[]
+  projects: SaveProjectDto[]
+  certifications: SaveCertificationDto[]
+  languages: ParsedLanguage[]
+  links: SaveLinkDto[]
 }
 
 export type ImportMode = 'Merge' | 'Replace'
@@ -121,6 +176,10 @@ export interface ImportProfileDto {
   experiences: SaveExperienceDto[]
   educations: SaveEducationDto[]
   skills: ParsedSkill[]
+  projects: SaveProjectDto[]
+  certifications: SaveCertificationDto[]
+  languages: SaveLanguageDto[]
+  links: SaveLinkDto[]
 }
 
 export interface UpdateAboutDto {
@@ -191,4 +250,42 @@ export const profileApi = {
 
   deleteSkill: (id: number) =>
     http.delete(`/api/CandidateProfiles/skills/${id}`),
+
+  addProject: (candidateId: number, dto: SaveProjectDto) =>
+    http
+      .post<number>('/api/CandidateProfiles/projects', { candidateId, ...dto })
+      .then((r) => r.data),
+  updateProject: (id: number, dto: SaveProjectDto) =>
+    http.put(`/api/CandidateProfiles/projects/${id}`, { id, ...dto }),
+  deleteProject: (id: number) =>
+    http.delete(`/api/CandidateProfiles/projects/${id}`),
+
+  addCertification: (candidateId: number, dto: SaveCertificationDto) =>
+    http
+      .post<number>('/api/CandidateProfiles/certifications', {
+        candidateId,
+        ...dto,
+      })
+      .then((r) => r.data),
+  updateCertification: (id: number, dto: SaveCertificationDto) =>
+    http.put(`/api/CandidateProfiles/certifications/${id}`, { id, ...dto }),
+  deleteCertification: (id: number) =>
+    http.delete(`/api/CandidateProfiles/certifications/${id}`),
+
+  addLanguage: (candidateId: number, dto: SaveLanguageDto) =>
+    http
+      .post<number>('/api/CandidateProfiles/languages', { candidateId, ...dto })
+      .then((r) => r.data),
+  updateLanguage: (id: number, dto: SaveLanguageDto) =>
+    http.put(`/api/CandidateProfiles/languages/${id}`, { id, ...dto }),
+  deleteLanguage: (id: number) =>
+    http.delete(`/api/CandidateProfiles/languages/${id}`),
+
+  addLink: (candidateId: number, dto: SaveLinkDto) =>
+    http
+      .post<number>('/api/CandidateProfiles/links', { candidateId, ...dto })
+      .then((r) => r.data),
+  updateLink: (id: number, dto: SaveLinkDto) =>
+    http.put(`/api/CandidateProfiles/links/${id}`, { id, ...dto }),
+  deleteLink: (id: number) => http.delete(`/api/CandidateProfiles/links/${id}`),
 }

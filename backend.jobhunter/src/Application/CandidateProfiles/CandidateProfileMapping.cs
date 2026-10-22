@@ -31,6 +31,28 @@ public record ProfileEducationDto(
 
 public record ProfileSkillDto(int Id, string Name, string? Category);
 
+public record ProfileProjectDto(
+    int Id,
+    string Name,
+    string? Description,
+    string? Url,
+    DateOnly? StartDate,
+    DateOnly? EndDate
+);
+
+public record ProfileCertificationDto(
+    int Id,
+    string Name,
+    string? Issuer,
+    DateOnly? IssuedDate,
+    DateOnly? ExpiryDate,
+    string? CredentialUrl
+);
+
+public record ProfileLanguageDto(int Id, string Name, string Proficiency);
+
+public record ProfileLinkDto(int Id, string Label, string Url);
+
 public record CandidateProfileDto(
     int? Id,
     int CandidateId,
@@ -38,7 +60,11 @@ public record CandidateProfileDto(
     string? Summary,
     IReadOnlyList<ProfileExperienceDto> Experiences,
     IReadOnlyList<ProfileEducationDto> Educations,
-    IReadOnlyList<ProfileSkillDto> Skills
+    IReadOnlyList<ProfileSkillDto> Skills,
+    IReadOnlyList<ProfileProjectDto> Projects,
+    IReadOnlyList<ProfileCertificationDto> Certifications,
+    IReadOnlyList<ProfileLanguageDto> Languages,
+    IReadOnlyList<ProfileLinkDto> Links
 );
 
 internal static class CandidateProfileMapping
@@ -52,7 +78,15 @@ internal static class CandidateProfileMapping
         p.Experiences.OrderByDescending(e => e.StartDate).Select(e => e.ToDto()).ToList(),
         p.Educations.OrderByDescending(e => e.EndDate ?? DateOnly.MaxValue).ThenByDescending(e => e.StartDate)
             .Select(e => e.ToDto()).ToList(),
-        p.Skills.OrderBy(s => s.SortOrder).ThenBy(s => s.Id).Select(s => s.ToDto()).ToList());
+        p.Skills.OrderBy(s => s.SortOrder).ThenBy(s => s.Id).Select(s => s.ToDto()).ToList(),
+        p.Projects.OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+            .Select(x => new ProfileProjectDto(x.Id, x.Name, x.Description, x.Url, x.StartDate, x.EndDate)).ToList(),
+        p.Certifications.OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+            .Select(x => new ProfileCertificationDto(x.Id, x.Name, x.Issuer, x.IssuedDate, x.ExpiryDate, x.CredentialUrl)).ToList(),
+        p.Languages.OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+            .Select(x => new ProfileLanguageDto(x.Id, x.Name, x.Proficiency.ToString())).ToList(),
+        p.Links.OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+            .Select(x => new ProfileLinkDto(x.Id, x.Label, x.Url)).ToList());
 
     public static ProfileEducationDto ToDto(this ProfileEducation e) => new(
         e.Id, e.Institution, e.Degree, e.FieldOfStudy, e.Location, e.StartDate, e.EndDate, e.Details);

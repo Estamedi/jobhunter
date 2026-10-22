@@ -36,6 +36,36 @@ public record ImportedSkill
     public string? Category { get; init; }
 }
 
+public record ImportedProject : IProjectInput
+{
+    public required string Name { get; init; }
+    public string? Description { get; init; }
+    public string? Url { get; init; }
+    public DateOnly? StartDate { get; init; }
+    public DateOnly? EndDate { get; init; }
+}
+
+public record ImportedCertification : ICertificationInput
+{
+    public required string Name { get; init; }
+    public string? Issuer { get; init; }
+    public DateOnly? IssuedDate { get; init; }
+    public DateOnly? ExpiryDate { get; init; }
+    public string? CredentialUrl { get; init; }
+}
+
+public record ImportedLanguage : ILanguageInput
+{
+    public required string Name { get; init; }
+    public required string Proficiency { get; init; }
+}
+
+public record ImportedLink : ILinkInput
+{
+    public required string Label { get; init; }
+    public required string Url { get; init; }
+}
+
 // Saves the user-reviewed result of a CV import. Mode "Merge" adds the experiences that aren't
 // already on the profile and fills the headline/summary only when empty; "Replace" overwrites all.
 [Authorize]
@@ -49,6 +79,10 @@ public record ImportProfileCommand : IRequest<int>
     public IReadOnlyList<ImportedExperience> Experiences { get; init; } = [];
     public IReadOnlyList<ImportedEducation> Educations { get; init; } = [];
     public IReadOnlyList<ImportedSkill> Skills { get; init; } = [];
+    public IReadOnlyList<ImportedProject> Projects { get; init; } = [];
+    public IReadOnlyList<ImportedCertification> Certifications { get; init; } = [];
+    public IReadOnlyList<ImportedLanguage> Languages { get; init; } = [];
+    public IReadOnlyList<ImportedLink> Links { get; init; } = [];
 }
 
 public class ImportProfileCommandHandler(IApplicationDbContext context)
@@ -75,8 +109,21 @@ public class ImportProfileCommandHandler(IApplicationDbContext context)
             ? []
             : await context.ProfileSkills.Where(s => s.ProfileId == profile.Id).ToListAsync(cancellationToken);
 
+        var existingProjects = profile.Id == 0 ? [] : await context.ProfileProjects.Where(x => x.ProfileId == profile.Id).ToListAsync(cancellationToken);
+        var existingCertifications = profile.Id == 0 ? [] : await context.ProfileCertifications.Where(x => x.ProfileId == profile.Id).ToListAsync(cancellationToken);
+        var existingLanguages = profile.Id == 0 ? [] : await context.ProfileLanguages.Where(x => x.ProfileId == profile.Id).ToListAsync(cancellationToken);
+        var existingLinks = profile.Id == 0 ? [] : await context.ProfileLinks.Where(x => x.ProfileId == profile.Id).ToListAsync(cancellationToken);
+
         if (replace)
         {
+            context.ProfileProjects.RemoveRange(existingProjects);
+            context.ProfileCertifications.RemoveRange(existingCertifications);
+            context.ProfileLanguages.RemoveRange(existingLanguages);
+            context.ProfileLinks.RemoveRange(existingLinks);
+            existingProjects = [];
+            existingCertifications = [];
+            existingLanguages = [];
+            existingLinks = [];
             context.ProfileExperiences.RemoveRange(existing);
             context.ProfileEducations.RemoveRange(existingEducations);
             context.ProfileSkills.RemoveRange(existingSkills);
@@ -156,12 +203,76 @@ public class ImportProfileCommandHandler(IApplicationDbContext context)
             });
         }
 
+        var knownProjects = existingProjects.Select(x => Norm(x.Name)).ToHashSet();
+        var projectOrder = existingProjects.Count == 0 ? 0 : existingProjects.Max(x => x.SortOrder) + 1;
+        foreach (var item in request.Projects)
+        {
+            if (!knownProjects.Add(Norm(item.Name))) continue;
+            context.ProfileProjects.Add(new ProfileProject
+            {
+                Profile = profile,
+                Name = item.Name.Trim(),
+                Description = item.Description?.Trim(),
+                Url = item.Url?.Trim(),
+                StartDate = item.StartDate,
+                EndDate = item.EndDate,
+                SortOrder = projectOrder++,
+            });
+        }
+
+        var knownCertifications = existingCertifications.Select(x => $"{Norm(x.Name)}|{Norm(x.Issuer)}").ToHashSet();
+        var certificationOrder = existingCertifications.Count == 0 ? 0 : existingCertifications.Max(x => x.SortOrder) + 1;
+        foreach (var item in request.Certifications)
+        {
+            if (!knownCertifications.Add($"{Norm(item.Name)}|{Norm(item.Issuer)}")) continue;
+            context.ProfileCertifications.Add(new ProfileCertification
+            {
+                Profile = profile,
+                Name = item.Name.Trim(),
+                Issuer = item.Issuer?.Trim(),
+                IssuedDate = item.IssuedDate,
+                ExpiryDate = item.ExpiryDate,
+                CredentialUrl = item.CredentialUrl?.Trim(),
+                SortOrder = certificationOrder++,
+            });
+        }
+
+        var knownLanguages = existingLanguages.Select(x => Norm(x.Name)).ToHashSet();
+        var languageOrder = existingLanguages.Count == 0 ? 0 : existingLanguages.Max(x => x.SortOrder) + 1;
+        foreach (var item in request.Languages)
+        {
+            if (!knownLanguages.Add(Norm(item.Name))) continue;
+            context.ProfileLanguages.Add(new ProfileLanguage
+            {
+                Profile = profile,
+                Name = item.Name.Trim(),
+                Proficiency = Enum.Parse<LanguageProficiency>(item.Proficiency, ignoreCase: true),
+                SortOrder = languageOrder++,
+            });
+        }
+
+        var knownLinks = existingLinks.Select(x => Norm(x.Url)).ToHashSet();
+        var linkOrder = existingLinks.Count == 0 ? 0 : existingLinks.Max(x => x.SortOrder) + 1;
+        foreach (var item in request.Links)
+        {
+            if (!knownLinks.Add(Norm(item.Url))) continue;
+            context.ProfileLinks.Add(new ProfileLink
+            {
+                Profile = profile,
+                Label = item.Label.Trim(),
+                Url = item.Url.Trim(),
+                SortOrder = linkOrder++,
+            });
+        }
+
         profile.ImportedFromCvId = request.CvId;
         profile.LastImportedAt = DateTimeOffset.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);
         return added;
     }
+
+    private static string Norm(string? value) => value?.Trim().ToLowerInvariant() ?? string.Empty;
 
     private static string Key(ProfileExperience e)
         => $"{e.Company.Trim().ToLowerInvariant()}|{e.Title.Trim().ToLowerInvariant()}|{e.StartDate:yyyy-MM}";

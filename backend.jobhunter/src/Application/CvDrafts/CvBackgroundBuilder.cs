@@ -15,6 +15,10 @@ public static class CvBackgroundBuilder
             .Include(p => p.Experiences)
             .Include(p => p.Educations)
             .Include(p => p.Skills)
+            .Include(p => p.Projects)
+            .Include(p => p.Certifications)
+            .Include(p => p.Languages)
+            .Include(p => p.Links)
             .FirstOrDefaultAsync(p => p.CandidateId == candidateId, cancellationToken);
 
         return Build(profile, extraNotes);
@@ -71,6 +75,46 @@ public static class CvBackgroundBuilder
             foreach (var group in profile.Skills.OrderBy(s => s.SortOrder).GroupBy(s => s.Category ?? "General"))
             {
                 sb.AppendLine($"- {group.Key}: {string.Join(", ", group.Select(s => s.Name))}");
+            }
+        }
+
+        if (profile is { Projects.Count: > 0 })
+        {
+            sb.AppendLine().AppendLine("Projects:");
+            foreach (var p in profile.Projects.OrderBy(p => p.SortOrder))
+            {
+                sb.AppendLine($"- {p.Name}" +
+                              (string.IsNullOrWhiteSpace(p.Description) ? "" : $": {p.Description.Trim()}") +
+                              (string.IsNullOrWhiteSpace(p.Url) ? "" : $" ({p.Url})"));
+            }
+        }
+
+        if (profile is { Certifications.Count: > 0 })
+        {
+            sb.AppendLine().AppendLine("Certifications:");
+            foreach (var c in profile.Certifications.OrderBy(c => c.SortOrder))
+            {
+                sb.AppendLine($"- {c.Name}" +
+                              (string.IsNullOrWhiteSpace(c.Issuer) ? "" : $", {c.Issuer}") +
+                              (c.IssuedDate is null ? "" : $" ({c.IssuedDate:yyyy})"));
+            }
+        }
+
+        if (profile is { Languages.Count: > 0 })
+        {
+            sb.AppendLine().AppendLine("Languages:");
+            foreach (var l in profile.Languages.OrderBy(l => l.SortOrder))
+            {
+                sb.AppendLine($"- {l.Name} ({l.Proficiency})");
+            }
+        }
+
+        if (profile is { Links.Count: > 0 })
+        {
+            sb.AppendLine().AppendLine("Links:");
+            foreach (var l in profile.Links.OrderBy(l => l.SortOrder))
+            {
+                sb.AppendLine($"- {l.Label}: {l.Url}");
             }
         }
 

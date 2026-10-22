@@ -1,8 +1,5 @@
-using System.Runtime.CompilerServices;
 using AutoMapper;
 using backend.jobhunter.Application.Common.Interfaces;
-using backend.jobhunter.Application.TodoLists.Queries.GetTodos;
-using backend.jobhunter.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
@@ -12,7 +9,6 @@ public class MappingTests
 {
     private ILoggerFactory? _loggerFactory;
     private MapperConfiguration? _configuration;
-    private IMapper? _mapper;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
@@ -23,8 +19,6 @@ public class MappingTests
         _configuration = new MapperConfiguration(cfg =>
             cfg.AddMaps(typeof(IApplicationDbContext).Assembly),
             loggerFactory: _loggerFactory);
-
-        _mapper = _configuration.CreateMapper();
     }
 
     [Test]
@@ -32,26 +26,6 @@ public class MappingTests
     {
         _configuration!.AssertConfigurationIsValid();
     }
-
-    [Test]
-    [TestCase(typeof(TodoList), typeof(TodoListDto))]
-    [TestCase(typeof(TodoItem), typeof(TodoItemDto))]
-    public void ShouldSupportMappingFromSourceToDestination(Type source, Type destination)
-    {
-        var instance = GetInstanceOf(source);
-
-        _mapper!.Map(instance, source, destination);
-    }
-
-    private static object GetInstanceOf(Type type)
-    {
-        if (type.GetConstructor(Type.EmptyTypes) != null)
-            return Activator.CreateInstance(type)!;
-
-        // Type without parameterless constructor
-        return RuntimeHelpers.GetUninitializedObject(type);
-    }
-
 
     [OneTimeTearDown]
     public void OneTimeTearDown()

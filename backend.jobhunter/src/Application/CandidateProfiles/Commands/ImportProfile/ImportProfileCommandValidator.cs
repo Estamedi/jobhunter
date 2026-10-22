@@ -19,6 +19,26 @@ public class ImportedSkillValidator : AbstractValidator<ImportedSkill>
     }
 }
 
+public class ImportedProjectValidator : AbstractValidator<ImportedProject>
+{
+    public ImportedProjectValidator() => ProjectRules.Apply(this);
+}
+
+public class ImportedCertificationValidator : AbstractValidator<ImportedCertification>
+{
+    public ImportedCertificationValidator() => CertificationRules.Apply(this);
+}
+
+public class ImportedLanguageValidator : AbstractValidator<ImportedLanguage>
+{
+    public ImportedLanguageValidator() => LanguageRules.Apply(this);
+}
+
+public class ImportedLinkValidator : AbstractValidator<ImportedLink>
+{
+    public ImportedLinkValidator() => LinkRules.Apply(this);
+}
+
 public class ImportProfileCommandValidator : AbstractValidator<ImportProfileCommand>
 {
     public ImportProfileCommandValidator()
@@ -36,5 +56,13 @@ public class ImportProfileCommandValidator : AbstractValidator<ImportProfileComm
         RuleForEach(x => x.Educations).SetValidator(new ImportedEducationValidator());
         RuleFor(x => x.Skills).Must(s => s.Count <= 100).WithMessage("At most 100 skills can be imported at once.");
         RuleForEach(x => x.Skills).SetValidator(new ImportedSkillValidator());
+        RuleFor(x => x.Projects).Must(p => p.Count <= 30).WithMessage("At most 30 projects can be imported at once.");
+        RuleForEach(x => x.Projects).SetValidator(new ImportedProjectValidator());
+        RuleFor(x => x.Certifications).Must(c => c.Count <= 30).WithMessage("At most 30 certifications can be imported at once.");
+        RuleForEach(x => x.Certifications).SetValidator(new ImportedCertificationValidator());
+        RuleFor(x => x.Languages).Must(l => l.Count <= 20).WithMessage("At most 20 languages can be imported at once.");
+        RuleForEach(x => x.Languages).SetValidator(new ImportedLanguageValidator());
+        RuleFor(x => x.Links).Must(l => l.Count <= 20).WithMessage("At most 20 links can be imported at once.");
+        RuleForEach(x => x.Links).SetValidator(new ImportedLinkValidator());
     }
 }

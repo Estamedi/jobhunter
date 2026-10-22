@@ -1,5 +1,6 @@
 import {
   type EmploymentType,
+  type LanguageProficiency,
   type ProfileExperience,
   type WorkplaceType,
 } from '../api'
@@ -102,7 +103,7 @@ export function groupByCompany(
   for (const role of sorted) {
     const key = role.company.trim().toLowerCase()
     const group = groups.get(key) ?? {
-      company: role.company,
+      company: role.company.trim(),
       roles: [],
       totalMonths: 0,
     }
@@ -137,3 +138,18 @@ export const YEARS = Array.from(
   { length: 60 },
   (_, i) => new Date().getFullYear() + 1 - i
 )
+
+export const LANGUAGE_LEVELS: { value: LanguageProficiency; label: string }[] =
+  [
+    { value: 'Elementary', label: 'Elementary proficiency' },
+    { value: 'LimitedWorking', label: 'Limited working proficiency' },
+    { value: 'ProfessionalWorking', label: 'Professional working proficiency' },
+    { value: 'FullProfessional', label: 'Full professional proficiency' },
+    { value: 'NativeOrBilingual', label: 'Native or bilingual proficiency' },
+  ]
+
+export const languageLabel = (value?: string | null) =>
+  LANGUAGE_LEVELS.find((l) => l.value === value)?.label ?? ''
+
+export const yearToDate = (year?: string | null) =>
+  year ? `${year}-01-01` : null

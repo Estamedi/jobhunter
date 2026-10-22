@@ -16,6 +16,10 @@ public class GetCandidateProfileQueryHandler(IApplicationDbContext context)
             .Include(p => p.Experiences)
             .Include(p => p.Educations)
             .Include(p => p.Skills)
+            .Include(p => p.Projects)
+            .Include(p => p.Certifications)
+            .Include(p => p.Languages)
+            .Include(p => p.Links)
             .FirstOrDefaultAsync(p => p.CandidateId == request.CandidateId, cancellationToken);
 
         if (profile is not null) return profile.ToDto();
@@ -26,6 +30,6 @@ public class GetCandidateProfileQueryHandler(IApplicationDbContext context)
         }
 
         // No profile yet: an empty one is returned and created on the first save.
-        return new CandidateProfileDto(null, request.CandidateId, null, null, [], [], []);
+        return new CandidateProfileDto(null, request.CandidateId, null, null, [], [], [], [], [], [], []);
     }
 }

@@ -17,10 +17,12 @@ services:
       - Authentication__Google__ClientId=${AUTHENTICATION__GOOGLE__CLIENTID}
       - AiExtraction__OpenAiApiKey=${AIEXTRACTION__OPENAIAPIKEY}
       - FileStorage__RootPath=/app/uploads/cvs
+      - DataProtection__KeysPath=/app/keys
     ports:
       - "${BACKEND_PORT:-5290}:8080"
     volumes:
       - cv_uploads:/app/uploads
+      - dp_keys:/app/keys
     networks:
       - default
       - pg_network
@@ -43,6 +45,7 @@ services:
 
 volumes:
   cv_uploads:
+  dp_keys:
 
 networks:
   pg_network:
