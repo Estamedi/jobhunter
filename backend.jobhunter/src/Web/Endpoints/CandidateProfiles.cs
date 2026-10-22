@@ -1,9 +1,12 @@
 using backend.jobhunter.Application.CandidateProfiles;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileExperience;
+using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidateProfile;
+using backend.jobhunter.Application.CandidateProfiles.Queries.PreviewProfileImport;
+using backend.jobhunter.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace backend.jobhunter.Web.Endpoints;
@@ -16,6 +19,8 @@ public class CandidateProfiles : IEndpointGroup
 
         group.MapGet(GetProfile);
         group.MapPut(UpdateProfile, "about");
+        group.MapPost(PreviewImport, "import-preview");
+        group.MapPost(Import, "import");
         group.MapPost(AddExperience, "experiences");
         group.MapPut(UpdateExperience, "experiences/{id}");
         group.MapDelete(DeleteExperience, "experiences/{id}");
@@ -30,6 +35,18 @@ public class CandidateProfiles : IEndpointGroup
     [EndpointSummary("Update the profile headline and summary")]
     public static async Task<Ok<int>> UpdateProfile(
         ISender sender, UpdateCandidateProfileCommand command, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(command, ct));
+
+    [EndpointSummary("Preview a profile import from an uploaded CV")]
+    [EndpointDescription("Reads the text of an uploaded CV (PDF or DOCX) and has the AI extract the headline, summary and experiences. Nothing is saved.")]
+    public static async Task<Ok<ParsedProfileDto>> PreviewImport(
+        ISender sender, PreviewProfileImportQuery query, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(query, ct));
+
+    [EndpointSummary("Save a reviewed profile import")]
+    [EndpointDescription("Merges or replaces the profile with the reviewed import result; returns how many experiences were added.")]
+    public static async Task<Ok<int>> Import(
+        ISender sender, ImportProfileCommand command, CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(command, ct));
 
     [EndpointSummary("Add an experience")]

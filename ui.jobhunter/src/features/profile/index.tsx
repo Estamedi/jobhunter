@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileUp } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { candidatesApi } from '@/features/candidates/api'
 import {
@@ -11,6 +13,7 @@ import {
 import { AboutCard } from './components/about-card'
 import { ExperienceDialog } from './components/experience-dialog'
 import { ExperienceSection } from './components/experience-section'
+import { ImportDialog } from './components/import-dialog'
 
 export function Profile() {
   const qc = useQueryClient()
@@ -18,6 +21,8 @@ export function Profile() {
   const [editing, setEditing] = useState<ProfileExperience | null | undefined>(
     undefined
   )
+
+  const [importOpen, setImportOpen] = useState(false)
 
   const { data: candidatesResult, isLoading: candidateLoading } = useQuery({
     queryKey: ['candidates', 'me'],
@@ -84,6 +89,12 @@ export function Profile() {
 
   return (
     <div className='mx-auto max-w-3xl space-y-4'>
+      <div className='flex justify-end'>
+        <Button variant='outline' onClick={() => setImportOpen(true)}>
+          <FileUp className='mr-1 h-4 w-4' /> Import from CV
+        </Button>
+      </div>
+
       <AboutCard
         fullName={candidate.fullName}
         headline={profile.headline}
@@ -99,6 +110,23 @@ export function Profile() {
         onAdd={() => setEditing(null)}
         onEdit={(role) => setEditing(role)}
       />
+
+      {importOpen && (
+        <ImportDialog
+          candidateId={candidate.id}
+          onOpenChange={(open) => !open && setImportOpen(false)}
+          onImported={(added) => {
+            refresh()
+            qc.invalidateQueries({ queryKey: ['cvs'] })
+            setImportOpen(false)
+            toast.success(
+              added === 1
+                ? 'Imported 1 experience'
+                : `Imported ${added} experiences`
+            )
+          }}
+        />
+      )}
 
       {editing !== undefined && (
         <ExperienceDialog

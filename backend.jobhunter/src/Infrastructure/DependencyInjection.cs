@@ -1,6 +1,9 @@
 ﻿using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Infrastructure.AiCommon;
 using backend.jobhunter.Infrastructure.AiCvGeneration;
+using backend.jobhunter.Infrastructure.AiProfileImport;
 using backend.jobhunter.Infrastructure.AiExtraction;
+using backend.jobhunter.Infrastructure.CvImport;
 using backend.jobhunter.Infrastructure.CvRendering;
 using backend.jobhunter.Infrastructure.Data;
 using backend.jobhunter.Infrastructure.Data.Interceptors;
@@ -63,7 +66,10 @@ public static class DependencyInjection
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();
+        builder.Services.AddTransient<AiJsonClient>();
         builder.Services.AddTransient<ICvGenerationAiService, AiCvGenerationService>();
+        builder.Services.AddTransient<IProfileImportAiService, AiProfileImportService>();
+        builder.Services.AddSingleton<ICvTextExtractor, CvTextExtractor>();
         builder.Services.AddSingleton<ICvPdfRenderer, QuestPdfCvRenderer>();
     }
 }
