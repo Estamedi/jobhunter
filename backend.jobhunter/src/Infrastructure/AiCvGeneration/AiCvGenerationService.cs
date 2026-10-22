@@ -17,11 +17,17 @@ public class AiCvGenerationService(IHttpClientFactory httpClientFactory, IOption
     private readonly AiExtractionOptions _options = options.Value;
 
     public Task<GeneratedCvDto> GenerateAsync(CvGenerationRequest request, CancellationToken cancellationToken)
+        => RunAsync(CvGenerationPrompt.BuildPrompt(request), cancellationToken);
+
+    public Task<GeneratedCvDto> RefineSectionAsync(CvSectionRefineRequest request, CancellationToken cancellationToken)
+        => RunAsync(CvGenerationPrompt.BuildRefinePrompt(request), cancellationToken);
+
+    private Task<GeneratedCvDto> RunAsync(string prompt, CancellationToken cancellationToken)
     {
         return PickProvider() switch
         {
-            "OpenAI" => GenerateWithOpenAiAsync(request, cancellationToken),
-            "Anthropic" => GenerateWithClaudeAsync(request, cancellationToken),
+            "OpenAI" => GenerateWithOpenAiAsync(prompt, cancellationToken),
+            "Anthropic" => GenerateWithClaudeAsync(prompt, cancellationToken),
             _ => throw new InvalidOperationException(
                 "No AI provider is configured for CV generation. Set an Anthropic or OpenAI API key."),
         };
@@ -40,7 +46,7 @@ public class AiCvGenerationService(IHttpClientFactory httpClientFactory, IOption
         return null;
     }
 
-    private async Task<GeneratedCvDto> GenerateWithClaudeAsync(CvGenerationRequest request, CancellationToken cancellationToken)
+    private async Task<GeneratedCvDto> GenerateWithClaudeAsync(string prompt, CancellationToken cancellationToken)
     {
         var body = new JsonObject
         {
@@ -56,7 +62,7 @@ public class AiCvGenerationService(IHttpClientFactory httpClientFactory, IOption
             },
             ["messages"] = new JsonArray
             {
-                new JsonObject { ["role"] = "user", ["content"] = CvGenerationPrompt.BuildPrompt(request) },
+                new JsonObject { ["role"] = "user", ["content"] = prompt },
             },
         };
 
@@ -91,7 +97,7 @@ public class AiCvGenerationService(IHttpClientFactory httpClientFactory, IOption
         return ParseCv(text);
     }
 
-    private async Task<GeneratedCvDto> GenerateWithOpenAiAsync(CvGenerationRequest request, CancellationToken cancellationToken)
+    private async Task<GeneratedCvDto> GenerateWithOpenAiAsync(string prompt, CancellationToken cancellationToken)
     {
         var body = new JsonObject
         {
@@ -108,7 +114,7 @@ public class AiCvGenerationService(IHttpClientFactory httpClientFactory, IOption
             },
             ["messages"] = new JsonArray
             {
-                new JsonObject { ["role"] = "user", ["content"] = CvGenerationPrompt.BuildPrompt(request) },
+                new JsonObject { ["role"] = "user", ["content"] = prompt },
             },
         };
 

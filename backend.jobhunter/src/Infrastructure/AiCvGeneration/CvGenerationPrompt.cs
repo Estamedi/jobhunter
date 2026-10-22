@@ -13,7 +13,32 @@ public static class CvGenerationPrompt
       "properties": {
         "headline": { "type": "string", "description": "One-line professional headline aligned with the target job title" },
         "summary": { "type": "string", "description": "Professional summary, 3-4 sentences" },
-        "skills": { "type": "array", "items": { "type": "string" } },
+        "skills": {
+          "type": "array",
+          "description": "Skills grouped by category, e.g. Backend, Cloud, Tools",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": { "type": "string" },
+              "items": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["category", "items"],
+            "additionalProperties": false
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": ["string", "null"] },
+              "url": { "type": ["string", "null"] }
+            },
+            "required": ["name", "description", "url"],
+            "additionalProperties": false
+          }
+        },
         "experience": {
           "type": "array",
           "items": {
@@ -46,9 +71,10 @@ public static class CvGenerationPrompt
           }
         },
         "certifications": { "type": "array", "items": { "type": "string" } },
-        "languages": { "type": "array", "items": { "type": "string" } }
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "links": { "type": "array", "items": { "type": "string" }, "description": "Profile and portfolio URLs found in the background" }
       },
-      "required": ["headline", "summary", "skills", "experience", "education", "certifications", "languages"],
+      "required": ["headline", "summary", "skills", "projects", "experience", "education", "certifications", "languages", "links"],
       "additionalProperties": false
     }
     """;
@@ -65,6 +91,7 @@ public static class CvGenerationPrompt
         sb.AppendLine("- If the background lacks information for a section, return an empty list for it.");
         sb.AppendLine("- Mirror relevant keywords from the job description where the candidate's background genuinely supports them.");
         sb.AppendLine("- Keep it ATS-friendly: plain wording, concise action-led bullets, most relevant experience first.");
+        sb.AppendLine("- Wrap key technologies, metrics and achievements in **double asterisks** to render them bold, sparingly (summary and bullets only).");
         sb.AppendLine($"- Tone: {request.Tone ?? "professional"}. Language: {request.Language ?? "English"}.");
         sb.AppendLine();
         sb.AppendLine($"Candidate: {request.FullName}");
@@ -85,6 +112,37 @@ public static class CvGenerationPrompt
         sb.AppendLine();
         sb.AppendLine("Candidate background (source of truth):");
         sb.AppendLine(string.IsNullOrWhiteSpace(request.BackgroundText) ? "(none provided)" : Truncate(request.BackgroundText));
+        return sb.ToString();
+    }
+
+    public static string BuildRefinePrompt(CvSectionRefineRequest request)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("You are an expert CV writer. Below is a candidate's current CV as JSON.");
+        sb.AppendLine($"Rewrite ONLY the \"{request.Section}\" section following the instruction, and return the full CV JSON with every other section copied unchanged.");
+        sb.AppendLine();
+        sb.AppendLine("Rules:");
+        sb.AppendLine("- Use ONLY facts present in the current CV or the candidate background. Never invent employers, roles, dates, degrees, certifications, skills or metrics.");
+        sb.AppendLine("- Keep it ATS-friendly: plain wording, concise action-led bullets.");
+        sb.AppendLine("- Keep **double asterisk** bold markers on key terms, as in the current CV.");
+        sb.AppendLine();
+        if (!string.IsNullOrWhiteSpace(request.JobTitle)) sb.AppendLine($"Target job title: {request.JobTitle}");
+        if (!string.IsNullOrWhiteSpace(request.JobDescription))
+        {
+            sb.AppendLine("Job description:");
+            sb.AppendLine(Truncate(request.JobDescription));
+        }
+        sb.AppendLine();
+        sb.AppendLine($"Instruction: {Truncate(request.Instruction)}");
+        sb.AppendLine();
+        sb.AppendLine("Current CV:");
+        sb.AppendLine(System.Text.Json.JsonSerializer.Serialize(request.Current, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)));
+        if (!string.IsNullOrWhiteSpace(request.BackgroundText))
+        {
+            sb.AppendLine();
+            sb.AppendLine("Candidate background (source of truth):");
+            sb.AppendLine(Truncate(request.BackgroundText));
+        }
         return sb.ToString();
     }
 

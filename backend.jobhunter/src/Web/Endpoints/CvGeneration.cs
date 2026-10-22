@@ -1,5 +1,7 @@
 using backend.jobhunter.Application.CvDrafts.Commands.DeleteCvDraft;
+using backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.GenerateCvDraft;
+using backend.jobhunter.Application.CvDrafts.Commands.RegenerateCvDraftSection;
 using backend.jobhunter.Application.CvDrafts.Commands.UpdateCvDraft;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraft;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDrafts;
@@ -17,6 +19,8 @@ public class CvGeneration : IEndpointGroup
         group.MapGet(GetCvDraft, "{id}");
         group.MapPost(GenerateCvDraft);
         group.MapPut(UpdateCvDraft, "{id}");
+        group.MapPost(ExportCvDraft, "{id}/export");
+        group.MapPost(RegenerateSection, "{id}/regenerate-section");
         group.MapDelete(DeleteCvDraft, "{id}");
     }
 
@@ -45,6 +49,23 @@ public class CvGeneration : IEndpointGroup
     {
         if (id != command.Id) return TypedResults.BadRequest();
         return TypedResults.Ok(await sender.Send(command, ct));
+    }
+
+    [EndpointSummary("Regenerate a CV draft section")]
+    [EndpointDescription("Rewrites one section (headline, summary, skills, projects, experience, education, certifications, languages or links) of a draft following the given instruction.")]
+    public static async Task<Results<Ok<CvDraftDetailDto>, BadRequest>> RegenerateSection(
+        ISender sender, int id, RegenerateCvDraftSectionCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        return TypedResults.Ok(await sender.Send(command, ct));
+    }
+
+    [EndpointSummary("Export a CV draft to PDF")]
+    [EndpointDescription("Renders the draft with its template and saves the PDF as a regular CV; returns the new CV id.")]
+    public static async Task<Created<int>> ExportCvDraft(ISender sender, int id, CancellationToken ct = default)
+    {
+        var cvId = await sender.Send(new ExportCvDraftCommand(id), ct);
+        return TypedResults.Created($"/api/Cvs/{cvId}", cvId);
     }
 
     [EndpointSummary("Delete a CV draft")]
