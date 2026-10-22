@@ -139,10 +139,23 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                 col.Item().AlignCenter().Text(cv.Headline).FontSize(14).Bold().FontColor(NameColor);
             }
 
-            var contact = new[] { header.Location, header.Phone, header.Email }
-                .Where(v => !string.IsNullOrWhiteSpace(v));
-            col.Item().PaddingTop(2).AlignCenter()
-                .Text(string.Join("  |  ", contact)).FontSize(9).FontColor(MutedColor);
+            // "Resident: Muscat, Oman | Phone: (+968) ... | email: ..." with bold values.
+            var contact = new[] { ("Resident", header.Location), ("Phone", header.Phone), ("email", header.Email) }
+                .Where(c => !string.IsNullOrWhiteSpace(c.Item2))
+                .ToList();
+            if (contact.Count > 0)
+            {
+                col.Item().PaddingTop(2).AlignCenter().Text(t =>
+                {
+                    t.DefaultTextStyle(x => x.FontSize(10).FontColor(MutedColor));
+                    for (var i = 0; i < contact.Count; i++)
+                    {
+                        if (i > 0) t.Span(" |  ");
+                        t.Span($"{contact[i].Item1}: ");
+                        t.Span(contact[i].Item2!.Trim()).Bold();
+                    }
+                });
+            }
         });
     }
 
