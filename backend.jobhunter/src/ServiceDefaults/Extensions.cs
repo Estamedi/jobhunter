@@ -26,7 +26,13 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+            // AI calls (CV parsing) routinely exceed the 10s/30s defaults
+            http.AddStandardResilienceHandler(options =>
+            {
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(120);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(300);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(240);
+            });
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();

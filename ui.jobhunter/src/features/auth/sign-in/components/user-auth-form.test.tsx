@@ -1,7 +1,7 @@
+import axios from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, type RenderResult } from 'vitest-browser-react'
 import { type Locator, userEvent } from 'vitest/browser'
-import axios from 'axios'
 import { UserAuthForm } from './user-auth-form'
 
 const FORM_MESSAGES = {
@@ -189,11 +189,13 @@ describe('UserAuthForm', () => {
 
     const { getByRole } = await render(<UserAuthForm />)
 
-    await userEvent.click(getByRole('button', { name: /Continue with Google/i }))
+    await userEvent.click(
+      getByRole('button', { name: /Continue with Google/i })
+    )
 
     await vi.waitFor(() => expect(axios.post).toHaveBeenCalledOnce())
     expect(axios.post).toHaveBeenCalledWith(
-      'undefined/api/Users/google-login',
+      `${import.meta.env.VITE_API_BASE_URL}/api/Users/google-login`,
       { idToken: 'google-id-token' },
       { headers: { 'Content-Type': 'application/json' } }
     )

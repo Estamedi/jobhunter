@@ -36,6 +36,12 @@ vi.mock('axios', () => ({
   },
 }))
 
+// authApi pulls in the shared axios instance, which this test's axios mock does not provide.
+// A failing `me` call exercises the form's fallback to the typed email.
+vi.mock('@/features/auth/api', () => ({
+  authApi: { me: vi.fn().mockRejectedValue(new Error('no profile')) },
+}))
+
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => navigate,
 }))
@@ -109,10 +115,8 @@ describe('SignUpForm', () => {
       .toBeInTheDocument()
   })
 
-  it('registers, logs in, stores auth, and navigates on success', async () => {
-    axiosPostMock.mockResolvedValueOnce({ data: {} }).mockResolvedValueOnce({
-      data: { accessToken: 'new-account-token', tokenType: 'Bearer' },
-    })
+  it('registers and sends the user to confirm their email', async () => {
+    axiosPostMock.mockResolvedValueOnce({ data: {} })
 
     await userEvent.fill(emailInput, 'a@b.com')
     await userEvent.fill(passwordInput, '1234567')
@@ -120,27 +124,22 @@ describe('SignUpForm', () => {
 
     await userEvent.click(submitButton)
 
-    await vi.waitFor(() => expect(axios.post).toHaveBeenCalledTimes(2))
-    expect(axios.post).toHaveBeenNthCalledWith(
-      1,
+    await vi.waitFor(() => expect(axios.post).toHaveBeenCalledOnce())
+    expect(axios.post).toHaveBeenCalledWith(
       'http://localhost:5124/api/Users/register',
       { email: 'a@b.com', password: '1234567' },
       { headers: { 'Content-Type': 'application/json' } }
     )
-    expect(axios.post).toHaveBeenNthCalledWith(
-      2,
-      'http://localhost:5124/api/Users/login?useCookies=false&useSessionCookies=false',
-      { email: 'a@b.com', password: '1234567' },
-      { headers: { 'Content-Type': 'application/json' } }
-    )
-    expect(setUserMock).toHaveBeenCalledWith(
-      expect.objectContaining({ email: 'a@b.com' })
-    )
-    expect(setAccessTokenMock).toHaveBeenCalledWith('new-account-token')
     expect(toastSuccessMock).toHaveBeenCalledWith(
       'Account created for a@b.com.'
     )
-    expect(navigate).toHaveBeenCalledWith({ to: '/onboarding', replace: true })
+    expect(navigate).toHaveBeenCalledWith({
+      to: '/register-complete',
+      search: { email: 'a@b.com' },
+      replace: true,
+    })
+    // The account must be confirmed before it can sign in, so nothing is stored yet.
+    expect(setAccessTokenMock).not.toHaveBeenCalled()
   })
 
   it('disables submit while the registration request is pending', async () => {
@@ -151,9 +150,7 @@ describe('SignUpForm', () => {
       }
     )
 
-    axiosPostMock.mockReturnValueOnce(registerPromise).mockResolvedValueOnce({
-      data: { accessToken: 'new-account-token', tokenType: 'Bearer' },
-    })
+    axiosPostMock.mockReturnValueOnce(registerPromise)
 
     await userEvent.fill(emailInput, 'a@b.com')
     await userEvent.fill(passwordInput, '1234567')

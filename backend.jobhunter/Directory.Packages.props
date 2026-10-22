@@ -37,6 +37,7 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.4.6" />
+    <PackageVersion Include="MessagePack" Version="2.5.307" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageVersion Include="PdfPig" Version="0.1.16" />
     <PackageVersion Include="QuestPDF" Version="2026.9.1" />
