@@ -47,6 +47,12 @@ export function ImportDialog({
   const [mode, setMode] = useState<ImportMode>('Merge')
   const [selectedEdu, setSelectedEdu] = useState<Set<number>>(new Set())
   const [importSkills, setImportSkills] = useState(false)
+  const [selectedProjects, setSelectedProjects] = useState<Set<number>>(
+    new Set()
+  )
+  const [selectedCerts, setSelectedCerts] = useState<Set<number>>(new Set())
+  const [importLanguages, setImportLanguages] = useState(false)
+  const [importLinks, setImportLinks] = useState(false)
 
   const { data: cvs } = useQuery({
     queryKey: ['cvs', candidateId, 'import'],
@@ -72,6 +78,10 @@ export function ImportDialog({
       )
       setSelectedEdu(new Set(result.educations.map((_, i) => i)))
       setImportSkills(result.skills.length > 0)
+      setSelectedProjects(new Set(result.projects.map((_, i) => i)))
+      setSelectedCerts(new Set(result.certifications.map((_, i) => i)))
+      setImportLanguages(result.languages.length > 0)
+      setImportLinks(result.links.length > 0)
       setStep('review')
     },
     onError: () =>
@@ -115,11 +125,33 @@ export function ImportDialog({
             details: e.details ?? null,
           })),
         skills: importSkills ? parsed!.skills : [],
+        projects: parsed!.projects.filter((_, i) => selectedProjects.has(i)),
+        certifications: parsed!.certifications.filter((_, i) =>
+          selectedCerts.has(i)
+        ),
+        languages: importLanguages
+          ? parsed!.languages.map((l) => ({
+              name: l.name,
+              proficiency: l.proficiency ?? 'ProfessionalWorking',
+            }))
+          : [],
+        links: importLinks ? parsed!.links : [],
       })
     },
     onSuccess: (added) => onImported(added),
     onError: () => toast.error('Failed to import the profile'),
   })
+
+  const toggleIn = (
+    setter: React.Dispatch<React.SetStateAction<Set<number>>>,
+    i: number
+  ) =>
+    setter((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
 
   const toggle = (i: number) =>
     setSelected((prev) => {
@@ -304,6 +336,106 @@ export function ImportDialog({
               </div>
             )}
 
+            {parsed.projects.length > 0 && (
+              <div className='space-y-2'>
+                <p className='text-sm font-medium'>
+                  Projects ({selectedProjects.size} of {parsed.projects.length}{' '}
+                  selected)
+                </p>
+                {parsed.projects.map((p, i) => (
+                  <label
+                    key={i}
+                    className='flex cursor-pointer items-start gap-3 rounded-md border p-3'
+                  >
+                    <Checkbox
+                      className='mt-1'
+                      checked={selectedProjects.has(i)}
+                      onCheckedChange={() => toggleIn(setSelectedProjects, i)}
+                    />
+                    <div className='min-w-0 text-sm'>
+                      <p className='font-semibold'>{p.name}</p>
+                      {p.description && (
+                        <p className='line-clamp-2 text-muted-foreground'>
+                          {p.description}
+                        </p>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {parsed.certifications.length > 0 && (
+              <div className='space-y-2'>
+                <p className='text-sm font-medium'>
+                  Certifications ({selectedCerts.size} of{' '}
+                  {parsed.certifications.length} selected)
+                </p>
+                {parsed.certifications.map((c, i) => (
+                  <label
+                    key={i}
+                    className='flex cursor-pointer items-start gap-3 rounded-md border p-3'
+                  >
+                    <Checkbox
+                      className='mt-1'
+                      checked={selectedCerts.has(i)}
+                      onCheckedChange={() => toggleIn(setSelectedCerts, i)}
+                    />
+                    <div className='min-w-0 text-sm'>
+                      <p className='font-semibold'>{c.name}</p>
+                      {c.issuer && (
+                        <p className='text-muted-foreground'>{c.issuer}</p>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {parsed.languages.length > 0 && (
+              <div className='space-y-2'>
+                <label className='flex cursor-pointer items-center gap-2 text-sm font-medium'>
+                  <Checkbox
+                    checked={importLanguages}
+                    onCheckedChange={(v) => setImportLanguages(v === true)}
+                  />
+                  Languages ({parsed.languages.length})
+                </label>
+                <div className='flex flex-wrap gap-2'>
+                  {parsed.languages.map((l, i) => (
+                    <span
+                      key={i}
+                      className='rounded-full bg-muted px-3 py-1 text-sm'
+                    >
+                      {l.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {parsed.links.length > 0 && (
+              <div className='space-y-2'>
+                <label className='flex cursor-pointer items-center gap-2 text-sm font-medium'>
+                  <Checkbox
+                    checked={importLinks}
+                    onCheckedChange={(v) => setImportLinks(v === true)}
+                  />
+                  Links ({parsed.links.length})
+                </label>
+                <div className='flex flex-wrap gap-2'>
+                  {parsed.links.map((l, i) => (
+                    <span
+                      key={i}
+                      className='rounded-full bg-muted px-3 py-1 text-sm'
+                    >
+                      {l.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className='space-y-2'>
               <p className='text-sm font-medium'>
                 If you already have content on your profile
@@ -321,8 +453,7 @@ export function ImportDialog({
                 <div className='flex items-center gap-2'>
                   <RadioGroupItem value='Replace' id='mode-replace' />
                   <Label htmlFor='mode-replace' className='font-normal'>
-                    Replace: clear my current experience, education and skills
-                    first
+                    Replace: clear everything on my profile first
                   </Label>
                 </div>
               </RadioGroup>
@@ -353,6 +484,10 @@ export function ImportDialog({
                 (selected.size === 0 &&
                   selectedEdu.size === 0 &&
                   !importSkills &&
+                  selectedProjects.size === 0 &&
+                  selectedCerts.size === 0 &&
+                  !importLanguages &&
+                  !importLinks &&
                   !parsed?.headline &&
                   !parsed?.summary)
               }

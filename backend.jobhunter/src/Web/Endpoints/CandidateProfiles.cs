@@ -12,6 +12,18 @@ using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileExpe
 using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidateProfile;
 using backend.jobhunter.Application.CandidateProfiles.Queries.PreviewProfileImport;
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileProject;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileProject;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileProject;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileCertification;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileCertification;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileCertification;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileLanguage;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileLanguage;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileLanguage;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileLink;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileLink;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileLink;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace backend.jobhunter.Web.Endpoints;
@@ -34,6 +46,18 @@ public class CandidateProfiles : IEndpointGroup
         group.MapDelete(DeleteEducation, "educations/{id}");
         group.MapPost(AddSkill, "skills");
         group.MapDelete(DeleteSkill, "skills/{id}");
+        group.MapPost(AddProject, "projects");
+        group.MapPut(UpdateProject, "projects/{id}");
+        group.MapDelete(DeleteProject, "projects/{id}");
+        group.MapPost(AddCertification, "certifications");
+        group.MapPut(UpdateCertification, "certifications/{id}");
+        group.MapDelete(DeleteCertification, "certifications/{id}");
+        group.MapPost(AddLanguage, "languages");
+        group.MapPut(UpdateLanguage, "languages/{id}");
+        group.MapDelete(DeleteLanguage, "languages/{id}");
+        group.MapPost(AddLink, "links");
+        group.MapPut(UpdateLink, "links/{id}");
+        group.MapDelete(DeleteLink, "links/{id}");
     }
 
     [EndpointSummary("Get a candidate's profile")]
@@ -113,6 +137,102 @@ public class CandidateProfiles : IEndpointGroup
     public static async Task<NoContent> DeleteSkill(ISender sender, int id, CancellationToken ct = default)
     {
         await sender.Send(new DeleteProfileSkillCommand(id), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Add a project")]
+    public static async Task<Created<int>> AddProject(
+        ISender sender, AddProfileProjectCommand command, CancellationToken ct = default)
+    {
+        var id = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/CandidateProfiles/projects/{id}", id);
+    }
+
+    [EndpointSummary("Update a project")]
+    public static async Task<Results<NoContent, BadRequest>> UpdateProject(
+        ISender sender, int id, UpdateProfileProjectCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Delete a project")]
+    public static async Task<NoContent> DeleteProject(ISender sender, int id, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteProfileProjectCommand(id), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Add a certification")]
+    public static async Task<Created<int>> AddCertification(
+        ISender sender, AddProfileCertificationCommand command, CancellationToken ct = default)
+    {
+        var id = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/CandidateProfiles/certifications/{id}", id);
+    }
+
+    [EndpointSummary("Update a certification")]
+    public static async Task<Results<NoContent, BadRequest>> UpdateCertification(
+        ISender sender, int id, UpdateProfileCertificationCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Delete a certification")]
+    public static async Task<NoContent> DeleteCertification(ISender sender, int id, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteProfileCertificationCommand(id), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Add a language")]
+    public static async Task<Created<int>> AddLanguage(
+        ISender sender, AddProfileLanguageCommand command, CancellationToken ct = default)
+    {
+        var id = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/CandidateProfiles/languages/{id}", id);
+    }
+
+    [EndpointSummary("Update a language")]
+    public static async Task<Results<NoContent, BadRequest>> UpdateLanguage(
+        ISender sender, int id, UpdateProfileLanguageCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Delete a language")]
+    public static async Task<NoContent> DeleteLanguage(ISender sender, int id, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteProfileLanguageCommand(id), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Add a link")]
+    public static async Task<Created<int>> AddLink(
+        ISender sender, AddProfileLinkCommand command, CancellationToken ct = default)
+    {
+        var id = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/CandidateProfiles/links/{id}", id);
+    }
+
+    [EndpointSummary("Update a link")]
+    public static async Task<Results<NoContent, BadRequest>> UpdateLink(
+        ISender sender, int id, UpdateProfileLinkCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Delete a link")]
+    public static async Task<NoContent> DeleteLink(ISender sender, int id, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteProfileLinkCommand(id), ct);
         return TypedResults.NoContent();
     }
 

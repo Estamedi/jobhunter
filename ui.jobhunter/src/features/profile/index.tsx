@@ -17,6 +17,12 @@ import { EducationDialog } from './components/education-dialog'
 import { EducationSection } from './components/education-section'
 import { ExperienceDialog } from './components/experience-dialog'
 import { ExperienceSection } from './components/experience-section'
+import {
+  CertificationsSection,
+  LanguagesSection,
+  LinksSection,
+  ProjectsSection,
+} from './components/extra-sections'
 import { ImportDialog } from './components/import-dialog'
 import { SkillsSection } from './components/skills-section'
 
@@ -167,6 +173,14 @@ export function Profile() {
         onAdd={(name, category) => addSkill.mutate({ name, category })}
         onRemove={(skill) => removeSkill.mutate(skill.id)}
       />
+
+      <ProjectsSection candidateId={candidate.id} items={profile.projects} />
+      <CertificationsSection
+        candidateId={candidate.id}
+        items={profile.certifications}
+      />
+      <LanguagesSection candidateId={candidate.id} items={profile.languages} />
+      <LinksSection candidateId={candidate.id} items={profile.links} />
 
       {editingEducation !== undefined && (
         <EducationDialog

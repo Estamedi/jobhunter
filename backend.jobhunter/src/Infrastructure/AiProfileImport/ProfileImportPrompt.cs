@@ -62,9 +62,69 @@ public static class ProfileImportPrompt
             "required": ["name", "category"],
             "additionalProperties": false
           }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": ["string", "null"], "description": "Max 2000 characters" },
+              "url": { "type": ["string", "null"] },
+              "startDate": { "type": ["string", "null"] },
+              "endDate": { "type": ["string", "null"] }
+            },
+            "required": ["name", "description", "url", "startDate", "endDate"],
+            "additionalProperties": false
+          }
+        },
+        "certifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "issuer": { "type": ["string", "null"] },
+              "issuedDate": { "type": ["string", "null"] },
+              "expiryDate": { "type": ["string", "null"] },
+              "credentialUrl": { "type": ["string", "null"] }
+            },
+            "required": ["name", "issuer", "issuedDate", "expiryDate", "credentialUrl"],
+            "additionalProperties": false
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "proficiency": {
+                "type": ["string", "null"],
+                "enum": ["Elementary", "LimitedWorking", "ProfessionalWorking", "FullProfessional", "NativeOrBilingual", null]
+              }
+            },
+            "required": ["name", "proficiency"],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string", "description": "e.g. GitHub, LinkedIn, Portfolio" },
+              "url": { "type": "string" }
+            },
+            "required": ["label", "url"],
+            "additionalProperties": false
+          }
         }
       },
-      "required": ["headline", "summary", "experiences", "educations", "skills"],
+      "required": [
+        "headline", "summary", "experiences", "educations", "skills",
+        "projects", "certifications", "languages", "links"
+      ],
       "additionalProperties": false
     }
     """;
@@ -85,7 +145,10 @@ public static class ProfileImportPrompt
                "- Skills per role: only technologies or skills explicitly mentioned for that role.\n" +
                "- Education: one entry per degree or school; the degree is the qualification, fieldOfStudy the subject if separate.\n" +
                "- Skills: one entry per individual skill from the CV's skills section(s), with the section's group name as category when there is one.\n" +
-               "- Ignore projects, links, certifications and languages; they are not part of this extraction.\n\n" +
+               "- Projects: personal or notable projects listed on their own (not roles); keep names, descriptions and urls as written.\n" +
+               "- Certifications: one entry per certificate or license.\n" +
+               "- Languages: spoken languages with the closest proficiency level; null when the level is not stated.\n" +
+               "- Links: profile and portfolio URLs (LinkedIn, GitHub, website) with a short label.\n\n" +
                $"CV text:\n{text}";
     }
 }
