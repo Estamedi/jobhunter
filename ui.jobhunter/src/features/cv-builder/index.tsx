@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { FileDown, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ import { candidatesApi } from '@/features/candidates/api'
 import { cvsApi } from '@/features/cvs/api'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 import { jobRolesApi } from '@/features/job-roles/api'
+import { profileApi } from '@/features/profile/api'
 import {
   cvBuilderApi,
   type CvContent,
@@ -73,9 +75,11 @@ interface GenerateFormData {
 function GenerateForm({
   isPending,
   initial,
+  profileRoles,
   onSubmit,
 }: {
   isPending: boolean
+  profileRoles: number
   initial?: { jobTitle: string; jobDescription: string }
   onSubmit: (data: GenerateFormData) => void
 }) {
@@ -122,14 +126,41 @@ function GenerateForm({
           placeholder='Paste the job posting'
         />
       </div>
+      <div className='rounded-md bg-muted/50 p-3 text-sm'>
+        {profileRoles > 0 ? (
+          <p>
+            Writing from your profile ({profileRoles}{' '}
+            {profileRoles === 1 ? 'role' : 'roles'}).{' '}
+            <Link to='/profile' className='underline'>
+              Edit profile
+            </Link>
+          </p>
+        ) : (
+          <p>
+            Your profile has no experience yet.{' '}
+            <Link to='/profile' className='underline'>
+              Fill it in or import your CV
+            </Link>
+            , or paste your CV text below.
+          </p>
+        )}
+      </div>
       <div className='space-y-1'>
-        <Label>About you (experience, education, skills) *</Label>
+        <Label>
+          {profileRoles > 0
+            ? 'Extra notes (optional)'
+            : 'About you (experience, education, skills) *'}
+        </Label>
         <Textarea
-          required
-          rows={8}
+          required={profileRoles === 0}
+          rows={profileRoles > 0 ? 4 : 8}
           value={backgroundText}
           onChange={(e) => setBackgroundText(e.target.value)}
-          placeholder='Paste your current CV text. The AI only uses facts from here. Saved in this browser.'
+          placeholder={
+            profileRoles > 0
+              ? 'Anything not on your profile that this CV should mention. Saved in this browser.'
+              : 'Paste your current CV text. The AI only uses facts from here. Saved in this browser.'
+          }
         />
       </div>
       <div className='space-y-1'>
@@ -216,6 +247,12 @@ export function CvBuilder({
       }
     },
     enabled: !!applicationId || !!jobRoleId,
+  })
+
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['profile', candidate?.id],
+    queryFn: () => profileApi.get(candidate!.id),
+    enabled: !!candidate,
   })
 
   const { data: draftsResult, isLoading: draftsLoading } = useQuery({
@@ -334,12 +371,13 @@ export function CvBuilder({
       <div className='space-y-6'>
         <div className='rounded-md border p-4'>
           <h2 className='mb-3 font-semibold'>New CV</h2>
-          {prefillLoading ? (
+          {prefillLoading || profileLoading ? (
             <Skeleton className='h-64 w-full' />
           ) : (
             <GenerateForm
               key={`${applicationId}-${jobRoleId}`}
               initial={prefill}
+              profileRoles={profile?.experiences.length ?? 0}
               isPending={generate.isPending || !candidate}
               onSubmit={(d) => generate.mutate(d)}
             />
