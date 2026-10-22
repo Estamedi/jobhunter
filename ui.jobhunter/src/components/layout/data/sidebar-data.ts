@@ -20,6 +20,7 @@ import {
   Files,
   StickyNote,
   Tag,
+  Sparkles,
 } from 'lucide-react'
 import { type NavGroup, type SidebarData } from '../types'
 
@@ -47,6 +48,11 @@ const jobSeekerNavGroups: NavGroup[] = [
         title: 'CVs',
         url: '/cvs',
         icon: Files,
+      },
+      {
+        title: 'CV Writer',
+        url: '/cv-builder',
+        icon: Sparkles,
       },
       {
         title: 'Notes',
@@ -110,6 +116,11 @@ const defaultNavGroups: NavGroup[] = [
         title: 'CVs',
         url: '/cvs',
         icon: Files,
+      },
+      {
+        title: 'CV Writer',
+        url: '/cv-builder',
+        icon: Sparkles,
       },
       {
         title: 'Follow-Ups',
