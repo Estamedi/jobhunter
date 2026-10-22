@@ -15,7 +15,7 @@ dotnet run --project src/AppHost
 dotnet test
 
 # Run a specific test by name
-dotnet test --filter "FullyQualifiedName~CreateTodoItemTests"
+dotnet test --filter "FullyQualifiedName~RequestLoggerTests"
 
 # Run a specific test project
 dotnet test tests/Application.FunctionalTests
@@ -60,7 +60,7 @@ Each endpoint group implements `IEndpointGroup` with a static `Map(RouteGroupBui
 
 ### Domain Events
 
-Domain events are raised directly from entity property setters (see `TodoItem.Done`). `DispatchDomainEventsInterceptor` fires them after `SaveChangesAsync` via MediatR `INotification`.
+Domain events are raised from entities (see `BaseEntity` and `BaseEvent`). `DispatchDomainEventsInterceptor` fires them after `SaveChangesAsync` via MediatR `INotification`.
 
 ### Authorization
 

@@ -29,13 +29,13 @@ Start in the `.\src\Application\` folder.
 Create a new command:
 
 ```
-dotnet new ca-usecase --name CreateTodoList --feature-name TodoLists --usecase-type command --return-type int
+dotnet new ca-usecase --name CreateNote --feature-name Notes --usecase-type command --return-type int
 ```
 
 Create a new query:
 
 ```
-dotnet new ca-usecase -n GetTodos -fn TodoLists -ut query -rt TodosVm
+dotnet new ca-usecase -n GetNotes -fn Notes -ut query -rt GetNotesResult
 ```
 
 If you encounter the error *"No templates or subcommands found matching: 'ca-usecase'."*, install the template and try again:
