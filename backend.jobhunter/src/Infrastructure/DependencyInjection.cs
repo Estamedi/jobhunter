@@ -1,5 +1,7 @@
 ﻿using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Infrastructure.AiCvGeneration;
 using backend.jobhunter.Infrastructure.AiExtraction;
+using backend.jobhunter.Infrastructure.CvRendering;
 using backend.jobhunter.Infrastructure.Data;
 using backend.jobhunter.Infrastructure.Data.Interceptors;
 using backend.jobhunter.Infrastructure.Files;
@@ -61,5 +63,7 @@ public static class DependencyInjection
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();
+        builder.Services.AddTransient<ICvGenerationAiService, AiCvGenerationService>();
+        builder.Services.AddSingleton<ICvPdfRenderer, QuestPdfCvRenderer>();
     }
 }

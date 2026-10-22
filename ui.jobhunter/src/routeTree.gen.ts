@@ -41,6 +41,7 @@ import { Route as AuthenticatedInterviewsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedFollowUpsIndexRouteImport } from './routes/_authenticated/follow-ups/index'
 import { Route as AuthenticatedCvsIndexRouteImport } from './routes/_authenticated/cvs/index'
+import { Route as AuthenticatedCvBuilderIndexRouteImport } from './routes/_authenticated/cv-builder/index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
@@ -224,6 +225,12 @@ const AuthenticatedCvsIndexRoute = AuthenticatedCvsIndexRouteImport.update({
   path: '/cvs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCvBuilderIndexRoute =
+  AuthenticatedCvBuilderIndexRouteImport.update({
+    id: '/cv-builder/',
+    path: '/cv-builder/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContactsIndexRoute =
   AuthenticatedContactsIndexRouteImport.update({
     id: '/contacts/',
@@ -351,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/chats/': typeof AuthenticatedChatsIndexRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/cv-builder/': typeof AuthenticatedCvBuilderIndexRoute
   '/cvs/': typeof AuthenticatedCvsIndexRoute
   '/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -397,6 +405,7 @@ export interface FileRoutesByTo {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/cv-builder': typeof AuthenticatedCvBuilderIndexRoute
   '/cvs': typeof AuthenticatedCvsIndexRoute
   '/follow-ups': typeof AuthenticatedFollowUpsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
@@ -448,6 +457,7 @@ export interface FileRoutesById {
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/cv-builder/': typeof AuthenticatedCvBuilderIndexRoute
   '/_authenticated/cvs/': typeof AuthenticatedCvsIndexRoute
   '/_authenticated/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -497,6 +507,7 @@ export interface FileRouteTypes {
     | '/chats/'
     | '/companies/'
     | '/contacts/'
+    | '/cv-builder/'
     | '/cvs/'
     | '/follow-ups/'
     | '/help-center/'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/companies'
     | '/contacts'
+    | '/cv-builder'
     | '/cvs'
     | '/follow-ups'
     | '/help-center'
@@ -593,6 +605,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chats/'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/cv-builder/'
     | '/_authenticated/cvs/'
     | '/_authenticated/follow-ups/'
     | '/_authenticated/help-center/'
@@ -852,6 +865,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCvsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cv-builder/': {
+      id: '/_authenticated/cv-builder/'
+      path: '/cv-builder'
+      fullPath: '/cv-builder/'
+      preLoaderRoute: typeof AuthenticatedCvBuilderIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contacts/': {
       id: '/_authenticated/contacts/'
       path: '/contacts'
@@ -1003,6 +1023,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedCvBuilderIndexRoute: typeof AuthenticatedCvBuilderIndexRoute
   AuthenticatedCvsIndexRoute: typeof AuthenticatedCvsIndexRoute
   AuthenticatedFollowUpsIndexRoute: typeof AuthenticatedFollowUpsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
@@ -1027,6 +1048,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedCvBuilderIndexRoute: AuthenticatedCvBuilderIndexRoute,
   AuthenticatedCvsIndexRoute: AuthenticatedCvsIndexRoute,
   AuthenticatedFollowUpsIndexRoute: AuthenticatedFollowUpsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,

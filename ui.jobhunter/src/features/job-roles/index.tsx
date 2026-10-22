@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { jobRolesApi, type JobRole, type CreateJobRoleDto } from './api'
 import { jobTitlesApi } from '@/features/job-titles/api'
@@ -14,7 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Search, Trash2, Pencil, ExternalLink } from 'lucide-react'
+import { Plus, MoreHorizontal, Search, Trash2, Pencil, ExternalLink, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 const PAGE_SIZE = 20
@@ -209,6 +210,9 @@ export function JobRoles() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end'>
                       <DropdownMenuItem onClick={() => { setEditing(r); setDialogOpen(true) }}><Pencil className='h-4 w-4 mr-2' /> Edit</DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to='/cv-builder' search={{ jobRoleId: r.id }}><Sparkles className='h-4 w-4 mr-2' /> Generate CV</Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(r.id)}><Trash2 className='h-4 w-4 mr-2' /> Delete</DropdownMenuItem>
                     </DropdownMenuContent>
