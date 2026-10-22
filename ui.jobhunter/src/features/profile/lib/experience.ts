@@ -103,7 +103,7 @@ export function groupByCompany(
   for (const role of sorted) {
     const key = role.company.trim().toLowerCase()
     const group = groups.get(key) ?? {
-      company: role.company,
+      company: role.company.trim(),
       roles: [],
       totalMonths: 0,
     }
