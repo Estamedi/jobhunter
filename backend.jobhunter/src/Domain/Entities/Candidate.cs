@@ -15,6 +15,7 @@ public class Candidate : OwnedEntity
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
     public ICollection<JobActivity> Activities { get; set; } = new List<JobActivity>();
     public ICollection<JobInterview> Interviews { get; set; } = new List<JobInterview>();
+    public CandidateProfile? Profile { get; set; }
     public ICollection<Cv> Cvs { get; set; } = new List<Cv>();
     public ICollection<CvDraft> CvDrafts { get; set; } = new List<CvDraft>();
 }
