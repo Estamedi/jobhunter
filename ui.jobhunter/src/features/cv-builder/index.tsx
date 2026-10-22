@@ -32,6 +32,8 @@ import {
 } from './api'
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
+import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
+import { jobPostingText } from './lib/job-text'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
 
@@ -214,6 +216,7 @@ export function CvBuilder({
   const [editing, setEditing] = useState(false)
   const [refining, setRefining] = useState<CvSection | null>(null)
   const [instruction, setInstruction] = useState('')
+  const [progress, setProgress] = useState<BatchProgress | null>(null)
   const [deleting, setDeleting] = useState<CvDraftSummary | CvDraft | null>(
     null
   )
@@ -232,7 +235,10 @@ export function CvBuilder({
         const app = await applicationsApi.get(applicationId)
         return {
           jobTitle: app.jobRoleTitle ?? '',
-          jobDescription: app.jobRoleDescription ?? '',
+          jobDescription: jobPostingText(
+            app.jobRoleDescription,
+            app.jobRoleRequirements
+          ),
         }
       }
       const role = await jobRolesApi.get(jobRoleId!)
@@ -252,6 +258,17 @@ export function CvBuilder({
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', candidate?.id],
     queryFn: () => profileApi.get(candidate!.id),
+    enabled: !!candidate,
+  })
+
+  const { data: wishlist } = useQuery({
+    queryKey: ['applications', 'wishlist', candidate?.id],
+    queryFn: () =>
+      applicationsApi.list({
+        candidateId: candidate?.id,
+        status: 'Wishlist',
+        pageSize: 100,
+      }),
     enabled: !!candidate,
   })
 
@@ -292,6 +309,50 @@ export function CvBuilder({
       toast.success('CV generated')
     },
     onError: () => toast.error('Failed to generate CV'),
+  })
+
+  // Writes one CV per wishlist job that has a posting and no draft yet, one after another so a
+  // slow or failing job does not hold up or break the others.
+  const generateAll = useMutation({
+    mutationFn: async () => {
+      const existing = new Set(
+        (draftsResult?.items ?? []).map((d) => d.jobApplicationId)
+      )
+      const todo = (wishlist?.items ?? []).filter(
+        (a) => a.jobRoleDescription?.trim() && !existing.has(a.id)
+      )
+      const result: BatchProgress = { done: 0, total: todo.length, failed: 0 }
+      setProgress({ ...result })
+
+      for (const a of todo) {
+        try {
+          await cvBuilderApi.generate({
+            candidateId: candidate!.id,
+            jobTitle: a.jobRoleTitle ?? 'Job',
+            title: a.companyName
+              ? `${a.jobRoleTitle} - ${a.companyName}`
+              : undefined,
+            jobDescription: jobPostingText(
+              a.jobRoleDescription,
+              a.jobRoleRequirements
+            ),
+            jobApplicationId: a.id,
+            backgroundText: loadBackground() || undefined,
+          })
+        } catch {
+          result.failed++
+        }
+        result.done++
+        setProgress({ ...result })
+        qc.invalidateQueries({ queryKey: ['cv-drafts'] })
+      }
+      return result
+    },
+    onSuccess: (r) => {
+      if (r.failed === 0) toast.success(`Wrote ${r.total} CVs`)
+      else toast.warning(`Wrote ${r.total - r.failed} of ${r.total} CVs`)
+    },
+    onError: () => toast.error('Failed to write the CVs'),
   })
 
   const save = useMutation({
@@ -369,6 +430,18 @@ export function CvBuilder({
   return (
     <div className='grid gap-6 lg:grid-cols-[360px_1fr]'>
       <div className='space-y-6'>
+        <WishlistPanel
+          applications={wishlist?.items ?? []}
+          drafts={draftsResult?.items ?? []}
+          isGenerating={generateAll.isPending}
+          progress={progress}
+          onSelectDraft={(id) => {
+            setSelectedId(id)
+            setEditing(false)
+          }}
+          onGenerateAll={() => generateAll.mutate()}
+        />
+
         <div className='rounded-md border p-4'>
           <h2 className='mb-3 font-semibold'>New CV</h2>
           {prefillLoading || profileLoading ? (
