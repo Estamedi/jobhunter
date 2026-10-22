@@ -182,6 +182,14 @@ export interface ImportProfileDto {
   links: SaveLinkDto[]
 }
 
+export interface UpdateContactDto {
+  candidateId: number
+  fullName: string
+  email: string
+  phone?: string | null
+  currentLocation?: string | null
+}
+
 export interface UpdateAboutDto {
   candidateId: number
   headline?: string | null
@@ -198,6 +206,9 @@ export const profileApi = {
 
   updateAbout: (dto: UpdateAboutDto) =>
     http.put<number>('/api/CandidateProfiles/about', dto).then((r) => r.data),
+
+  updateContact: (dto: UpdateContactDto) =>
+    http.put('/api/CandidateProfiles/contact', dto),
 
   previewImport: (cvId: number) =>
     http

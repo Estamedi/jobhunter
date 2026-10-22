@@ -13,6 +13,7 @@ import {
   type SaveExperienceDto,
 } from './api'
 import { AboutCard } from './components/about-card'
+import { ContactCard, type ContactValues } from './components/contact-card'
 import { EducationDialog } from './components/education-dialog'
 import { EducationSection } from './components/education-section'
 import { ExperienceDialog } from './components/experience-dialog'
@@ -89,6 +90,22 @@ export function Profile() {
     onError: () => toast.error('Failed to delete experience'),
   })
 
+  const saveContact = useMutation({
+    mutationFn: (v: ContactValues) =>
+      profileApi.updateContact({
+        candidateId: candidate!.id,
+        fullName: v.fullName.trim(),
+        email: v.email.trim(),
+        phone: v.phone.trim() || null,
+        currentLocation: v.currentLocation.trim() || null,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidates'] })
+      toast.success('Contact info updated')
+    },
+    onError: () => toast.error('Failed to update contact info'),
+  })
+
   const saveEducation = useMutation({
     mutationFn: (dto: SaveEducationDto) =>
       editingEducation
@@ -153,6 +170,17 @@ export function Profile() {
         onSave={(headline, summary, done) =>
           saveAbout.mutate({ headline, summary }, { onSuccess: done })
         }
+      />
+
+      <ContactCard
+        values={{
+          fullName: candidate.fullName,
+          email: candidate.email,
+          phone: candidate.phone ?? '',
+          currentLocation: candidate.currentLocation ?? '',
+        }}
+        isSaving={saveContact.isPending}
+        onSave={(v, done) => saveContact.mutate(v, { onSuccess: done })}
       />
 
       <ExperienceSection
