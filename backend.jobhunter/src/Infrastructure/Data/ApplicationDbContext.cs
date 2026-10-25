@@ -29,6 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Cv> Cvs => Set<Cv>();
     public DbSet<CvDraft> CvDrafts => Set<CvDraft>();
     public DbSet<CandidateProfile> CandidateProfiles => Set<CandidateProfile>();
+    public DbSet<CandidatePreferences> CandidatePreferences => Set<CandidatePreferences>();
     public DbSet<ProfileLink> ProfileLinks => Set<ProfileLink>();
     public DbSet<ProfileExperience> ProfileExperiences => Set<ProfileExperience>();
     public DbSet<ProfileEducation> ProfileEducations => Set<ProfileEducation>();
