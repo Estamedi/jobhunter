@@ -1,0 +1,43 @@
+name: Reset JobHunter Database (manual)
+
+# Drops and recreates the production jobhunterdb, then restarts the backend so EF migrations
+# rebuild the schema. Every user and all their data is erased. Manual only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type RESET to confirm erasing the production database'
+        required: true
+        type: string
+
+jobs:
+  reset-db:
+    name: Reset jobhunterdb on VPS
+    runs-on: ubuntu-latest
+    if: ${{ inputs.confirm == 'RESET' }}
+
+    steps:
+      - name: Drop and recreate database
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 4444
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            docker stop jobhunter-backend-1
+
+            docker exec shared_postgres psql -U postgres -v ON_ERROR_STOP=1 \
+              -c "DROP DATABASE IF EXISTS jobhunterdb WITH (FORCE);" \
+              -c "CREATE DATABASE jobhunterdb OWNER jobhunter_user;"
+
+            # The backend applies EF migrations on startup.
+            docker start jobhunter-backend-1
+            sleep 15
+
+            docker exec shared_postgres psql -U postgres -d jobhunterdb -tc \
+              'select count(*) as migrations from "__EFMigrationsHistory";'
+            docker logs --tail 5 jobhunter-backend-1
