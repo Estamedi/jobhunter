@@ -10,8 +10,8 @@
 
 import { $ } from "./ui/dom.js";
 import { show, setError } from "./ui/views.js";
-import { DEFAULT_API_BASE, settings, loadSettings, saveSettings } from "./settings.js";
-import { login, loginWithGoogle } from "./api/auth.js";
+import { settings, loadSettings, saveSettings } from "./settings.js";
+import { login, requestGoogleLogin } from "./api/auth.js";
 import { resetCurrentUser } from "./api/users.js";
 import { loadCandidates, saveJob } from "./api/jobs.js";
 import { readActiveTab } from "./extraction/page-reader.js";
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btn = $("#btn-google-login");
     btn.disabled = true;
     try {
-      await loginWithGoogle();
+      await requestGoogleLogin();
       startMainFlow();
     } catch (err) {
       setError("#login-error", err.message);
@@ -121,17 +121,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   $("#btn-settings").addEventListener("click", () => {
-    $("#set-api-base").value = settings.apiBaseUrl;
-    $("#set-google-client-id").value = settings.googleClientId || "";
     $("#set-restrict-job-sites").checked = settings.restrictToJobSites;
-    $("#redirect-uri-hint").textContent = chrome.identity.getRedirectURL();
     show("settings");
   });
 
   $("#btn-save-settings").addEventListener("click", async () => {
     await saveSettings({
-      apiBaseUrl: ($("#set-api-base").value.trim() || DEFAULT_API_BASE).replace(/\/+$/, ""),
-      googleClientId: $("#set-google-client-id").value.trim() || null,
       restrictToJobSites: $("#set-restrict-job-sites").checked,
     });
     settings.accessToken ? startMainFlow() : show("login");

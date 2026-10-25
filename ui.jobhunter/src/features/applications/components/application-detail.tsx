@@ -169,7 +169,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
 
   const { data: myCandidate } = useQuery({
     queryKey: ['candidates', 'me'],
-    queryFn: () => candidatesApi.list({ pageSize: 1 }),
+    queryFn: () => candidatesApi.mine(),
   })
   const candidateId = myCandidate?.items[0]?.id
 

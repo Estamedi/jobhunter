@@ -1,4 +1,4 @@
-import { settings, saveSettings } from "../settings.js";
+import { settings, saveSettings, GOOGLE_CLIENT_ID } from "../settings.js";
 
 export async function login(email, password) {
   const res = await fetch(
@@ -23,15 +23,9 @@ export async function login(email, password) {
 // actually supports for this: it drives the OAuth redirect in a window
 // Chrome controls itself, so it survives the extension popup closing.
 function getGoogleAccessToken() {
-  if (!settings.googleClientId) {
-    return Promise.reject(
-      new Error('Set a Google client ID in Settings first, then try "Continue with Google" again.'),
-    );
-  }
-
   const redirectUri = chrome.identity.getRedirectURL();
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  authUrl.searchParams.set("client_id", settings.googleClientId);
+  authUrl.searchParams.set("client_id", GOOGLE_CLIENT_ID);
   authUrl.searchParams.set("response_type", "token");
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("scope", "openid email profile");
@@ -75,4 +69,13 @@ export async function loginWithGoogle() {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
   });
+}
+
+// Popup-side entry point: delegates to the service worker (see background.js)
+// so the sign-in survives the popup closing, then syncs the stored tokens.
+export async function requestGoogleLogin() {
+  const result = await chrome.runtime.sendMessage({ type: "google-login" });
+  if (!result?.ok) throw new Error(result?.error || "Google sign-in failed.");
+  const stored = await chrome.storage.local.get(["accessToken", "refreshToken"]);
+  await saveSettings(stored);
 }

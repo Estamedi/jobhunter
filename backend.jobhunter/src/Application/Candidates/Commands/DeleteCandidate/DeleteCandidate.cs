@@ -1,10 +1,11 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
+using backend.jobhunter.Domain.Constants;
 using backend.jobhunter.Application.Common.Exceptions;
 
 namespace backend.jobhunter.Application.Candidates.Commands.DeleteCandidate;
 
-[Authorize]
+[Authorize(Roles = $"{Roles.Administrator},{Roles.Recruiter}")]
 public record DeleteCandidateCommand(int Id) : IRequest;
 
 public class DeleteCandidateCommandHandler(IApplicationDbContext context)

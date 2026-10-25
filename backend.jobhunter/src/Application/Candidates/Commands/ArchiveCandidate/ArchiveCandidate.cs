@@ -1,10 +1,11 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
+using backend.jobhunter.Domain.Constants;
 using backend.jobhunter.Application.Common.Exceptions;
 
 namespace backend.jobhunter.Application.Candidates.Commands.ArchiveCandidate;
 
-[Authorize]
+[Authorize(Roles = $"{Roles.Administrator},{Roles.Recruiter}")]
 public record ArchiveCandidateCommand(int Id, bool IsActive) : IRequest;
 
 public class ArchiveCandidateCommandHandler(IApplicationDbContext context)

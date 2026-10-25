@@ -60,19 +60,12 @@
 
   <!-- SETTINGS VIEW -->
   <section id="view-settings" class="view hidden">
-    <label>Portal API base URL
-      <input type="url" id="set-api-base" placeholder="https://api.tapinti.com" />
-    </label>
     <p class="hint">AI extraction runs on the Tapinti backend, so no AI API key is needed here. If the backend extraction call fails, the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
     <label class="checkbox-label">
       <input type="checkbox" id="set-restrict-job-sites" />
       Only read known job sites
     </label>
     <p class="hint">When on, pages are only read on known job boards/ATS platforms (LinkedIn, Indeed, JobStreet, Greenhouse, etc.) or pages with job posting markup. Turn off to allow any page.</p>
-    <label>Google client ID <small>(for "Continue with Google")</small>
-      <input type="text" id="set-google-client-id" placeholder="xxxxx.apps.googleusercontent.com" />
-    </label>
-    <p class="hint">Reuses the portal's OAuth client. Its Google Cloud Console entry must include <code id="redirect-uri-hint"></code> as an authorized redirect URI.</p>
     <div class="row">
       <button id="btn-save-settings" class="primary">Save settings</button>
       <button id="btn-logout" class="danger">Sign out</button>

@@ -145,7 +145,8 @@ export function Onboarding() {
 
     setIsSubmitting(true)
     try {
-      await candidatesApi.create({
+      const { items } = await candidatesApi.mine()
+      await candidatesApi.update(items[0].id, {
         fullName,
         email,
         currentLocation: location || undefined,

@@ -1,7 +1,6 @@
 import { Logo } from '@/assets/logo'
 import {
   LayoutDashboard,
-  Users,
   Building2,
   Contact2,
   Briefcase,
@@ -87,11 +86,6 @@ const defaultNavGroups: NavGroup[] = [
         title: 'Reports',
         url: '/reports',
         icon: BarChart3,
-      },
-      {
-        title: 'Candidates',
-        url: '/candidates',
-        icon: Users,
       },
       {
         title: 'Companies',
