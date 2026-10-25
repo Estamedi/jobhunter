@@ -59,7 +59,7 @@ jobs:
           file: ./ui.jobhunter/Dockerfile
           push: true
           build-args: |
-            VITE_API_BASE_URL=https://api.tapinti.com
+            VITE_API_BASE_URL=https://api.applyladder.com
             VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           tags: |
             ${{ env.IMAGE_PREFIX }}/ui:latest
@@ -120,7 +120,7 @@ jobs:
             POSTGRES_DB='jobhunterdb' \
             POSTGRES_USER='jobhunter_user' \
             POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
-            VITE_API_BASE_URL='https://api.tapinti.com' \
+            VITE_API_BASE_URL='https://api.applyladder.com' \
             VITE_GOOGLE_CLIENT_ID='${{ secrets.VITE_GOOGLE_CLIENT_ID }}' \
             AUTHENTICATION__GOOGLE__CLIENTID='${{ secrets.AUTHENTICATION__GOOGLE__CLIENTID }}' \
             AIEXTRACTION__OPENAIAPIKEY='${{ secrets.AIEXTRACTION__OPENAIAPIKEY }}' \
