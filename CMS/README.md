@@ -1,6 +1,6 @@
-# Tapinti CMS (Strapi 5)
+# ApplyLadder CMS (Strapi 5)
 
-Headless CMS for the Tapinti website (`website.tapinti`) — manages blog articles/videos in English, Persian, and Arabic.
+Headless CMS for the ApplyLadder website (`website.tapinti`) — manages blog articles/videos in English, Persian, and Arabic.
 
 ## Run it
 

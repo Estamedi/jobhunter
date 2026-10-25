@@ -1,6 +1,6 @@
-# Tapinti Job Saver — Chrome Extension
+# ApplyLadder Job Saver — Chrome Extension
 
-Read the job posting on the current page, extract the details with AI, and save it to the Tapinti job-hunt CRM with one click.
+Read the job posting on the current page, extract the details with AI, and save it to the ApplyLadder job-hunt CRM with one click.
 
 ## How it works
 
@@ -24,7 +24,7 @@ Auth uses the portal's Identity bearer tokens (`POST /api/Users/login`), with au
 
 1. Click the extension icon → sign in with your portal account (email/password, or Google — see below).
 2. Click the ⚙ icon:
-   - The extension always uses the production API (`https://api.tapinti.com`).
+   - The extension always uses the production API (`https://api.applyladder.com`).
    - **Only read known job sites** — on by default; restricts page reading to known job boards/ATS platforms (or pages with `JobPosting` structured data). Turn off to allow any page.
 
    AI provider API keys are configured server-side (`backend.jobhunter/src/Web/appsettings.json` → `AiExtraction`, or user-secrets) — never in the extension.

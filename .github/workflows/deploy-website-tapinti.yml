@@ -1,4 +1,4 @@
-name: Deploy Tapinti Website to VPS
+name: Deploy ApplyLadder Website to VPS
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Tapinti website image
+      - name: Build and push ApplyLadder website image
         uses: docker/build-push-action@v6
         with:
           context: ./website.tapinti
@@ -112,14 +112,14 @@ jobs:
 
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            echo "Deploying Tapinti website..."
+            echo "Deploying ApplyLadder website..."
             docker compose pull tapinti-site
             docker compose up -d --no-build
 
-            echo "Waiting for Tapinti website to become healthy..."
+            echo "Waiting for ApplyLadder website to become healthy..."
             for attempt in $(seq 1 12); do
               if docker compose exec -T tapinti-site node -e "fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
-                echo "Tapinti website is healthy"
+                echo "ApplyLadder website is healthy"
                 rm -f /tmp/website-tapinti.tar.gz
                 rm -rf /opt/jobhunter/website.tapinti.previous
                 docker image prune -f
@@ -136,7 +136,7 @@ jobs:
       - name: Deployment summary
         if: success()
         run: |
-          echo "Tapinti website deployed successfully to VPS"
+          echo "ApplyLadder website deployed successfully to VPS"
           echo "Website: http://${{ secrets.VPS_HOST }}:8092"
 
       - name: Rollback on failure
@@ -148,7 +148,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            echo "Deployment failed. Attempting to restart the previous Tapinti website container..."
+            echo "Deployment failed. Attempting to restart the previous ApplyLadder website container..."
             if [ -d /opt/jobhunter/website.tapinti.previous ]; then
               rm -rf /opt/jobhunter/website.tapinti
               mv /opt/jobhunter/website.tapinti.previous /opt/jobhunter/website.tapinti
@@ -157,5 +157,5 @@ jobs:
               docker compose pull tapinti-site || true
               docker compose up -d --no-build
             else
-              echo "No previous Tapinti website deployment found."
+              echo "No previous ApplyLadder website deployment found."
             fi

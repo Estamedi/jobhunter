@@ -1,19 +1,19 @@
-# Tapinti Growth & Marketing Plan
+# ApplyLadder Growth & Marketing Plan
 **Version:** 1.0  
 **Timeline:** 12 Months  
-**Objective:** Build Tapinti into the leading Personal Career CRM for professionals worldwide.
+**Objective:** Build ApplyLadder into the leading Personal Career CRM for professionals worldwide.
 
 ---
 
 # Executive Summary
 
-Tapinti is **not another job application tracker**.
+ApplyLadder is **not another job application tracker**.
 
 Its category is:
 
 > **Personal Career CRM**
 
-Instead of helping people simply track applications, Tapinti helps them manage their entire career search in one connected system.
+Instead of helping people simply track applications, ApplyLadder helps them manage their entire career search in one connected system.
 
 The marketing strategy should focus on building authority, trust, and organic growth instead of relying heavily on paid advertising.
 
@@ -202,15 +202,15 @@ Examples
 ## Comparison Pages
 
 ```
-Tapinti vs Huntr
+ApplyLadder vs Huntr
 
-Tapinti vs Teal
+ApplyLadder vs Teal
 
-Tapinti vs Simplify
+ApplyLadder vs Simplify
 
-Tapinti vs Notion
+ApplyLadder vs Notion
 
-Tapinti vs Spreadsheet
+ApplyLadder vs Spreadsheet
 ```
 
 ---
@@ -319,7 +319,7 @@ Publish twice each month.
 
 Topics
 
-- Building Tapinti
+- Building ApplyLadder
 - Career Productivity
 - Engineering Career Advice
 
@@ -372,7 +372,7 @@ Allow users to export
 Footer
 
 ```
-Created with Tapinti
+Created with ApplyLadder
 ```
 
 ---
@@ -382,7 +382,7 @@ Created with Tapinti
 Display
 
 ```
-Managed with Tapinti
+Managed with ApplyLadder
 ```
 
 ---
@@ -391,7 +391,7 @@ Managed with Tapinti
 
 Allow users to create a public career portfolio.
 
-Every profile promotes Tapinti.
+Every profile promotes ApplyLadder.
 
 ---
 
@@ -760,7 +760,7 @@ Target
 
 # Long-Term Vision
 
-Tapinti should evolve beyond a job application tracker into the **operating system for professional careers**.
+ApplyLadder should evolve beyond a job application tracker into the **operating system for professional careers**.
 
 Future capabilities may include:
 
@@ -781,6 +781,6 @@ Future capabilities may include:
 
 # North Star Metric
 
-**The number of active job seekers who successfully manage their entire career journey with Tapinti.**
+**The number of active job seekers who successfully manage their entire career journey with ApplyLadder.**
 
 Every feature, campaign, and marketing initiative should increase this number.

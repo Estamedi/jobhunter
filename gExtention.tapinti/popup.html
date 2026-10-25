@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Tapinti Job Saver</title>
+  <title>ApplyLadder Job Saver</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
@@ -16,14 +16,14 @@
           <rect x="0" y="0" width="19" height="14" rx="3" fill="oklch(0.52 0.12 155)"/>
         </g>
       </svg>
-      <h1>Tapinti <span>Job Saver</span></h1>
+      <h1>ApplyLadder <span>Job Saver</span></h1>
     </div>
     <button id="btn-settings" class="icon-btn" title="Settings">&#9881;</button>
   </header>
 
   <!-- LOGIN VIEW -->
   <section id="view-login" class="view hidden">
-    <p class="hint">Sign in with your Tapinti portal account.</p>
+    <p class="hint">Sign in with your ApplyLadder portal account.</p>
     <label>Email
       <input type="email" id="login-email" autocomplete="username" />
     </label>
@@ -60,7 +60,7 @@
 
   <!-- SETTINGS VIEW -->
   <section id="view-settings" class="view hidden">
-    <p class="hint">AI extraction runs on the Tapinti backend, so no AI API key is needed here. If the backend extraction call fails, the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
+    <p class="hint">AI extraction runs on the ApplyLadder backend, so no AI API key is needed here. If the backend extraction call fails, the extension falls back to basic page parsing (works on pages with structured job data, e.g. LinkedIn / Indeed).</p>
     <label class="checkbox-label">
       <input type="checkbox" id="set-restrict-job-sites" />
       Only read known job sites

@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Brand palette — Tapinti identity system */
+  /* Brand palette — ApplyLadder identity system */
   --brand-primary: oklch(0.52 0.12 155); /* Signal */
   --brand-secondary: #55534c; /* Graphite — decorative use only, warm neutral */
   --brand-accent: #16171b; /* Ink — decorative use only, warm neutral */

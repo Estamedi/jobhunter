@@ -444,7 +444,7 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
 export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   collectionName: 'articles';
   info: {
-    description: 'Blog articles and videos for the Tapinti website';
+    description: 'Blog articles and videos for the ApplyLadder website';
     displayName: 'Article';
     pluralName: 'articles';
     singularName: 'article';

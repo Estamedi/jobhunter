@@ -5,7 +5,7 @@
     "singularName": "article",
     "pluralName": "articles",
     "displayName": "Article",
-    "description": "Blog articles and videos for the Tapinti website"
+    "description": "Blog articles and videos for the ApplyLadder website"
   },
   "options": {
     "draftAndPublish": true

@@ -1,8 +1,8 @@
-/* Tapinti Job Saver — popup entry point
+/* ApplyLadder Job Saver — popup entry point
  *
  * Flow: read the active tab -> extract structured job data (Claude or OpenAI,
  * whichever is configured, with a JSON-LD/heuristic fallback) -> save to the
- * Tapinti portal: find/create Company -> create JobRole -> create JobApplication.
+ * ApplyLadder portal: find/create Company -> create JobRole -> create JobApplication.
  *
  * This file only wires DOM events and orchestrates the main/save flows; the
  * actual logic lives in the modules under settings.js / api/ / extraction/ / ui/.

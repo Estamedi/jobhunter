@@ -1,4 +1,4 @@
-export const DEFAULT_API_BASE = "https://api.tapinti.com";
+export const DEFAULT_API_BASE = "https://api.applyladder.com";
 export const GOOGLE_CLIENT_ID = "876332557394-rhd0tf0d8v0v5pv9o33f2qbtvi07r5o1.apps.googleusercontent.com";
 
 export let settings = {

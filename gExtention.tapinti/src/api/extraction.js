@@ -1,6 +1,6 @@
 import { api } from "./client.js";
 
-// Sends the raw page content to the Tapinti backend, which runs the AI
+// Sends the raw page content to the ApplyLadder backend, which runs the AI
 // extraction server-side (API keys live only in backend config). The backend
 // enforces auth (and, later, per-user extraction entitlements/usage).
 export async function extractJobViaBackend(page) {
