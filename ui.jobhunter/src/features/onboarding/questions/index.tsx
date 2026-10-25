@@ -7,6 +7,14 @@ import { candidatesApi } from '@/features/candidates/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { preferencesApi } from './api'
 import { OptionTile } from './components/option-tile'
@@ -46,9 +54,85 @@ function labelOf(options: Option[], values: string[]) {
   return values.map((v) => options.find((o) => o.value === v)?.label ?? v)
 }
 
-function formatSalary(value: number, currency: string) {
-  const text = new Intl.NumberFormat('en-US').format(value)
-  return value >= MAX_SALARY ? `${text}+ ${currency}` : `${text} ${currency}`
+const numberFormat = new Intl.NumberFormat('en-US')
+
+type Period = 'monthly' | 'yearly'
+
+// minSalary is always stored as a yearly amount; the monthly view is yearly / 12.
+function SalaryInput({
+  yearly,
+  currency,
+  onYearlyChange,
+  onCurrencyChange,
+}: {
+  yearly: number
+  currency: string
+  onYearlyChange: (yearly: number) => void
+  onCurrencyChange: (currency: string) => void
+}) {
+  const [period, setPeriod] = useState<Period>('yearly')
+  const monthly = Math.round(yearly / 12)
+  const isMonthly = period === 'monthly'
+  const max = isMonthly ? Math.round(MAX_SALARY / 12 / 500) * 500 : MAX_SALARY
+  const step = isMonthly ? 500 : SALARY_STEP
+  const value = isMonthly ? Math.round(monthly / step) * step : yearly
+
+  return (
+    <div className='space-y-5 rounded-lg border bg-card p-5'>
+      <div className='flex items-center justify-between gap-3'>
+        <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
+          <TabsList>
+            <TabsTrigger value='monthly'>Monthly</TabsTrigger>
+            <TabsTrigger value='yearly'>Yearly</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Select value={currency} onValueChange={onCurrencyChange}>
+          <SelectTrigger aria-label='Currency' className='w-28'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {currencies.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <div className='text-3xl font-bold tracking-tight'>
+          {numberFormat.format(value)}{' '}
+          <span className='text-base font-medium text-muted-foreground'>
+            {currency} / {isMonthly ? 'month' : 'year'}
+          </span>
+        </div>
+        <p className='mt-1 text-sm text-muted-foreground'>
+          {isMonthly
+            ? `≈ ${numberFormat.format(value * 12)} ${currency} per year`
+            : `≈ ${numberFormat.format(monthly)} ${currency} per month`}
+        </p>
+      </div>
+
+      <input
+        type='range'
+        aria-label={`Minimum ${isMonthly ? 'monthly' : 'yearly'} salary`}
+        min={0}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => {
+          const v = Number(e.target.value)
+          onYearlyChange(isMonthly ? v * 12 : v)
+        }}
+        className='w-full accent-primary'
+      />
+      <div className='flex justify-between text-xs text-muted-foreground'>
+        <span>0</span>
+        <span>{numberFormat.format(max)}+</span>
+      </div>
+    </div>
+  )
 }
 
 function SingleChoice({
@@ -140,39 +224,12 @@ function QuestionBody({
       )
     case 'minSalary':
       return (
-        <div className='space-y-5 rounded-lg border bg-card p-5'>
-          <div className='flex items-center justify-between gap-3'>
-            <span className='text-2xl font-bold tracking-tight'>
-              {formatSalary(answers.minSalary, answers.salaryCurrency)}
-            </span>
-            <select
-              aria-label='Currency'
-              value={answers.salaryCurrency}
-              onChange={(e) => set('salaryCurrency', e.target.value)}
-              className='h-9 rounded-md border border-input bg-transparent px-2 text-sm'
-            >
-              {currencies.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <input
-            type='range'
-            aria-label='Minimum salary'
-            min={0}
-            max={MAX_SALARY}
-            step={SALARY_STEP}
-            value={answers.minSalary}
-            onChange={(e) => set('minSalary', Number(e.target.value))}
-            className='w-full accent-primary'
-          />
-          <div className='flex justify-between text-xs text-muted-foreground'>
-            <span>0</span>
-            <span>{new Intl.NumberFormat('en-US').format(MAX_SALARY)}+</span>
-          </div>
-        </div>
+        <SalaryInput
+          yearly={answers.minSalary}
+          currency={answers.salaryCurrency}
+          onYearlyChange={(v) => set('minSalary', v)}
+          onCurrencyChange={(v) => set('salaryCurrency', v)}
+        />
       )
     case 'employmentTypes':
       return <MultiChoice columns options={employmentTypeOptions} values={answers.employmentTypes} onChange={(v) => set('employmentTypes', v)} />

@@ -8,6 +8,7 @@ public class CandidatePreferences : OwnedEntity
     public string? WorkStatus { get; set; }
     public string? SearchIntensity { get; set; }
     public string? PrimaryGoal { get; set; }
+    // Always a yearly amount (the UI also shows the monthly equivalent).
     public int? MinSalary { get; set; }
     public string? SalaryCurrency { get; set; }
     public string? EmploymentTypes { get; set; }
