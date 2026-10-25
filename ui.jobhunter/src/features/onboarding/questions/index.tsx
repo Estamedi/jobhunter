@@ -278,13 +278,20 @@ export function OnboardingQuestions() {
     setIsSaving(true)
     try {
       const { items } = await candidatesApi.mine()
-      const candidateId = items[0].id
+      const me = items[0]
+      const candidateId = me.id
       const countries = [
         ...labelOf(remoteRegionOptions, answers.remoteRegions),
         ...answers.commuteCities,
       ]
       await preferencesApi.save(candidateId, answers)
+      // The update endpoint replaces every field and requires name and email, so resend the rest.
       await candidatesApi.update(candidateId, {
+        fullName: me.fullName,
+        email: me.email,
+        phone: me.phone,
+        currentLocation: me.currentLocation,
+        notes: me.notes,
         targetRoles: answers.targetRoles.join(', ') || undefined,
         targetCountries: countries.join(', ') || undefined,
         preferredWorkType: answers.workModes.join(', ') || undefined,
