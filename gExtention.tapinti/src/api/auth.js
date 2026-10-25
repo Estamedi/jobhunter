@@ -70,3 +70,12 @@ export async function loginWithGoogle() {
     refreshToken: data.refreshToken,
   });
 }
+
+// Popup-side entry point: delegates to the service worker (see background.js)
+// so the sign-in survives the popup closing, then syncs the stored tokens.
+export async function requestGoogleLogin() {
+  const result = await chrome.runtime.sendMessage({ type: "google-login" });
+  if (!result?.ok) throw new Error(result?.error || "Google sign-in failed.");
+  const stored = await chrome.storage.local.get(["accessToken", "refreshToken"]);
+  await saveSettings(stored);
+}

@@ -30,7 +30,8 @@ export async function loadSettings() {
     loadLocalDefaults(),
   ]);
   settings = { ...settings, ...localDefaults, ...stored };
-  if (!settings.apiBaseUrl) settings.apiBaseUrl = DEFAULT_API_BASE;
+  // Production: always talk to the real backend, ignoring any stale saved/local override.
+  settings.apiBaseUrl = DEFAULT_API_BASE;
 }
 
 export async function saveSettings(patch) {

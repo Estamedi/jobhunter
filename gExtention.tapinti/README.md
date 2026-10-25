@@ -24,7 +24,7 @@ Auth uses the portal's Identity bearer tokens (`POST /api/Users/login`), with au
 
 1. Click the extension icon → sign in with your portal account (email/password, or Google — see below).
 2. Click the ⚙ icon:
-   - **Portal API base URL** — defaults to `https://api.tapinti.com`; use `http://localhost:5290` (docker) or `http://localhost:5124` (dotnet run) for local dev.
+   - The extension always uses the production API (`https://api.tapinti.com`).
    - **Only read known job sites** — on by default; restricts page reading to known job boards/ATS platforms (or pages with `JobPosting` structured data). Turn off to allow any page.
 
    AI provider API keys are configured server-side (`backend.jobhunter/src/Web/appsettings.json` → `AiExtraction`, or user-secrets) — never in the extension.
