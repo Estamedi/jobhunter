@@ -20,7 +20,10 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { candidatesApi } from '@/features/candidates/api'
+import { candidatesApi, type Candidate } from '@/features/candidates/api'
+import { cvsApi } from '@/features/cvs/api'
+import { profileApi, type ParsedProfile } from '@/features/profile/api'
+import { ImportProgress } from '@/features/profile/components/import-progress'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,7 +38,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
-const ACCEPTED_EXTENSIONS = ['pdf', 'doc', 'docx', 'md']
+// The backend CV reader (and AI import) supports PDF and DOCX only.
+const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
 
 function formatFileSize(size: number) {
   if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`
@@ -46,7 +50,7 @@ function validateResumeFile(file: File) {
   const extension = file.name.split('.').pop()?.toLowerCase()
 
   if (!extension || !ACCEPTED_EXTENSIONS.includes(extension)) {
-    return 'Upload a PDF, DOC, DOCX, or MD resume file.'
+    return 'Upload a PDF or DOCX resume file.'
   }
 
   if (file.size > MAX_FILE_SIZE) {
@@ -95,6 +99,10 @@ export function Onboarding() {
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [parsed, setParsed] = useState<ParsedProfile | null>(null)
+  const [cvId, setCvId] = useState<number | null>(null)
+  const [candidate, setCandidate] = useState<Candidate | null>(null)
   const isSkipping = false
 
   function handleFile(file?: File) {
@@ -127,9 +135,26 @@ export function Onboarding() {
     if (inputRef.current) inputRef.current.value = ''
   }
 
-  function continueToDashboard() {
+  // Uploads the CV and lets the AI read it, then shows the result for review.
+  async function analyzeResume() {
     if (!selectedFile) return
-    setView('review')
+    setIsAnalyzing(true)
+    try {
+      const { items } = await candidatesApi.mine()
+      const me = items[0]
+      const id = await cvsApi.upload({ candidateId: me.id, file: selectedFile })
+      const result = await profileApi.previewImport(id)
+      setCandidate(me)
+      setCvId(id)
+      setParsed(result)
+      setView('review')
+    } catch {
+      toast.error(
+        'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+      )
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   async function submitManualProfile(event: FormEvent<HTMLFormElement>) {
@@ -145,13 +170,57 @@ export function Onboarding() {
     setIsSubmitting(true)
     try {
       const { items } = await candidatesApi.mine()
-      await candidatesApi.update(items[0].id, {
+      const candidateId = items[0].id
+      await candidatesApi.update(candidateId, {
         fullName,
         email,
         currentLocation: location || undefined,
         targetRoles: jobTitle || undefined,
-        notes: [summary, skills].filter(Boolean).join('\n\n') || undefined,
+        // Without an analyzed CV the typed summary and skills are kept as notes.
+        notes: parsed
+          ? undefined
+          : [summary, skills].filter(Boolean).join('\n\n') || undefined,
       })
+      if (parsed) {
+        await profileApi.importProfile({
+          candidateId,
+          cvId: cvId ?? undefined,
+          mode: 'Merge',
+          headline: jobTitle || null,
+          summary: summary || null,
+          experiences: parsed.experiences
+            .filter((e) => e.title && e.company && e.startDate)
+            .map((e) => ({
+              title: e.title,
+              employmentType: e.employmentType ?? null,
+              company: e.company,
+              isCurrent: e.isCurrent,
+              startDate: e.startDate!,
+              endDate: e.isCurrent ? null : (e.endDate ?? null),
+              location: e.location ?? null,
+              workplaceType: e.workplaceType ?? null,
+              description: e.description ?? null,
+              skills: e.skills,
+            })),
+          educations: parsed.educations.map((e) => ({
+            institution: e.institution,
+            degree: e.degree,
+            fieldOfStudy: e.fieldOfStudy ?? null,
+            location: e.location ?? null,
+            startDate: e.startDate ?? null,
+            endDate: e.endDate ?? null,
+            details: e.details ?? null,
+          })),
+          skills: parsed.skills,
+          projects: parsed.projects,
+          certifications: parsed.certifications,
+          languages: parsed.languages.map((l) => ({
+            name: l.name,
+            proficiency: l.proficiency ?? 'ProfessionalWorking',
+          })),
+          links: parsed.links,
+        })
+      }
       navigate({ to: '/onboarding/questions', replace: true })
     } catch {
       toast.error('Failed to save your profile. Please try again.')
@@ -166,7 +235,10 @@ export function Onboarding() {
   }
 
   if (view === 'review' && selectedFile) {
-    const parsedName = nameFromResume(selectedFile.name)
+    const initialName = candidate?.fullName || nameFromResume(selectedFile.name)
+    const initialEmail = candidate?.email || auth.user?.email || ''
+    const initialTitle = parsed?.headline || parsed?.experiences[0]?.title || ''
+    const initialSkills = (parsed?.skills ?? []).map((k) => k.name).join(', ')
 
     return (
       <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
@@ -218,7 +290,7 @@ export function Onboarding() {
                     <Input
                       id='parsed-full-name'
                       name='fullName'
-                      defaultValue={parsedName || 'Your name'}
+                      defaultValue={initialName}
                       className='h-11 rounded-xl pl-10'
                       required
                     />
@@ -233,7 +305,7 @@ export function Onboarding() {
                       id='parsed-email'
                       name='email'
                       type='email'
-                      defaultValue='candidate@example.com'
+                      defaultValue={initialEmail}
                       className='h-11 rounded-xl pl-10'
                       required
                     />
@@ -247,7 +319,7 @@ export function Onboarding() {
                     <Input
                       id='parsed-job-title'
                       name='jobTitle'
-                      defaultValue='Product Designer'
+                      defaultValue={initialTitle}
                       className='h-11 rounded-xl pl-10'
                       required
                     />
@@ -261,9 +333,9 @@ export function Onboarding() {
                     <Input
                       id='parsed-location'
                       name='location'
-                      defaultValue='Muscat, Oman'
+                      defaultValue={candidate?.currentLocation ?? ''}
+                      placeholder='City, country'
                       className='h-11 rounded-xl pl-10'
-                      required
                     />
                   </div>
                 </div>
@@ -274,9 +346,8 @@ export function Onboarding() {
                 <Textarea
                   id='parsed-summary'
                   name='summary'
-                  defaultValue='Product designer experienced in turning complex problems into clear, user-friendly digital experiences.'
+                  defaultValue={parsed?.summary ?? ''}
                   className='min-h-24 resize-none rounded-xl'
-                  required
                 />
               </div>
 
@@ -287,9 +358,8 @@ export function Onboarding() {
                   <Textarea
                     id='parsed-skills'
                     name='skills'
-                    defaultValue='Product design, User research, Figma, Prototyping, Design systems'
+                    defaultValue={initialSkills}
                     className='min-h-20 resize-none rounded-xl pl-10'
-                    required
                   />
                 </div>
               </div>
@@ -422,6 +492,18 @@ export function Onboarding() {
     )
   }
 
+  if (isAnalyzing) {
+    return (
+      <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
+        <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
+          <CardContent className='px-8 py-10'>
+            <ImportProgress fileName={selectedFile?.name} />
+          </CardContent>
+        </Card>
+      </main>
+    )
+  }
+
   return (
     <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
       <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
@@ -460,7 +542,7 @@ export function Onboarding() {
               ref={inputRef}
               id='cv-upload'
               type='file'
-              accept='.pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown'
+              accept='.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
               className='sr-only'
               onChange={handleFileChange}
             />
@@ -500,7 +582,7 @@ export function Onboarding() {
                 </div>
                 <p className='text-lg font-bold'>Drop your CV here</p>
                 <p className='mt-1 text-sm text-muted-foreground'>
-                  PDF, DOC, DOCX or MD - up to 10 MB
+                  PDF or DOCX - up to 10 MB
                 </p>
                 <span className='mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-white shadow-xs hover:bg-primary/90'>
                   Upload CV
@@ -534,7 +616,7 @@ export function Onboarding() {
             size='lg'
             className='w-full rounded-2xl'
             disabled={!selectedFile}
-            onClick={continueToDashboard}
+            onClick={analyzeResume}
           >
             Continue
             <ArrowRight className='size-4' />
