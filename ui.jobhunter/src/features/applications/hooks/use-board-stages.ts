@@ -10,7 +10,12 @@ export interface BoardStage {
   visible: boolean
 }
 
-export const BADGE_VARIANTS: BadgeVariant[] = ['default', 'secondary', 'destructive', 'outline']
+export const BADGE_VARIANTS: BadgeVariant[] = [
+  'default',
+  'secondary',
+  'destructive',
+  'outline',
+]
 
 const STORAGE_KEY = 'applications.boardStages.v1'
 
@@ -23,6 +28,36 @@ function defaultStages(): BoardStage[] {
   }))
 }
 
+// The board used to start with these 11 stages. The stages are saved in the browser on first
+// load, so people who never customized them still have this crowded list stored.
+const LEGACY_DEFAULT_STATUSES = [
+  'Wishlist',
+  'Applied',
+  'PhoneScreen',
+  'HRInterview',
+  'TechnicalInterview',
+  'FinalInterview',
+  'Offer',
+  'Accepted',
+  'Rejected',
+  'Withdrawn',
+  'Ghosted',
+]
+
+// True when the saved stages are the old untouched defaults (same stages, order, names and all
+// visible), so they can be swapped for the simpler defaults without losing any customization.
+export function isLegacyDefaultStages(stages: BoardStage[]): boolean {
+  return (
+    stages.length === LEGACY_DEFAULT_STATUSES.length &&
+    stages.every(
+      (s, i) =>
+        s.status === LEGACY_DEFAULT_STATUSES[i] &&
+        s.label === formatStatusLabel(s.status) &&
+        s.visible
+    )
+  )
+}
+
 function loadStages(): BoardStage[] {
   if (typeof window === 'undefined') return defaultStages()
   try {
@@ -30,6 +65,7 @@ function loadStages(): BoardStage[] {
     if (!raw) return defaultStages()
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed) || parsed.length === 0) return defaultStages()
+    if (isLegacyDefaultStages(parsed)) return defaultStages()
     return parsed
   } catch {
     return defaultStages()
@@ -51,7 +87,8 @@ function slugify(label: string, existing: string[]): string {
     .trim()
     .split(/\s+/)
     .filter(Boolean)
-  const base = words.map((w) => w[0].toUpperCase() + w.slice(1)).join('') || 'Stage'
+  const base =
+    words.map((w) => w[0].toUpperCase() + w.slice(1)).join('') || 'Stage'
   let candidate = base
   let i = 2
   while (existing.includes(candidate)) {
@@ -73,22 +110,36 @@ export function useBoardStages() {
     if (!trimmed) return
     setStages((prev) => [
       ...prev,
-      { status: slugify(trimmed, prev.map((s) => s.status)), label: trimmed, badgeVariant, visible: true },
+      {
+        status: slugify(
+          trimmed,
+          prev.map((s) => s.status)
+        ),
+        label: trimmed,
+        badgeVariant,
+        visible: true,
+      },
     ])
   }
 
   function renameStage(status: string, label: string) {
     const trimmed = label.trim()
     if (!trimmed) return
-    setStages((prev) => prev.map((s) => (s.status === status ? { ...s, label: trimmed } : s)))
+    setStages((prev) =>
+      prev.map((s) => (s.status === status ? { ...s, label: trimmed } : s))
+    )
   }
 
   function setStageColor(status: string, badgeVariant: BadgeVariant) {
-    setStages((prev) => prev.map((s) => (s.status === status ? { ...s, badgeVariant } : s)))
+    setStages((prev) =>
+      prev.map((s) => (s.status === status ? { ...s, badgeVariant } : s))
+    )
   }
 
   function toggleVisibility(status: string) {
-    setStages((prev) => prev.map((s) => (s.status === status ? { ...s, visible: !s.visible } : s)))
+    setStages((prev) =>
+      prev.map((s) => (s.status === status ? { ...s, visible: !s.visible } : s))
+    )
   }
 
   function reorderStage(status: string, direction: 'up' | 'down') {

@@ -54,7 +54,8 @@ public class GetCandidateDashboardQueryHandler(IApplicationDbContext context)
             .ToDictionary(g => g.Key, g => g.Count());
 
         var applied = apps.Count(a => a.Status != "Wishlist" && a.Status != "Preparing");
-        var responded = apps.Count(a => a.Status == "HRInterview" || a.Status == "TechnicalInterview" ||
+        var responded = apps.Count(a => a.Status == "Interview" || a.Status == "PhoneScreen" ||
+                                         a.Status == "HRInterview" || a.Status == "TechnicalInterview" ||
                                          a.Status == "FinalInterview" || a.Status == "Offer");
         var offers = apps.Count(a => a.Status == "Offer");
         var rejections = apps.Count(a => a.Status == "Rejected");

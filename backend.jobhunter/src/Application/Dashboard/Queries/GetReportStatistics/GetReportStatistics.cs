@@ -35,6 +35,7 @@ public class GetReportStatisticsQueryHandler(IApplicationDbContext context)
 
         var applied = await context.Applications.CountAsync(a => a.Status != "Wishlist" && a.Status != "Preparing", cancellationToken);
         var responded = await context.Applications.CountAsync(a =>
+            a.Status == "Interview" || a.Status == "PhoneScreen" ||
             a.Status == "HRInterview" || a.Status == "TechnicalInterview" ||
             a.Status == "FinalInterview" || a.Status == "Offer", cancellationToken);
 
