@@ -2,7 +2,7 @@ import { type SVGProps } from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * The Tapinti "fan" mark: three rounded-rect cards fanned out, two outlined
+ * The ApplyLadder "fan" mark: three rounded-rect cards fanned out, two outlined
  * (the pile of applications) with the accent card in front (the live one).
  */
 export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
@@ -14,7 +14,7 @@ export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
       className={cn('size-6', className)}
       {...props}
     >
-      <title>Tapinti</title>
+      <title>ApplyLadder</title>
       <rect
         x='3'
         y='13'

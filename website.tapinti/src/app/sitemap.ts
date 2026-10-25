@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 
-const SITE_URL = "https://tapinti.com";
+const SITE_URL = "https://applyladder.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return routing.locales.map((locale) => ({

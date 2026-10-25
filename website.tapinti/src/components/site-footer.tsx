@@ -80,7 +80,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground sm:flex-row">
-          <p>© {year} Tapinti. {t("rights")}</p>
+          <p>© {year} ApplyLadder. {t("rights")}</p>
           <p className="text-center italic">{t("builtWith")}</p>
         </div>
       </div>

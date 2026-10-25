@@ -13,7 +13,7 @@ export function SignIn2() {
           <div className='mb-4 flex items-center justify-center'>
             <Logo className='me-2 size-8' />
             <h1 className='font-archivo text-xl font-semibold tracking-wide uppercase'>
-              Tapinti
+              ApplyLadder
             </h1>
           </div>
         </div>

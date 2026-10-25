@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Tapinti — The Personal Career CRM",
-    short_name: "Tapinti",
+    name: "ApplyLadder — The Personal Career CRM",
+    short_name: "ApplyLadder",
     description:
       "Organize your career. Track every company, recruiter, application, resume, interview and follow-up in one place.",
     start_url: "/",

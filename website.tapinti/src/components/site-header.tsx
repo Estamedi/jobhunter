@@ -41,7 +41,7 @@ export function SiteHeader() {
       )}
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <a href="#top" className="shrink-0" aria-label="Tapinti">
+        <a href="#top" className="shrink-0" aria-label="ApplyLadder">
           <Logo />
         </a>
 

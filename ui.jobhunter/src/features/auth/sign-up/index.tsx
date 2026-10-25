@@ -33,7 +33,7 @@ export function SignUp() {
           <div className='absolute -right-24 bottom-0 size-72 rounded-full bg-foreground/20 blur-3xl' />
 
           <div className='relative space-y-10'>
-            <a href='https://tapinti.com' className='flex w-fit items-center gap-3'>
+            <a href='https://applyladder.com' className='flex w-fit items-center gap-3'>
               <Logo className='size-9' />
               <span className='text-xl font-bold'>Job Hunter CRM</span>
             </a>
@@ -106,7 +106,7 @@ export function SignUp() {
 
         <section className='mx-auto w-full max-w-md'>
           <a
-            href='https://tapinti.com'
+            href='https://applyladder.com'
             className='mb-6 flex items-center justify-center gap-3 lg:hidden'
           >
             <Logo className='size-9' />

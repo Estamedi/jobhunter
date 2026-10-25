@@ -35,7 +35,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const SITE_URL = "https://tapinti.com";
+const SITE_URL = "https://applyladder.com";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -53,10 +53,10 @@ export async function generateMetadata({
     metadataBase: new URL(SITE_URL),
     title: {
       default: t("title"),
-      template: `%s · Tapinti`,
+      template: `%s · ApplyLadder`,
     },
     description: t("description"),
-    applicationName: "Tapinti",
+    applicationName: "ApplyLadder",
     keywords: [
       "career CRM",
       "job application tracker",
@@ -76,7 +76,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       url: `${SITE_URL}/${locale}`,
-      siteName: "Tapinti",
+      siteName: "ApplyLadder",
       title: t("title"),
       description: t("description"),
       locale,

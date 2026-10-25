@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-const SITE_URL = "https://tapinti.com";
+const SITE_URL = "https://applyladder.com";
 
 export async function StructuredData({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: "meta" });
@@ -12,7 +12,7 @@ export async function StructuredData({ locale }: { locale: string }) {
     "@graph": [
       {
         "@type": "SoftwareApplication",
-        name: "Tapinti",
+        name: "ApplyLadder",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         description: t("description"),
@@ -39,7 +39,7 @@ export async function StructuredData({ locale }: { locale: string }) {
       },
       {
         "@type": "Organization",
-        name: "Tapinti",
+        name: "ApplyLadder",
         url: SITE_URL,
         slogan: "Organize Your Career. Land Your Next Job.",
       },

@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Tapinti — Organize Your Career. Land Your Next Job.",
-    "description": "Tapinti is the Personal Career CRM. Track every company, recruiter, application, resume version, interview and follow-up in one calm, connected place.",
-    "ogAlt": "Tapinti — the Personal Career CRM dashboard"
+    "title": "ApplyLadder — Organize Your Career. Land Your Next Job.",
+    "description": "ApplyLadder is the Personal Career CRM. Track every company, recruiter, application, resume version, interview and follow-up in one calm, connected place.",
+    "ogAlt": "ApplyLadder — the Personal Career CRM dashboard"
   },
   "common": {
     "startFree": "Start Free",
@@ -27,13 +27,13 @@
     "badge": "The Personal Career CRM",
     "titleLead": "Apply more.",
     "titleHighlight": "Get more chances.",
-    "subtitle": "You've applied to dozens of jobs across spreadsheets, tabs, inboxes and sticky notes. Tapinti brings every company, recruiter, application and interview into one calm place — so nothing slips, and every follow-up lands on time.",
+    "subtitle": "You've applied to dozens of jobs across spreadsheets, tabs, inboxes and sticky notes. ApplyLadder brings every company, recruiter, application and interview into one calm place — so nothing slips, and every follow-up lands on time.",
     "primaryCta": "Start Free",
     "secondaryCta": "Watch Demo",
     "noCard": "No credit card required",
     "freeForever": "Free plan forever",
     "mock": {
-      "appName": "Tapinti",
+      "appName": "ApplyLadder",
       "pipeline": "Pipeline",
       "companies": "Companies",
       "recruiters": "Recruiters",
@@ -78,7 +78,7 @@
       "pdfs": "PDFs"
     },
     "punchline": "They were never designed to work together.",
-    "punchlineSub": "Tapinti is."
+    "punchlineSub": "ApplyLadder is."
   },
   "connected": {
     "eyebrow": "One connected system",
@@ -130,7 +130,7 @@
       },
       "followups": {
         "title": "Follow-up Reminders",
-        "desc": "Never miss another follow-up. Tapinti nudges you the moment a thread goes quiet."
+        "desc": "Never miss another follow-up. ApplyLadder nudges you the moment a thread goes quiet."
       },
       "attachments": {
         "title": "Attachments",
@@ -151,7 +151,7 @@
     "title": "Stop tracking jobs. Start managing your career.",
     "subtitle": "It isn't about more features. It's about a better loop.",
     "oldWay": "The old way",
-    "newWay": "The Tapinti way",
+    "newWay": "The ApplyLadder way",
     "old": {
       "apply": "Apply",
       "forget": "Forget",
@@ -182,7 +182,7 @@
     "title": "It finally feels like someone gets it.",
     "items": {
       "t1": {
-        "quote": "I was juggling three spreadsheets and a Notion board. Tapinti replaced all of it in an afternoon. I actually know where I stand now.",
+        "quote": "I was juggling three spreadsheets and a Notion board. ApplyLadder replaced all of it in an afternoon. I actually know where I stand now.",
         "name": "Elena Fischer",
         "role": "Software Engineer"
       },
@@ -192,12 +192,12 @@
         "role": "Product Manager"
       },
       "t3": {
-        "quote": "As a designer I care how tools feel. Tapinti is the first job-search app that doesn't make the process more stressful.",
+        "quote": "As a designer I care how tools feel. ApplyLadder is the first job-search app that doesn't make the process more stressful.",
         "name": "Priya Nair",
         "role": "UX Designer"
       },
       "t4": {
-        "quote": "Fresh out of university with 90 applications out. Tapinti kept me from missing follow-ups that would've cost me interviews.",
+        "quote": "Fresh out of university with 90 applications out. ApplyLadder kept me from missing follow-ups that would've cost me interviews.",
         "name": "Tomás Rivera",
         "role": "Recent Graduate"
       }
@@ -205,7 +205,7 @@
   },
   "team": {
     "eyebrow": "Team",
-    "title": "The people behind Tapinti.",
+    "title": "The people behind ApplyLadder.",
     "members": {
       "saber": { "name": "Saber Motamedi" },
       "mobina": { "name": "Mobina Maleki" },
@@ -274,11 +274,11 @@
       },
       "resumes": {
         "q": "Can I upload and track multiple resumes?",
-        "a": "Absolutely. Store every resume version, tag it, and Tapinti records exactly which one you sent to each company."
+        "a": "Absolutely. Store every resume version, tag it, and ApplyLadder records exactly which one you sent to each company."
       },
       "linkedin": {
         "q": "Does it support LinkedIn?",
-        "a": "You can save roles and recruiters you find on LinkedIn into Tapinti in a couple of clicks, and keep the conversation history alongside them."
+        "a": "You can save roles and recruiters you find on LinkedIn into ApplyLadder in a couple of clicks, and keep the conversation history alongside them."
       },
       "privacy": {
         "q": "Is my data private?",
@@ -286,7 +286,7 @@
       },
       "devices": {
         "q": "Does it work on my phone?",
-        "a": "Tapinti is fully responsive and works beautifully on phone, tablet and desktop — your search stays in sync everywhere."
+        "a": "ApplyLadder is fully responsive and works beautifully on phone, tablet and desktop — your search stays in sync everywhere."
       }
     }
   },
