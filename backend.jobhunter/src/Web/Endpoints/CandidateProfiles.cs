@@ -37,7 +37,7 @@ public class CandidateProfiles : IEndpointGroup
 
         group.MapGet(GetProfile);
         group.MapPut(UpdateProfile, "about");
-        group.MapPut(UpdateContact, "contact");
+        group.MapPut(UpdateCandidateContact, "contact");
         group.MapPost(PreviewImport, "import-preview");
         group.MapPost(Import, "import");
         group.MapPost(AddExperience, "experiences");
@@ -75,7 +75,7 @@ public class CandidateProfiles : IEndpointGroup
 
     [EndpointSummary("Update the contact details shown on the CV")]
     [EndpointDescription("Updates the candidate's name, email, phone and location (the CV header).")]
-    public static async Task<NoContent> UpdateContact(
+    public static async Task<NoContent> UpdateCandidateContact(
         ISender sender, UpdateCandidateContactCommand command, CancellationToken ct = default)
     {
         await sender.Send(command, ct);
