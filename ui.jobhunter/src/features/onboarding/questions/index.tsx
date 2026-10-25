@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { authApi } from '@/features/auth/api'
 import { candidatesApi } from '@/features/candidates/api'
+import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -200,6 +202,7 @@ function QuestionBody({
 
 export function OnboardingQuestions() {
   const navigate = useNavigate()
+  const { auth } = useAuthStore()
   const { answers, setAnswer, reset } = useOnboardingAnswers()
   const [index, setIndex] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
@@ -229,12 +232,24 @@ export function OnboardingQuestions() {
         targetCountries: countries.join(', ') || undefined,
         preferredWorkType: answers.workModes.join(', ') || undefined,
       })
+      await authApi.updateOnboardingStatus('Completed')
+      auth.setOnboardingStatus('Completed')
       reset()
       navigate({ to: '/', replace: true })
     } catch {
       toast.error('Failed to save your preferences. Please try again.')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  async function skip() {
+    try {
+      await authApi.updateOnboardingStatus('Skipped')
+      auth.setOnboardingStatus('Skipped')
+      navigate({ to: '/', replace: true })
+    } catch {
+      toast.error('Failed to skip onboarding. Please try again.')
     }
   }
 
@@ -251,7 +266,7 @@ export function OnboardingQuestions() {
           <div className='flex items-center justify-between'>
             <button
               type='button'
-              onClick={() => (step === 0 ? navigate({ to: '/', replace: true }) : setIndex(step - 1))}
+              onClick={() => (step === 0 ? void skip() : setIndex(step - 1))}
               className='inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
             >
               <ArrowLeft className='size-4 rtl:rotate-180' />
