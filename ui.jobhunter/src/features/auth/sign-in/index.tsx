@@ -133,7 +133,7 @@ export function SignIn() {
             <div className='space-y-5 px-7 pb-7'>
               <UserAuthForm
                 redirectTo={redirect}
-                className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>button]:mx-auto [&>button]:mt-3 [&>button]:h-12 [&>button]:w-full [&>button]:max-w-xs [&>button]:rounded-2xl [&>button]:bg-primary [&>button]:text-base [&>button]:font-bold [&>button]:shadow-lg [&>button]:shadow-primary/20 [&>button:hover]:bg-primary/90'
+                className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>button:first-of-type]:mx-auto [&>button:first-of-type]:mt-3 [&>button:first-of-type]:h-12 [&>button:first-of-type]:w-full [&>button:first-of-type]:max-w-xs [&>button:first-of-type]:rounded-2xl [&>button:first-of-type]:bg-primary [&>button:first-of-type]:text-base [&>button:first-of-type]:font-bold [&>button:first-of-type]:shadow-lg [&>button:first-of-type]:shadow-primary/20 [&>button:first-of-type:hover]:bg-primary/90'
               />
 
               <div className='rounded-2xl bg-accent px-4 py-3 dark:bg-primary/20'>
