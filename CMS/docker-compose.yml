@@ -14,7 +14,7 @@ services:
     image: ${CMS_IMAGE:-ghcr.io/estamedi/cms.tapinti:latest}
     restart: unless-stopped
     ports:
-      - "${CMS_PORT:-8093}:1337"
+      - "${CMS_PORT:-8097}:1337"
     environment:
       - NODE_ENV=production
       - HOST=0.0.0.0
