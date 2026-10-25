@@ -42,7 +42,13 @@ public static class DependencyInjection
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
         builder.Services.AddAuthentication()
-            .AddBearerToken(IdentityConstants.BearerScheme);
+            .AddBearerToken(IdentityConstants.BearerScheme, options =>
+            {
+                // The UI keeps the access token in a 7-day cookie and has no refresh flow, so the
+                // token must live as long as the cookie or users are signed out after the default hour.
+                options.BearerTokenExpiration = TimeSpan.FromDays(7);
+                options.RefreshTokenExpiration = TimeSpan.FromDays(14);
+            });
 
         builder.Services.AddAuthorizationBuilder();
 
