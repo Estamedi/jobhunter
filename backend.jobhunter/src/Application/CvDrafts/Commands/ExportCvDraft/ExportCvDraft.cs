@@ -1,5 +1,6 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
+using System.Text.RegularExpressions;
 using backend.jobhunter.Domain.Entities;
 
 namespace backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
@@ -28,7 +29,7 @@ public class ExportCvDraftCommandHandler(
             new CvHeaderDto(candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation),
             CvDraftContent.Deserialize(draft.ContentJson));
 
-        var fileName = $"{SanitizeFileName(draft.Title)}.pdf";
+        var fileName = BuildFileName(candidate.FullName, string.IsNullOrWhiteSpace(draft.JobTitle) ? draft.Title : draft.JobTitle);
         await using var stream = new MemoryStream(pdf);
         var storageKey = await fileStorage.SaveAsync(stream, fileName, cancellationToken);
 
@@ -67,10 +68,12 @@ public class ExportCvDraftCommandHandler(
         return new ExportCvDraftResult(cv.Id, attachedTo, existingKept);
     }
 
-    private static string SanitizeFileName(string title)
+    // Standard CV file name: First-Last-Role-CV.pdf (hyphen separated, no spaces or special characters).
+    private static string BuildFileName(string fullName, string jobTitle)
     {
-        var invalid = Path.GetInvalidFileNameChars();
-        var cleaned = new string(title.Where(c => !invalid.Contains(c)).ToArray()).Trim();
-        return cleaned.Length == 0 ? "CV" : cleaned;
+        var words = Regex.Split($"{fullName} {jobTitle}", @"[^\p{L}\p{N}]+")
+            .Where(w => w.Length > 0)
+            .Select(w => w.Length > 1 && w.Any(char.IsUpper) ? w : char.ToUpperInvariant(w[0]) + w[1..]);
+        return $"{string.Join('-', words)}-CV.pdf";
     }
 }
