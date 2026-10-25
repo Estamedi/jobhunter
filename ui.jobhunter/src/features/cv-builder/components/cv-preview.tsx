@@ -82,7 +82,7 @@ export function CvPreview({
   ].filter((c) => c.value)
 
   return (
-    <article className='mx-auto w-full max-w-[816px] bg-white px-12 py-10 text-[12px] leading-[1.35] text-[#202124] shadow-sm'>
+    <article className='mx-auto w-full max-w-[794px] bg-white px-12 py-10 text-[12px] leading-[1.35] text-[#202124] shadow-sm'>
       <header className='group relative text-center'>
         <div className='text-[22px]' style={{ color: NAME }}>
           {header.fullName}

@@ -155,7 +155,7 @@ export function Onboarding() {
       })
       await authApi.updateOnboardingStatus('Completed')
       auth.setOnboardingStatus('Completed')
-      navigate({ to: '/', replace: true })
+      navigate({ to: '/onboarding/questions', replace: true })
     } catch {
       toast.error('Failed to save your profile. Please try again.')
     } finally {

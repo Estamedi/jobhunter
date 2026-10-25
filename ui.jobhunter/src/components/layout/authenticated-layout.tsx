@@ -18,7 +18,8 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
   if (
     location.pathname === '/onboarding' ||
-    location.pathname === '/onboarding/'
+    location.pathname === '/onboarding/' ||
+    location.pathname.startsWith('/onboarding/questions')
   ) {
     return (
       <SearchProvider>

@@ -16,18 +16,21 @@ const HEADLINE_MAX = 220
 const SUMMARY_MAX = 2600
 
 function AboutForm({
+  fullName,
   headline,
   summary,
   isSaving,
   onSave,
   onClose,
 }: {
+  fullName: string
   headline: string
   summary: string
   isSaving: boolean
-  onSave: (headline: string, summary: string) => void
+  onSave: (fullName: string, headline: string, summary: string) => void
   onClose: () => void
 }) {
+  const [n, setN] = useState(fullName)
   const [h, setH] = useState(headline)
   const [s, setS] = useState(summary)
 
@@ -38,9 +41,19 @@ function AboutForm({
         className='space-y-4'
         onSubmit={(e) => {
           e.preventDefault()
-          onSave(h, s)
+          onSave(n.trim(), h, s)
         }}
       >
+        <div className='space-y-1'>
+          <Label htmlFor='about-name'>Full name*</Label>
+          <Input
+            id='about-name'
+            required
+            maxLength={200}
+            value={n}
+            onChange={(e) => setN(e.target.value)}
+          />
+        </div>
         <div className='space-y-1'>
           <Label htmlFor='about-headline'>Profile headline</Label>
           <Input
@@ -72,7 +85,7 @@ function AboutForm({
         <Button variant='outline' onClick={onClose}>
           Cancel
         </Button>
-        <Button type='submit' form='about-form' disabled={isSaving}>
+        <Button type='submit' form='about-form' disabled={isSaving || !n.trim()}>
           Save
         </Button>
       </DialogFooter>
@@ -91,7 +104,12 @@ export function AboutCard({
   headline?: string | null
   summary?: string | null
   isSaving: boolean
-  onSave: (headline: string, summary: string, done: () => void) => void
+  onSave: (
+    fullName: string,
+    headline: string,
+    summary: string,
+    done: () => void
+  ) => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -122,10 +140,11 @@ export function AboutCard({
           </DialogHeader>
           {open && (
             <AboutForm
+              fullName={fullName}
               headline={headline ?? ''}
               summary={summary ?? ''}
               isSaving={isSaving}
-              onSave={(h, s) => onSave(h, s, () => setOpen(false))}
+              onSave={(n, h, s) => onSave(n, h, s, () => setOpen(false))}
               onClose={() => setOpen(false)}
             />
           )}
