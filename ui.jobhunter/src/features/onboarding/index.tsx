@@ -20,7 +20,6 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { authApi } from '@/features/auth/api'
 import { candidatesApi } from '@/features/candidates/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
@@ -96,7 +95,7 @@ export function Onboarding() {
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSkipping, setIsSkipping] = useState(false)
+  const isSkipping = false
 
   function handleFile(file?: File) {
     if (!file) return
@@ -153,8 +152,6 @@ export function Onboarding() {
         targetRoles: jobTitle || undefined,
         notes: [summary, skills].filter(Boolean).join('\n\n') || undefined,
       })
-      await authApi.updateOnboardingStatus('Completed')
-      auth.setOnboardingStatus('Completed')
       navigate({ to: '/onboarding/questions', replace: true })
     } catch {
       toast.error('Failed to save your profile. Please try again.')
@@ -163,16 +160,9 @@ export function Onboarding() {
     }
   }
 
-  async function skipOnboarding() {
-    setIsSkipping(true)
-    try {
-      await authApi.updateOnboardingStatus('Skipped')
-      auth.setOnboardingStatus('Skipped')
-      navigate({ to: '/', replace: true })
-    } catch {
-      toast.error('Failed to skip onboarding. Please try again.')
-      setIsSkipping(false)
-    }
+  // Skipping the CV step still continues to the questions; onboarding completes after those.
+  function skipOnboarding() {
+    navigate({ to: '/onboarding/questions', replace: true })
   }
 
   if (view === 'review' && selectedFile) {

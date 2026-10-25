@@ -38,8 +38,7 @@ export const Route = createFileRoute('/_authenticated')({
       user.role.includes('JobSeeker') &&
       user.onboardingStatus === 'Pending'
 
-    const onOnboardingRoute =
-      location.pathname === '/onboarding' || location.pathname === '/onboarding/'
+    const onOnboardingRoute = location.pathname.startsWith('/onboarding')
 
     if (needsOnboarding && !onOnboardingRoute) {
       throw redirect({ to: '/onboarding', replace: true })
