@@ -13,11 +13,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Search, Trash2, Pencil, ExternalLink } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { FormSelect } from '@/components/form-select'
 
 const PRIORITIES = ['Low', 'Medium', 'High']
 
 function CompanyForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateCompanyDto>; onSubmit: (d: CreateCompanyDto) => void; isLoading: boolean }) {
-  const { register, handleSubmit } = useForm<CreateCompanyDto>({ defaultValues })
+  const { register, handleSubmit, control } = useForm<CreateCompanyDto>({ defaultValues })
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='company-form'>
       <div className='grid grid-cols-2 gap-3'>
@@ -51,9 +52,7 @@ function CompanyForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Crea
         </div>
         <div className='space-y-1'>
           <Label>Priority</Label>
-          <select {...register('priority')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <FormSelect control={control} name='priority' options={PRIORITIES} />
         </div>
       </div>
       <div className='space-y-1'>

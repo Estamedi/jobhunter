@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Search, Trash2, Pencil, Eye } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { FormSelect } from '@/components/form-select'
 
 const WARMTH_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
   Hot: 'destructive',
@@ -22,7 +23,7 @@ const WARMTH_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
 }
 
 function ContactForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateContactDto>; onSubmit: (d: CreateContactDto) => void }) {
-  const { register, handleSubmit } = useForm<CreateContactDto>({ defaultValues })
+  const { register, handleSubmit, control } = useForm<CreateContactDto>({ defaultValues })
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='contact-form'>
       <div className='grid grid-cols-2 gap-3'>
@@ -48,17 +49,11 @@ function ContactForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Crea
         </div>
         <div className='space-y-1'>
           <Label>Type</Label>
-          <select {...register('type')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {['Recruiter', 'HiringManager', 'Referral', 'NetworkConnection', 'Other'].map((t) => (
-              <option key={t} value={t}>{t.replace(/([A-Z])/g, ' $1').trim()}</option>
-            ))}
-          </select>
+          <FormSelect control={control} name='type' options={['Recruiter', 'HiringManager', 'Referral', 'NetworkConnection', 'Other'].map((t) => ({ value: t, label: t.replace(/([A-Z])/g, ' $1').trim() }))} />
         </div>
         <div className='space-y-1'>
           <Label>Warmth</Label>
-          <select {...register('warmth')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {['Cold', 'Warm', 'Hot'].map((w) => <option key={w} value={w}>{w}</option>)}
-          </select>
+          <FormSelect control={control} name='warmth' options={['Cold', 'Warm', 'Hot']} />
         </div>
       </div>
       <div className='space-y-1'>

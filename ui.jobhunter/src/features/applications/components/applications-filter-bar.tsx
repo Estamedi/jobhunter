@@ -8,10 +8,14 @@ import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/date-picker'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { MultiSelectFilter } from '@/components/filters/multi-select-filter'
 import { EMPLOYMENT_TYPES, FOLLOW_UP_STATUSES, PRIORITIES, WORK_TYPES } from '../data/constants'
 import { hasActiveFilters, type ApplicationFilters } from '../data/filters'
+
+// Radix Select disallows empty-string item values, so "no filter" uses a sentinel.
+const ALL = '__all__'
 
 type DebouncedInputProps = {
   value: string
@@ -185,16 +189,20 @@ export function ApplicationsFilterBar({
         />
       </div>
 
-      <select
-        value={filters.status ?? ''}
-        onChange={(e) => onChange({ status: e.target.value || undefined })}
-        className='flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm'
+      <Select
+        value={filters.status ?? ALL}
+        onValueChange={(v) => onChange({ status: v === ALL ? undefined : v })}
       >
-        <option value=''>All statuses</option>
-        {statusOptions.map((s) => (
-          <option key={s.status} value={s.status}>{s.label}</option>
-        ))}
-      </select>
+        <SelectTrigger className='h-9 w-auto min-w-[140px]'>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>All statuses</SelectItem>
+          {statusOptions.map((s) => (
+            <SelectItem key={s.status} value={s.status}>{s.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <MultiSelectFilter
         title='Priority'
@@ -254,16 +262,20 @@ export function ApplicationsFilterBar({
         onChange={({ from, to }) => onChange({ followUpFrom: from, followUpTo: to })}
       />
 
-      <select
-        value={filters.followUpStatus ?? ''}
-        onChange={(e) => onChange({ followUpStatus: e.target.value || undefined })}
-        className='flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm'
+      <Select
+        value={filters.followUpStatus ?? ALL}
+        onValueChange={(v) => onChange({ followUpStatus: v === ALL ? undefined : v })}
       >
-        <option value=''>Any follow-up status</option>
-        {FOLLOW_UP_STATUSES.map((s) => (
-          <option key={s.value} value={s.value}>{s.label}</option>
-        ))}
-      </select>
+        <SelectTrigger className='h-9 w-auto min-w-[170px]'>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>Any follow-up status</SelectItem>
+          {FOLLOW_UP_STATUSES.map((s) => (
+            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {hasActiveFilters(filters) && (
         <Button

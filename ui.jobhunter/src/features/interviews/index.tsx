@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
+import { FormSelect } from '@/components/form-select'
 
 const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
   Scheduled: 'default',
@@ -27,7 +28,7 @@ const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
 const ROUNDS = ['HR', 'Technical', 'System Design', 'Manager', 'Director', 'CEO', 'Panel', 'Final', 'Other']
 
 function InterviewForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateInterviewDto>; onSubmit: (d: CreateInterviewDto) => void }) {
-  const { register, handleSubmit } = useForm<CreateInterviewDto>({ defaultValues })
+  const { register, handleSubmit, control } = useForm<CreateInterviewDto>({ defaultValues })
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='interview-form'>
       <div className='grid grid-cols-2 gap-3'>
@@ -45,9 +46,7 @@ function InterviewForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Cr
         </div>
         <div className='space-y-1'>
           <Label>Round</Label>
-          <select {...register('round')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {ROUNDS.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <FormSelect control={control} name='round' options={ROUNDS} />
         </div>
         <div className='space-y-1'>
           <Label>Interview Date *</Label>
@@ -71,9 +70,7 @@ function InterviewForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Cr
         </div>
         <div className='space-y-1'>
           <Label>Status</Label>
-          <select {...register('status')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {Object.keys(STATUS_COLORS).map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <FormSelect control={control} name='status' options={Object.keys(STATUS_COLORS)} />
         </div>
       </div>
       <div className='space-y-1'>

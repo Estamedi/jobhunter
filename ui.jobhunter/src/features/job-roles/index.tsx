@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Search, Trash2, Pencil, ExternalLink, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { FormSelect } from '@/components/form-select'
 
 const PAGE_SIZE = 20
 
@@ -27,7 +28,7 @@ const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
 }
 
 function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<JobRole>; onSubmit: (d: CreateJobRoleDto) => void }) {
-  const { register, handleSubmit } = useForm<CreateJobRoleDto>({ defaultValues })
+  const { register, handleSubmit, control } = useForm<CreateJobRoleDto>({ defaultValues })
   const [jobTitle, setJobTitle] = useState<EntityOption | null>(
     defaultValues?.jobTitleId ? { value: defaultValues.jobTitleId, label: defaultValues.jobTitleName ?? `#${defaultValues.jobTitleId}` } : null
   )
@@ -68,17 +69,11 @@ function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<JobR
         </div>
         <div className='space-y-1'>
           <Label>Source</Label>
-          <select {...register('source')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {['LinkedIn', 'Referral', 'CompanyWebsite', 'Recruiter', 'JobBoard', 'Other'].map((s) => (
-              <option key={s} value={s}>{s.replace(/([A-Z])/g, ' $1').trim()}</option>
-            ))}
-          </select>
+          <FormSelect control={control} name='source' options={['LinkedIn', 'Referral', 'CompanyWebsite', 'Recruiter', 'JobBoard', 'Other'].map((s) => ({ value: s, label: s.replace(/([A-Z])/g, ' $1').trim() }))} />
         </div>
         <div className='space-y-1'>
           <Label>Work Type</Label>
-          <select {...register('workType')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {['Remote', 'OnSite', 'Hybrid'].map((w) => <option key={w} value={w}>{w}</option>)}
-          </select>
+          <FormSelect control={control} name='workType' options={['Remote', 'OnSite', 'Hybrid']} />
         </div>
         <div className='space-y-1'>
           <Label>Country</Label>
@@ -102,9 +97,7 @@ function JobRoleForm({ defaultValues, onSubmit }: { defaultValues?: Partial<JobR
         </div>
         <div className='space-y-1'>
           <Label>Status</Label>
-          <select {...register('roleStatus')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {['Open', 'Closed', 'Paused'].map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <FormSelect control={control} name='roleStatus' options={['Open', 'Closed', 'Paused']} />
         </div>
       </div>
       <div className='space-y-1'>

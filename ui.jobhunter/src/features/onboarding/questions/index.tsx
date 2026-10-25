@@ -29,6 +29,7 @@ import {
   type Question,
 } from './data/questions'
 import { useOnboardingAnswers } from './store'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const roleSuggestions = [
   'Software Engineer',
@@ -145,18 +146,16 @@ function QuestionBody({
             <span className='text-2xl font-bold tracking-tight'>
               {formatSalary(answers.minSalary, answers.salaryCurrency)}
             </span>
-            <select
-              aria-label='Currency'
-              value={answers.salaryCurrency}
-              onChange={(e) => set('salaryCurrency', e.target.value)}
-              className='h-9 rounded-md border border-input bg-transparent px-2 text-sm'
-            >
-              {currencies.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <Select value={answers.salaryCurrency} onValueChange={(v) => set('salaryCurrency', v)}>
+              <SelectTrigger aria-label='Currency' className='h-9 w-auto'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <input
             type='range'

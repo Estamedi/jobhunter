@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, RotateCcw, Trash2 } from 'lucide
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { applicationsApi } from '../api'
 import { BADGE_VARIANTS, type BadgeVariant, type BoardStage } from '../hooks/use-board-stages'
@@ -148,15 +149,16 @@ export function CustomizeStagesDialog({
                   <span className='text-muted-foreground'>
                     Move {countByStatus[stage.status] ?? 0} application(s) to
                   </span>
-                  <select
-                    value={reassignTo}
-                    onChange={(e) => setReassignTo(e.target.value)}
-                    className='flex h-8 rounded-md border border-input bg-transparent px-2 text-sm'
-                  >
-                    {stages.filter((s) => s.status !== stage.status).map((s) => (
-                      <option key={s.status} value={s.status}>{s.label}</option>
-                    ))}
-                  </select>
+                  <Select value={reassignTo} onValueChange={setReassignTo}>
+                    <SelectTrigger className='h-8 w-auto min-w-[120px]'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.filter((s) => s.status !== stage.status).map((s) => (
+                        <SelectItem key={s.status} value={s.status}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button size='sm' onClick={handleConfirmReassign} disabled={reassignAndRemove.isPending}>
                     Move & delete
                   </Button>

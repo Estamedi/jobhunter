@@ -40,8 +40,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { toast } from 'sonner'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const PAGE_SIZE = 10
+
+// Radix Select disallows empty-string item values.
+const NONE = '__none__'
 
 function NoteForm({
   applications,
@@ -82,16 +86,20 @@ function NoteForm({
       </div>
       <div className='space-y-1'>
         <Label>Link to Application</Label>
-        <select
-          value={applicationId}
-          onChange={(e) => setApplicationId(e.target.value)}
-          className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'
+        <Select
+          value={applicationId || NONE}
+          onValueChange={(v) => setApplicationId(v === NONE ? '' : v)}
         >
-          <option value=''>None</option>
-          {applications.map((a) => (
-            <option key={a.id} value={a.id}>{a.label}</option>
-          ))}
-        </select>
+          <SelectTrigger className='w-full'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NONE}>None</SelectItem>
+            {applications.map((a) => (
+              <SelectItem key={a.id} value={String(a.id)}>{a.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </form>
   )

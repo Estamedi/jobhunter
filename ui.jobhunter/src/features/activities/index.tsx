@@ -14,11 +14,12 @@ import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
+import { FormSelect } from '@/components/form-select'
 
 const TYPES = ['Note', 'Email', 'Call', 'Meeting', 'NetworkingEvent', 'Referral', 'ApplicationSubmitted', 'FollowUp', 'Other']
 
 function ActivityForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateActivityDto>; onSubmit: (d: CreateActivityDto) => void }) {
-  const { register, handleSubmit } = useForm<CreateActivityDto>({ defaultValues })
+  const { register, handleSubmit, control } = useForm<CreateActivityDto>({ defaultValues })
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='activity-form'>
       <div className='grid grid-cols-2 gap-3'>
@@ -28,9 +29,7 @@ function ActivityForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Cre
         </div>
         <div className='space-y-1'>
           <Label>Type</Label>
-          <select {...register('type')} className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm'>
-            {TYPES.map((t) => <option key={t} value={t}>{t.replace(/([A-Z])/g, ' $1').trim()}</option>)}
-          </select>
+          <FormSelect control={control} name='type' options={TYPES.map((t) => ({ value: t, label: t.replace(/([A-Z])/g, ' $1').trim() }))} />
         </div>
         <div className='space-y-1'>
           <Label>Application ID</Label>
