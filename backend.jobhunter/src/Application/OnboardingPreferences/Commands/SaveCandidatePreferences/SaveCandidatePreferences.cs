@@ -13,6 +13,7 @@ public record SaveCandidatePreferencesCommand : IRequest
     public string? WorkStatus { get; init; }
     public string? SearchIntensity { get; init; }
     public string? PrimaryGoal { get; init; }
+    public string[]? TargetRoles { get; init; }
     public int? MinSalary { get; init; }
     public string? SalaryCurrency { get; init; }
     public string[]? EmploymentTypes { get; init; }
@@ -60,6 +61,7 @@ public class SaveCandidatePreferencesCommandHandler(IApplicationDbContext contex
         p.WorkStatus = request.WorkStatus;
         p.SearchIntensity = request.SearchIntensity;
         p.PrimaryGoal = request.PrimaryGoal;
+        p.TargetRoles = CandidatePreferencesMapping.Join(request.TargetRoles);
         p.MinSalary = request.MinSalary;
         p.SalaryCurrency = request.SalaryCurrency?.ToUpperInvariant();
         p.EmploymentTypes = CandidatePreferencesMapping.Join(request.EmploymentTypes);

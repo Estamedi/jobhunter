@@ -6,6 +6,7 @@ export interface CandidatePreferences {
   workStatus?: string
   searchIntensity?: string
   primaryGoal?: string
+  targetRoles: string[]
   minSalary?: number
   salaryCurrency?: string
   employmentTypes: string[]
@@ -29,6 +30,7 @@ export const preferencesApi = {
       workStatus: answers.workStatus,
       searchIntensity: answers.searchIntensity,
       primaryGoal: answers.primaryGoal,
+      targetRoles: answers.targetRoles,
       minSalary: answers.minSalary,
       salaryCurrency: answers.salaryCurrency,
       employmentTypes: answers.employmentTypes,

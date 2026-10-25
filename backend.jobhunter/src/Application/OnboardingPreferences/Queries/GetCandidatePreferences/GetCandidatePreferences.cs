@@ -10,6 +10,7 @@ public record CandidatePreferencesDto(
     string? WorkStatus,
     string? SearchIntensity,
     string? PrimaryGoal,
+    string[] TargetRoles,
     int? MinSalary,
     string? SalaryCurrency,
     string[] EmploymentTypes,
@@ -40,7 +41,7 @@ public class GetCandidatePreferencesQueryHandler(IApplicationDbContext context)
         }
 
         // Nothing answered yet: an empty set is returned and created on the first save.
-        return new CandidatePreferencesDto(request.CandidateId, null, null, null, null, null, [], [], null, [], [], null, []);
+        return new CandidatePreferencesDto(request.CandidateId, null, null, null, [], null, null, [], [], null, [], [], null, []);
     }
 }
 
@@ -58,7 +59,7 @@ public static class CandidatePreferencesMapping
     }
 
     public static CandidatePreferencesDto ToDto(this CandidatePreferences p) => new(
-        p.CandidateId, p.WorkStatus, p.SearchIntensity, p.PrimaryGoal, p.MinSalary, p.SalaryCurrency,
+        p.CandidateId, p.WorkStatus, p.SearchIntensity, p.PrimaryGoal, Split(p.TargetRoles), p.MinSalary, p.SalaryCurrency,
         Split(p.EmploymentTypes), Split(p.WorkModes), p.WillingToRelocate, Split(p.RemoteRegions),
         Split(p.CommuteCities), p.WorkAuthorization, Split(p.Industries));
 }

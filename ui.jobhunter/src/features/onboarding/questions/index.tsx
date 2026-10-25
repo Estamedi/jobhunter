@@ -221,19 +221,33 @@ export function OnboardingQuestions() {
     setIsSaving(true)
     try {
       const { items } = await candidatesApi.mine()
-      const candidateId = items[0].id
+      const me = items[0]
+      const candidateId = me.id
       const countries = [
         ...labelOf(remoteRegionOptions, answers.remoteRegions),
         ...answers.commuteCities,
       ]
       await preferencesApi.save(candidateId, answers)
-      await candidatesApi.update(candidateId, {
-        targetRoles: answers.targetRoles.join(', ') || undefined,
-        targetCountries: countries.join(', ') || undefined,
-        preferredWorkType: answers.workModes.join(', ') || undefined,
-      })
       await authApi.updateOnboardingStatus('Completed')
       auth.setOnboardingStatus('Completed')
+
+      // Keep the candidate's summary fields in sync. The answers are already saved above, so a
+      // failure here must not block finishing. The update endpoint replaces every field and
+      // requires name and email, so the existing values are resent.
+      try {
+        await candidatesApi.update(candidateId, {
+          fullName: me.fullName,
+          email: me.email,
+          phone: me.phone,
+          currentLocation: me.currentLocation,
+          notes: me.notes,
+          targetRoles: answers.targetRoles.join(', ') || undefined,
+          targetCountries: countries.join(', ') || undefined,
+          preferredWorkType: answers.workModes.join(', ') || undefined,
+        })
+      } catch {
+        toast.warning('Your answers are saved, but your profile summary could not be updated.')
+      }
       reset()
       navigate({ to: '/', replace: true })
     } catch {

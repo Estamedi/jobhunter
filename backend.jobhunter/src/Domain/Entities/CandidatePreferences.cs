@@ -7,6 +7,7 @@ public class CandidatePreferences : OwnedEntity
     public int CandidateId { get; set; }
     public string? WorkStatus { get; set; }
     public string? SearchIntensity { get; set; }
+    public string? TargetRoles { get; set; }
     public string? PrimaryGoal { get; set; }
     public int? MinSalary { get; set; }
     public string? SalaryCurrency { get; set; }

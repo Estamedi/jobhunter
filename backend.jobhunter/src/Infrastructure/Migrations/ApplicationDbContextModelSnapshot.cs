@@ -279,6 +279,10 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("TargetRoles")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<bool?>("WillingToRelocate")
                         .HasColumnType("boolean");
 

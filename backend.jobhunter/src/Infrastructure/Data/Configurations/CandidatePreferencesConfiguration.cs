@@ -11,6 +11,7 @@ public class CandidatePreferencesConfiguration : IEntityTypeConfiguration<Candid
         builder.Property(p => p.WorkStatus).HasMaxLength(50);
         builder.Property(p => p.SearchIntensity).HasMaxLength(50);
         builder.Property(p => p.PrimaryGoal).HasMaxLength(50);
+        builder.Property(p => p.TargetRoles).HasMaxLength(1000);
         builder.Property(p => p.SalaryCurrency).HasMaxLength(3);
         builder.Property(p => p.EmploymentTypes).HasMaxLength(200);
         builder.Property(p => p.WorkModes).HasMaxLength(200);
