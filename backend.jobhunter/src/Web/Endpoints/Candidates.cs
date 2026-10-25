@@ -4,6 +4,7 @@ using backend.jobhunter.Application.Candidates.Commands.DeleteCandidate;
 using backend.jobhunter.Application.Candidates.Commands.UpdateCandidate;
 using backend.jobhunter.Application.Candidates.Queries.GetCandidate;
 using backend.jobhunter.Application.Candidates.Queries.GetCandidates;
+using backend.jobhunter.Application.Candidates.Queries.GetMyCandidate;
 using backend.jobhunter.Application.Dashboard.Queries.GetCandidateDashboard;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -15,6 +16,7 @@ public class Candidates : IEndpointGroup
     {
         group.RequireAuthorization();
         group.MapGet(GetCandidates);
+        group.MapGet(GetMyCandidate, "me");
         group.MapGet(GetCandidate, "{id}");
         group.MapGet(GetCandidateDashboard, "{id}/dashboard");
         group.MapPost(CreateCandidate);
@@ -28,6 +30,10 @@ public class Candidates : IEndpointGroup
         ISender sender, string? search, bool? isActive, int page = 1, int pageSize = 50,
         CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(new GetCandidatesQuery(search, isActive, page, pageSize), ct));
+
+    [EndpointSummary("Get my candidate")]
+    public static async Task<Ok<CandidateDetailDto>> GetMyCandidate(ISender sender, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new GetMyCandidateQuery(), ct));
 
     [EndpointSummary("Get candidate by ID")]
     public static async Task<Ok<CandidateDetailDto>> GetCandidate(ISender sender, int id, CancellationToken ct = default)

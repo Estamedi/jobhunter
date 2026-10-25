@@ -21,6 +21,7 @@ public class IdentityService : IIdentityService
     private readonly IAuthorizationService _authorizationService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
+    private readonly IApplicationDbContext _dbContext;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
@@ -28,7 +29,8 @@ public class IdentityService : IIdentityService
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
         IAuthorizationService authorizationService,
         IHttpClientFactory httpClientFactory,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -36,6 +38,7 @@ public class IdentityService : IIdentityService
         _authorizationService = authorizationService;
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
+        _dbContext = dbContext;
     }
 
     public async Task<string?> GetUserNameAsync(string userId)
@@ -180,7 +183,7 @@ public class IdentityService : IIdentityService
 
         if (tokenInfo is not null && tokenInfo.Audience == googleClientId && tokenInfo.EmailVerified == "true")
         {
-            googleUser = new GoogleUserInfo(tokenInfo.Subject, tokenInfo.Email, true);
+            googleUser = new GoogleUserInfo(tokenInfo.Subject, tokenInfo.Email, true, tokenInfo.Name);
         }
 
         if (googleUser is null)
@@ -225,6 +228,8 @@ public class IdentityService : IIdentityService
                 {
                     throw ToValidationException(createResult);
                 }
+
+                await UseGoogleNameForCandidateAsync(user, googleUser.Name);
             }
 
             var loginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", googleUser.Subject, "Google"));
@@ -239,6 +244,26 @@ public class IdentityService : IIdentityService
         await _signInManager.SignInAsync(user, isPersistent: false);
     }
 
+    private async Task UseGoogleNameForCandidateAsync(ApplicationUser user, string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || !Guid.TryParse(user.Id, out var ownerId))
+        {
+            return;
+        }
+
+        var candidate = await _dbContext.Candidates
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(c => c.OwnerId == ownerId);
+
+        if (candidate is null)
+        {
+            return;
+        }
+
+        candidate.FullName = name.Trim();
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+    }
+
     public Task LogoutAsync() => _signInManager.SignOutAsync();
 
     private static ValidationException ToValidationException(IdentityResult result)
@@ -250,10 +275,12 @@ public class IdentityService : IIdentityService
         [property: JsonPropertyName("sub")] string Subject,
         [property: JsonPropertyName("aud")] string Audience,
         [property: JsonPropertyName("email")] string Email,
-        [property: JsonPropertyName("email_verified")] string EmailVerified);
+        [property: JsonPropertyName("email_verified")] string EmailVerified,
+        [property: JsonPropertyName("name")] string? Name = null);
 
     private sealed record GoogleUserInfo(
         [property: JsonPropertyName("sub")] string Subject,
         [property: JsonPropertyName("email")] string Email,
-        [property: JsonPropertyName("email_verified")] bool EmailVerified);
+        [property: JsonPropertyName("email_verified")] bool EmailVerified,
+        [property: JsonPropertyName("name")] string? Name = null);
 }

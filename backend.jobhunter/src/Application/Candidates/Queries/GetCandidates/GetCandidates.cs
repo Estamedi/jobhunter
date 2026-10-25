@@ -48,7 +48,7 @@ public class GetCandidatesQueryHandler(IApplicationDbContext context)
         var total = await query.CountAsync(cancellationToken);
 
         var items = await query
-            .OrderBy(c => c.FullName)
+            .OrderBy(c => c.Id)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(c => new CandidateDto(

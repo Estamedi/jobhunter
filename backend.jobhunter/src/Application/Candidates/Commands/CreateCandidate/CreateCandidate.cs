@@ -1,10 +1,11 @@
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
+using backend.jobhunter.Domain.Constants;
 using backend.jobhunter.Domain.Entities;
 
 namespace backend.jobhunter.Application.Candidates.Commands.CreateCandidate;
 
-[Authorize]
+[Authorize(Roles = $"{Roles.Administrator},{Roles.Recruiter}")]
 public record CreateCandidateCommand : IRequest<int>
 {
     public required string FullName { get; init; }

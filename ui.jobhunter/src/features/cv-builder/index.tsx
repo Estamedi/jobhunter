@@ -223,7 +223,7 @@ export function CvBuilder({
 
   const { data: candidatesResult, isLoading: candidateLoading } = useQuery({
     queryKey: ['candidates', 'me'],
-    queryFn: () => candidatesApi.list({ pageSize: 1 }),
+    queryFn: () => candidatesApi.mine(),
   })
   const candidate = candidatesResult?.items[0]
 

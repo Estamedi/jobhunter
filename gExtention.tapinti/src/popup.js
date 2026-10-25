@@ -122,16 +122,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   $("#btn-settings").addEventListener("click", () => {
     $("#set-api-base").value = settings.apiBaseUrl;
-    $("#set-google-client-id").value = settings.googleClientId || "";
     $("#set-restrict-job-sites").checked = settings.restrictToJobSites;
-    $("#redirect-uri-hint").textContent = chrome.identity.getRedirectURL();
     show("settings");
   });
 
   $("#btn-save-settings").addEventListener("click", async () => {
     await saveSettings({
       apiBaseUrl: ($("#set-api-base").value.trim() || DEFAULT_API_BASE).replace(/\/+$/, ""),
-      googleClientId: $("#set-google-client-id").value.trim() || null,
       restrictToJobSites: $("#set-restrict-job-sites").checked,
     });
     settings.accessToken ? startMainFlow() : show("login");

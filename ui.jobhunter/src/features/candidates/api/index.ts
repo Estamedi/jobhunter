@@ -41,6 +41,12 @@ export const candidatesApi = {
   list: (filters: CandidateFilters = {}) =>
     http.get<GetCandidatesResult>('/api/candidates', { params: filters }).then((r) => r.data),
 
+  // The signed-in user's own candidate, resolved by the backend (shaped like a list result).
+  mine: () =>
+    http
+      .get<Candidate>('/api/candidates/me')
+      .then((r): GetCandidatesResult => ({ items: [r.data], total: 1 })),
+
   get: (id: number) =>
     http.get<Candidate>(`/api/candidates/${id}`).then((r) => r.data),
 

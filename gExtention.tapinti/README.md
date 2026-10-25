@@ -26,7 +26,6 @@ Auth uses the portal's Identity bearer tokens (`POST /api/Users/login`), with au
 2. Click the ⚙ icon:
    - **Portal API base URL** — defaults to `https://api.tapinti.com`; use `http://localhost:5290` (docker) or `http://localhost:5124` (dotnet run) for local dev.
    - **Only read known job sites** — on by default; restricts page reading to known job boards/ATS platforms (or pages with `JobPosting` structured data). Turn off to allow any page.
-   - **Google client ID** — needed for "Continue with Google" (see below).
 
    AI provider API keys are configured server-side (`backend.jobhunter/src/Web/appsettings.json` → `AiExtraction`, or user-secrets) — never in the extension.
 
@@ -34,14 +33,14 @@ Auth uses the portal's Identity bearer tokens (`POST /api/Users/login`), with au
 
 Google Identity Services' popup-based token flow doesn't work reliably inside an MV3 extension popup (the popup loses focus — and closes — as soon as the Google auth window opens). The extension instead uses `chrome.identity.launchWebAuthFlow`, which Chrome drives itself, so it survives that.
 
-1. Open the ⚙ settings view once so it can show you this extension's redirect URI (next to the "Google client ID" field) — it looks like `https://<extension-id>.chromiumapp.org/`.
-2. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), open the OAuth 2.0 **Web application** client the portal already uses (the same one behind `VITE_GOOGLE_CLIENT_ID` in `ui.jobhunter/.env`), and add that redirect URI to its **Authorized redirect URIs**. You can reuse the same client — no new one needed.
-3. Paste that client ID into the extension's **Google client ID** setting and save.
-4. Sign out (if signed in) and click **Continue with Google** on the login screen.
+The Google client ID is built into the extension (`GOOGLE_CLIENT_ID` in `src/settings.js`); users don't enter anything. One-time setup for the developer:
+
+1. Find the extension's redirect URI: `chrome.identity.getRedirectURL()` — it looks like `https://<extension-id>.chromiumapp.org/`. For the published extension, the ID is the fixed Chrome Web Store ID.
+2. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), open the OAuth 2.0 **Web application** client behind `GOOGLE_CLIENT_ID` (the same one as `VITE_GOOGLE_CLIENT_ID` in `ui.jobhunter/.env`) and add that redirect URI to its **Authorized redirect URIs**.
 
 The extension requests an OAuth access token with scope `openid email profile` and posts it to the portal's `POST /api/Users/google-login` (same endpoint the web app uses), which returns the same bearer/refresh token pair as a normal login.
 
-Note: an unpacked extension's ID (and therefore its redirect URI) changes if you re-load it from a different path or without a pinned `key` in `manifest.json`. If sign-in starts failing after reloading the extension, re-check the redirect URI in Settings and update it in Google Cloud Console.
+Note: an unpacked extension's ID (and therefore its redirect URI) changes if you re-load it from a different path or without a pinned `key` in `manifest.json`. If sign-in starts failing after reloading the extension, re-check the redirect URI and update it in Google Cloud Console.
 
 ## Files
 

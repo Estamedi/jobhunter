@@ -106,6 +106,12 @@ public class ApplicationUserManager : UserManager<ApplicationUser>
             return;
         }
 
+        // Only job seekers get a self-managed candidate; recruiters/admins manage others.
+        if (!await IsInRoleAsync(user, Roles.JobSeeker))
+        {
+            return;
+        }
+
         var alreadyHasCandidate = await _dbContext.Candidates
             .IgnoreQueryFilters()
             .AnyAsync(c => c.OwnerId == ownerId);
