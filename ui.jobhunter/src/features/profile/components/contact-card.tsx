@@ -45,16 +45,6 @@ function ContactForm({
         }}
       >
         <div className='space-y-1'>
-          <Label htmlFor='contact-name'>Full name*</Label>
-          <Input
-            id='contact-name'
-            required
-            maxLength={200}
-            value={values.fullName}
-            onChange={(e) => set('fullName', e.target.value)}
-          />
-        </div>
-        <div className='space-y-1'>
           <Label htmlFor='contact-email'>Email*</Label>
           <Input
             id='contact-email'
@@ -93,7 +83,7 @@ function ContactForm({
         <Button
           type='submit'
           form='contact-form'
-          disabled={isSaving || !values.fullName.trim() || !values.email.trim()}
+          disabled={isSaving || !values.email.trim()}
         >
           Save
         </Button>

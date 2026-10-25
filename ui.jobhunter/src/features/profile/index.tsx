@@ -54,14 +54,29 @@ export function Profile() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['profile'] })
 
   const saveAbout = useMutation({
-    mutationFn: (v: { headline: string; summary: string }) =>
-      profileApi.updateAbout({
+    mutationFn: async (v: {
+      fullName: string
+      headline: string
+      summary: string
+    }) => {
+      if (v.fullName !== candidate!.fullName) {
+        await profileApi.updateContact({
+          candidateId: candidate!.id,
+          fullName: v.fullName,
+          email: candidate!.email,
+          phone: candidate!.phone || null,
+          currentLocation: candidate!.currentLocation || null,
+        })
+      }
+      return profileApi.updateAbout({
         candidateId: candidate!.id,
         headline: v.headline.trim() || null,
         summary: v.summary.trim() || null,
-      }),
+      })
+    },
     onSuccess: () => {
       refresh()
+      qc.invalidateQueries({ queryKey: ['candidates'] })
       toast.success('Profile updated')
     },
     onError: () => toast.error('Failed to update profile'),
@@ -94,7 +109,7 @@ export function Profile() {
     mutationFn: (v: ContactValues) =>
       profileApi.updateContact({
         candidateId: candidate!.id,
-        fullName: v.fullName.trim(),
+        fullName: candidate!.fullName,
         email: v.email.trim(),
         phone: v.phone.trim() || null,
         currentLocation: v.currentLocation.trim() || null,
@@ -167,8 +182,11 @@ export function Profile() {
         headline={profile.headline}
         summary={profile.summary}
         isSaving={saveAbout.isPending}
-        onSave={(headline, summary, done) =>
-          saveAbout.mutate({ headline, summary }, { onSuccess: done })
+        onSave={(fullName, headline, summary, done) =>
+          saveAbout.mutate(
+            { fullName, headline, summary },
+            { onSuccess: done }
+          )
         }
       />
 
