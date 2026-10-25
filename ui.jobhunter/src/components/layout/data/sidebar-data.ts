@@ -1,4 +1,3 @@
-import { Logo } from '@/assets/logo'
 import {
   LayoutDashboard,
   Building2,
@@ -21,6 +20,7 @@ import {
   Sparkles,
   UserRound,
 } from 'lucide-react'
+import { Logo } from '@/assets/logo'
 import { type NavGroup, type SidebarData } from '../types'
 
 /** Job seeker accounts only get a flat, minimal menu. */
@@ -33,6 +33,11 @@ const jobSeekerNavGroups: NavGroup[] = [
         url: '/',
         icon: LayoutDashboard,
       },
+    ],
+  },
+  {
+    title: 'Pipeline',
+    items: [
       {
         title: 'Applications',
         url: '/applications',
@@ -43,20 +48,25 @@ const jobSeekerNavGroups: NavGroup[] = [
         url: '/contacts',
         icon: Contact2,
       },
+    ],
+  },
+  {
+    title: 'Documents',
+    items: [
       {
         title: 'CVs',
         url: '/cvs',
         icon: Files,
       },
       {
-        title: 'My Profile',
-        url: '/profile',
-        icon: UserRound,
-      },
-      {
         title: 'CV Writer',
         url: '/cv-builder',
         icon: Sparkles,
+      },
+      {
+        title: 'My Profile',
+        url: '/profile',
+        icon: UserRound,
       },
       {
         title: 'Notes',
@@ -69,7 +79,7 @@ const jobSeekerNavGroups: NavGroup[] = [
 
 const defaultNavGroups: NavGroup[] = [
   {
-    title: 'Menu',
+    title: 'Overview',
     items: [
       {
         title: 'Dashboard',
@@ -77,15 +87,45 @@ const defaultNavGroups: NavGroup[] = [
         icon: LayoutDashboard,
       },
       {
-        title: 'Onboarding',
-        url: '/onboarding',
-        icon: ClipboardCheck,
-      },
-      {
         title: 'Reports',
         url: '/reports',
         icon: BarChart3,
       },
+    ],
+  },
+  {
+    title: 'Pipeline',
+    items: [
+      {
+        title: 'Applications',
+        url: '/applications',
+        icon: FileText,
+      },
+      {
+        title: 'Vacancies',
+        url: '/job-roles',
+        icon: Briefcase,
+      },
+      {
+        title: 'Follow-Ups',
+        url: '/follow-ups',
+        icon: AlertCircle,
+      },
+      {
+        title: 'Interviews',
+        url: '/interviews',
+        icon: Calendar,
+      },
+      {
+        title: 'Activities',
+        url: '/activities',
+        icon: MessageSquare,
+      },
+    ],
+  },
+  {
+    title: 'Network',
+    items: [
       {
         title: 'Companies',
         url: '/companies',
@@ -96,30 +136,15 @@ const defaultNavGroups: NavGroup[] = [
         url: '/contacts',
         icon: Contact2,
       },
-      {
-        title: 'Vacancies',
-        url: '/job-roles',
-        icon: Briefcase,
-      },
-      {
-        title: 'Job Titles',
-        url: '/job-titles',
-        icon: Tag,
-      },
-      {
-        title: 'All Applications',
-        url: '/applications',
-        icon: FileText,
-      },
+    ],
+  },
+  {
+    title: 'Documents',
+    items: [
       {
         title: 'CVs',
         url: '/cvs',
         icon: Files,
-      },
-      {
-        title: 'My Profile',
-        url: '/profile',
-        icon: UserRound,
       },
       {
         title: 'CV Writer',
@@ -127,19 +152,24 @@ const defaultNavGroups: NavGroup[] = [
         icon: Sparkles,
       },
       {
-        title: 'Follow-Ups',
-        url: '/follow-ups',
-        icon: AlertCircle,
+        title: 'My Profile',
+        url: '/profile',
+        icon: UserRound,
+      },
+    ],
+  },
+  {
+    title: 'Setup',
+    items: [
+      {
+        title: 'Onboarding',
+        url: '/onboarding',
+        icon: ClipboardCheck,
       },
       {
-        title: 'Activities',
-        url: '/activities',
-        icon: MessageSquare,
-      },
-      {
-        title: 'Interviews',
-        url: '/interviews',
-        icon: Calendar,
+        title: 'Job Titles',
+        url: '/job-titles',
+        icon: Tag,
       },
       {
         title: 'Settings',
