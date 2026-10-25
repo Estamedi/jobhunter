@@ -16,6 +16,7 @@ import { Plus, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
 import { FormSelect } from '@/components/form-select'
+import { FormDateTime } from '@/components/date-time-picker'
 
 const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
   Scheduled: 'default',
@@ -50,7 +51,7 @@ function InterviewForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Cr
         </div>
         <div className='space-y-1'>
           <Label>Interview Date *</Label>
-          <Input type='datetime-local' {...register('interviewDate')} required />
+          <FormDateTime control={control} name='interviewDate' required />
         </div>
         <div className='space-y-1'>
           <Label>Duration (min)</Label>

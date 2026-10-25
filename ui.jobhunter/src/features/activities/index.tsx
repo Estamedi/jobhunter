@@ -15,6 +15,7 @@ import { Plus, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
 import { FormSelect } from '@/components/form-select'
+import { FormDateTime } from '@/components/date-time-picker'
 
 const TYPES = ['Note', 'Email', 'Call', 'Meeting', 'NetworkingEvent', 'Referral', 'ApplicationSubmitted', 'FollowUp', 'Other']
 
@@ -45,7 +46,7 @@ function ActivityForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Cre
         </div>
         <div className='space-y-1'>
           <Label>Date</Label>
-          <Input type='datetime-local' {...register('activityDate')} />
+          <FormDateTime control={control} name='activityDate' />
         </div>
         <div className='space-y-1'>
           <Label>Outcome</Label>
