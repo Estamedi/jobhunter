@@ -28,6 +28,11 @@ app.UseCors(static builder =>
         .AllowAnyHeader()
         .AllowAnyOrigin());
 
+// Explicit so auth runs after CORS; otherwise 401s lack CORS headers and
+// browser clients (the extension) can't see them to refresh their token.
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseFileServer();
 
 app.MapOpenApi();
