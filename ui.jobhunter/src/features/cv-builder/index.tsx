@@ -542,6 +542,7 @@ export function CvBuilder({
                   size='sm'
                   onClick={() => exportPdf.mutate()}
                   disabled={exportPdf.isPending}
+                  title='Exports as an A4 PDF (210 × 297 mm)'
                 >
                   {exportPdf.isPending ? (
                     <Loader2 className='mr-1 h-4 w-4 animate-spin' />
@@ -573,6 +574,9 @@ export function CvBuilder({
               </div>
             ) : (
               <div className='rounded-md bg-muted/40 p-4'>
+                <p className='mb-3 text-center text-xs text-muted-foreground'>
+                  Preview and exported PDF use A4 page size (210 × 297 mm).
+                </p>
                 <CvPreview
                   header={{
                     fullName: candidate.fullName,

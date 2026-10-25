@@ -6,7 +6,7 @@ using QuestPDF.Infrastructure;
 namespace backend.jobhunter.Infrastructure.CvRendering;
 
 // Single-column CV: centred header, blue section headings, bulleted skills and experience with
-// dates right-aligned. Layout and palette follow the owner's reference CV (Letter, Lato).
+// dates right-aligned. Layout and palette follow the owner's reference CV (A4, Lato).
 public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocument
 {
     private const string HeadingColor = "#4285F4";
@@ -22,7 +22,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
     {
         container.Page(page =>
         {
-            page.Size(PageSizes.Letter);
+            page.Size(PageSizes.A4);
             page.Margin(0.6f, Unit.Inch);
             page.DefaultTextStyle(t => t.FontFamily("Lato").FontSize(BodySize).FontColor(BodyColor).LineHeight(1.25f));
 
