@@ -9,12 +9,11 @@ import {
   Calendar,
   BarChart3,
   Settings,
-  UserCog,
+  KeyRound,
   Palette,
   Bell,
   ClipboardCheck,
   Monitor,
-  Wrench,
   AlertCircle,
   Files,
   StickyNote,
@@ -147,14 +146,9 @@ const defaultNavGroups: NavGroup[] = [
         icon: Settings,
         items: [
           {
-            title: 'Profile',
-            url: '/settings',
-            icon: UserCog,
-          },
-          {
-            title: 'Account',
-            url: '/settings/account',
-            icon: Wrench,
+            title: 'Password',
+            url: '/settings/password',
+            icon: KeyRound,
           },
           {
             title: 'Appearance',
