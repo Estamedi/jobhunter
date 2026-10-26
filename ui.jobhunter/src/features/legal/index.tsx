@@ -14,7 +14,7 @@ type LegalPageProps = {
   sections: LegalSection[]
 }
 
-const lastUpdated = 'July 11, 2026'
+const lastUpdated = 'October 26, 2026'
 
 const termsSections: LegalSection[] = [
   {
@@ -148,14 +148,22 @@ const privacySections: LegalSection[] = [
     ],
   },
   {
-    title: '5. Cookies and similar technologies',
+    title: '5. Browser extension',
+    paragraphs: [
+      'The ApplyLadder Job Saver Chrome extension reads the job posting on the tab you are viewing only when you open the extension and use it. It does not run in the background, track your browsing, or collect your browsing history.',
+      'When you use it, the page address, page title, job-posting structured data, and the visible text of that page are sent to the ApplyLadder backend, where an AI service extracts the job details so you can review and save them. Your ApplyLadder sign-in tokens are stored in the extension’s local browser storage so you stay signed in.',
+      'This data is used only to provide the job-saving feature the extension describes. We do not sell it, use it for advertising or creditworthiness, or transfer it to third parties except to service providers that process it on our behalf to extract and store the job, or as required by law. Humans do not read it unless you ask for support, it is needed for security or abuse investigation, or the law requires it.',
+    ],
+  },
+  {
+    title: '6. Cookies and similar technologies',
     paragraphs: [
       'ApplyLadder may use cookies, local storage, and similar technologies to keep you signed in, remember preferences, measure product usage, improve performance, and protect against abuse.',
       'You can control cookies through your browser settings, but disabling certain cookies may affect authentication or product functionality.',
     ],
   },
   {
-    title: '6. How we share information',
+    title: '7. How we share information',
     paragraphs: [
       'We do not sell your personal information. We share information only as needed to operate ApplyLadder, comply with law, protect rights and safety, or with your direction.',
     ],
@@ -167,45 +175,45 @@ const privacySections: LegalSection[] = [
     ],
   },
   {
-    title: '7. Data retention',
+    title: '8. Data retention',
     paragraphs: [
       'We keep personal information for as long as needed to provide ApplyLadder, comply with legal obligations, resolve disputes, maintain backups, prevent abuse, and enforce agreements.',
       'You may request deletion of your account or certain data. Some information may remain temporarily in backups or where retention is required for legal, security, or legitimate business reasons.',
     ],
   },
   {
-    title: '8. Security',
+    title: '9. Security',
     paragraphs: [
       'We use administrative, technical, and organizational safeguards designed to protect personal information. No online service can guarantee absolute security, so you should use a strong password and protect your account credentials.',
     ],
   },
   {
-    title: '9. Your choices and rights',
+    title: '10. Your choices and rights',
     paragraphs: [
       'Depending on where you live, you may have rights to access, correct, export, delete, restrict, or object to certain processing of personal information.',
       'You can update some account and workspace information directly in ApplyLadder. For other requests, contact support@applyladder.com.',
     ],
   },
   {
-    title: '10. Children',
+    title: '11. Children',
     paragraphs: [
       'ApplyLadder is not intended for children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided personal information to ApplyLadder, contact us so we can take appropriate action.',
     ],
   },
   {
-    title: '11. International use',
+    title: '12. International use',
     paragraphs: [
       'ApplyLadder may process and store information in countries other than where you live. Those countries may have data-protection laws different from your local laws. Where required, we use appropriate safeguards for cross-border transfers.',
     ],
   },
   {
-    title: '12. Changes to this policy',
+    title: '13. Changes to this policy',
     paragraphs: [
       'We may update this Privacy Policy as ApplyLadder changes or as legal requirements evolve. The “Last updated” date shows when the latest version took effect.',
     ],
   },
   {
-    title: '13. Contact',
+    title: '14. Contact',
     paragraphs: [
       'Questions, privacy requests, or concerns can be sent to support@applyladder.com.',
     ],

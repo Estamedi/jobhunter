@@ -34,7 +34,6 @@ async function startMainFlow() {
       onFallback: (err) =>
         setError("#main-error", `AI extraction failed, used basic parsing instead.\n${err.message}`),
     });
-    console.log("Extracted job:", job);
 
     fillForm(job, page.url);
     status.classList.add("hidden");
@@ -73,7 +72,7 @@ async function onSubmit(e) {
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = "Save to portal";
+    btn.textContent = "Save job to ApplyLadder";
   }
 }
 
