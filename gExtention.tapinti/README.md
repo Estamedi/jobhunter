@@ -7,7 +7,7 @@ Read the job posting on the current page, extract the details with AI, and save 
 1. You open a job posting (LinkedIn, Indeed, a company careers page, …) and click the extension.
 2. The extension reads the page (visible text + any JSON-LD `JobPosting` structured data), refusing to read pages that don't look like a job posting (see **Only read known job sites** below).
 3. The page content is sent to the backend's `POST /api/JobExtraction`, which calls whichever AI provider it has configured (Claude or OpenAI, both using structured outputs — see `backend.jobhunter/src/Infrastructure/AiExtraction`) and returns clean JSON: title, company, location, work type, salary, description, requirements. The extension never holds an AI API key — those live only in the backend's configuration. If that call fails (network issue, no provider configured, etc.), a basic JSON-LD/heuristic parser is used instead.
-4. You review/edit the pre-filled form and hit **Save to portal**, which calls the backend:
+4. You review/edit the pre-filled form and hit **Save job to ApplyLadder**, which calls the backend:
    - `GET/POST /api/Companies` — reuse the company if it already exists (matched by name), else create it
    - `POST /api/job-roles` — create the role
    - `POST /api/applications` — create the application for the selected candidate (status defaults to `Wishlist`; `appliedDate` is set automatically when status is `Applied`)

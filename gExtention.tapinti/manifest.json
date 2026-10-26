@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ApplyLadder Job Saver",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Read the job posting you're viewing, extract it with AI, and save it to your ApplyLadder job-hunt CRM.",
   "background": { "service_worker": "src/background.js", "type": "module" },
   "action": {

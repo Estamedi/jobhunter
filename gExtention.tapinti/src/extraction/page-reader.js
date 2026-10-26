@@ -16,8 +16,17 @@ function grabPage() {
       if (jp) { out.jsonLd = jp; break; }
     } catch { /* ignore malformed blocks */ }
   }
-  out.text = (document.body?.innerText || "")
+  // Prefer the job content container; otherwise the page body, so unrelated page content isn't sent.
+  const root =
+    document.querySelector('[class*="jobs-description"], [class*="job-description"], [id*="job-description"], [class*="jobsearch-JobComponent"], main, [role="main"]') ||
+    document.body;
+  // innerText keeps line breaks; fall back to the whole body if the container is tiny.
+  let text = root?.innerText || "";
+  if (text.trim().length < 200) text = document.body?.innerText || "";
+  out.text = text
+    .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
+    .trim()
     .slice(0, 50000);
   return out;
 }
