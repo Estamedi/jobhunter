@@ -38,7 +38,7 @@ export function basicExtract(page) {
     salaryMax: salary.maxValue ?? null,
     currency: jp.baseSalary?.currency || null,
     source: new URL(page.url).hostname.replace(/^www\./, ""),
-    description: stripHtml(jp.description)?.slice(0, 2000) || null,
+    description: stripHtml(jp.description) || null,
     requirements: null,
   };
 }

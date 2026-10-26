@@ -30,11 +30,11 @@ public static class JobExtractionPrompt
         },
         "description": {
           "type": ["string", "null"],
-          "description": "Concise summary of the role (max ~150 words)"
+          "description": "Full job description copied verbatim from the page (about the company, responsibilities, etc.), preserving line breaks and bullets. Do not summarize or shorten."
         },
         "requirements": {
           "type": ["string", "null"],
-          "description": "Key requirements as a short bullet list"
+          "description": "Complete requirements/qualifications section copied verbatim from the page, one bullet per line. Do not summarize or omit items."
         }
       },
       "required": [
