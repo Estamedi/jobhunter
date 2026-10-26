@@ -3,7 +3,7 @@
 **Name:** ApplyLadder Job Saver
 **Category:** Productivity
 **Single purpose:** Save the job posting you are viewing to your ApplyLadder job-hunt CRM.
-**Privacy policy URL:** https://applyladder.com/privacy
+**Privacy policy URL:** https://app.applyladder.com/privacy
 
 ## Short description (≤132 chars)
 Save any job posting to your ApplyLadder job tracker in one click — AI fills in the title, company, salary and requirements.

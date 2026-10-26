@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { APP_URL } from "@/lib/links";
 import { Logo } from "@/components/logo";
 import { GithubIcon, LinkedinIcon, XIcon } from "@/components/brand-icons";
 
@@ -20,6 +21,9 @@ const columns = [
 const linkHrefs: Record<string, string> = {
   features: "#features",
   pricing: "#pricing",
+  contact: "mailto:support@applyladder.com",
+  privacy: `${APP_URL}/privacy`,
+  terms: `${APP_URL}/terms`,
 };
 
 const socials = [
