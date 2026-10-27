@@ -93,6 +93,8 @@ public class CvGenerationPromptTests
         var rules = CvGenerationPrompt.SystemPrompt;
 
         rules.ShouldContain("Headline:");
+        rules.ShouldContain("at most 60 characters");
+        rules.ShouldContain("at most two");
         rules.ShouldContain("own wording");
         rules.ShouldContain("full form once");
         rules.ShouldContain("Never copy whole sentences");
