@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>طرح تغییر مسیر شغلی: نقش‌های قابل‌دسترس و رزومهٔ Pivot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#fff; --fg:#1f2328; --muted:#59636e; --line:#d1d9e0; --soft:#f6f8fa; --accent:#0969da; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#3d444d; --soft:#151b23; --accent:#4493f8; }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font-family:"Vazirmatn", Tahoma, "Segoe UI", sans-serif; line-height:1.9; }
+main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+h1,h2,h3 { line-height:1.4; }
+h1 { font-size:1.9rem; border-bottom:1px solid var(--line); padding-bottom:.4em; }
+h2 { font-size:1.4rem; margin-top:2em; border-bottom:1px solid var(--line); padding-bottom:.3em; }
+h3 { font-size:1.1rem; margin-top:1.6em; }
+a { color:var(--accent); }
+hr { border:0; border-top:1px solid var(--line); margin:2em 0; }
+.table-wrap { overflow-x:auto; margin:1em 0; }
+table { border-collapse:collapse; width:100%; font-size:.92rem; }
+th,td { border:1px solid var(--line); padding:8px 10px; text-align:right; vertical-align:top; }
+th { background:var(--soft); white-space:nowrap; }
+code { direction:ltr; unicode-bidi:isolate; font-family:ui-monospace, Consolas, monospace; font-size:.86em; background:var(--soft); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+pre { direction:ltr; text-align:left; background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:12px; overflow-x:auto; }
+pre code { background:none; border:0; padding:0; }
+ul,ol { padding-inline-start:1.5em; }
+@media print { main { max-width:none; } a { color:inherit; } }
+</style>
+</head>
+<body>
+<main>
+<h1>طرح تغییر مسیر شغلی: نقش‌های قابل‌دسترس و رزومهٔ Pivot</h1>
+<p>ادامهٔ <code>cv-builder-improvements.md</code> و <code>cv-writer-plan.md</code>.</p>
+<h2>ایده</h2>
+<p>با AI، افراد می‌توانند مهارت جدید را بسیار سریع‌تر از قبل یاد بگیرند. یک توسعه‌دهندهٔ C# می‌تواند Java را سریع یاد بگیرد، Rust را در چند ماه، یا توسعهٔ موبایل را در یک اسپرینت کوتاه. امروز سازندهٔ رزومه فقط کاربر را با نقش‌هایی که هم‌اکنون با آن‌ها می‌خواند تطبیق می‌دهد، پس نقش‌هایی که کاربر می‌توانست به آن‌ها برسد را از دست می‌دهد.</p>
+<p>هدف: نقش‌هایی را که کاربر می‌تواند به آن‌ها <strong>برسد</strong> نشان بدهیم، شکاف را توضیح بدهیم و رزومه‌ای بسازیم که تغییر مسیر را صادقانه ارائه می‌کند.</p>
+<h2>توصیهٔ من</h2>
+<ol>
+<li><strong>یک گراف مهارت بسازید، نه گراف شغل.</strong> هر نقش مجموعه‌ای از مهارت‌هاست. نزدیکی دو نقش باید از هم‌پوشانی مهارت‌ها محاسبه شود، نه از لینک‌های دستی نقش به نقش. لینک‌های دستی کهنه می‌شوند و نمی‌توانند خودشان را توضیح دهند. نتیجهٔ محاسبه‌شده می‌تواند: «Java Backend: ۷۰٪ از طریق C# پوشش داده می‌شود. کم دارد: Spring Boot و JPA. زمان تقریبی یادگیری: ۲ تا ۴ هفته.»</li>
+<li><strong>صادقانه باشد، وگرنه نتیجهٔ معکوس می‌دهد.</strong> توسعه‌دهندهٔ C# که تجربهٔ Java ادعا کند که ندارد، از ATS رد می‌شود و در مصاحبه می‌ماند. این با قانون grounding در <code>cv-builder-improvements.md</code> هم می‌خواند (کارهای 1.3، 1.4 و 9.9: هرگز مهارت نساز). پس حلقه باید این باشد:</li>
+</ol>
+<p><code>نقش‌های قابل‌دسترس را پیدا کن -&gt; شکاف و تخمین زمان را ببین -&gt; یک برنامهٔ یادگیری کوتاه دنبال کن
+        -&gt; شواهد را ثبت کن (ریپو، دوره، گواهی، پروژهٔ کوچک) -&gt; رزومه‌ای بساز که به آن شواهد ارجاع می‌دهد</code></p>
+<p>کار 9.9 (حلقهٔ شکاف صادقانه) این را برای یک شرح شغل انجام می‌دهد. این طرح آن را به چند نقش گسترش می‌دهد.
+3. <strong>بازه و میزان اطمینان نشان دهید، نه وعده.</strong> «موبایل در یک ماه» برای بسیاری خوش‌بینانه است. یک بازه نشان دهید، بگویید چه فرض‌هایی دارد (ساعت در هفته، تجربهٔ قبلی) و بگذارید کاربر آن را تنظیم کند.</p>
+<h2>آنچه امروز وجود دارد (در کد بررسی شد)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>بخش</th>
+<th>یافته</th>
+<th>اثر</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Domain/Entities/ProfileSkill.cs</code></td>
+<td>فقط <code>Name</code>، <code>Category</code> و <code>SortOrder</code>. بدون سطح تسلط، شواهد یا سال.</td>
+<td>نمی‌توان «۵ سال C#» را از «تازه شروع Rust» تشخیص داد. اولین کار اسکیما.</td>
+</tr>
+<tr>
+<td><code>Domain/Entities/ProfileExperience</code></td>
+<td>فهرستی از رشتهٔ مهارت دارد (در <code>CvBackgroundBuilder</code> استفاده می‌شود). مهارت‌ها به <code>ProfileSkill</code> پیوند ندارند.</td>
+<td>شواهد مهارت در هر نقش متن آزاد است.</td>
+</tr>
+<tr>
+<td><code>Domain/Entities/ProfileProject.cs</code></td>
+<td>نام، توضیح، URL، تاریخ‌ها. بدون فهرست مهارت.</td>
+<td>پروژه‌ها هنوز نمی‌توانند شاهد یک مهارت باشند.</td>
+</tr>
+<tr>
+<td><code>Domain/Entities/JobRole.cs</code></td>
+<td><code>Title</code>، <code>Description</code> و <code>Requirements</code> به‌صورت متن آزاد. بدون مهارت ساختاریافته.</td>
+<td>نیازمندی‌های نقش باید پیش از مقایسه استخراج شوند.</td>
+</tr>
+<tr>
+<td><code>Domain/Entities/JobTitle.cs</code></td>
+<td>کاتالوگی با <code>Name</code> و <code>Description</code>.</td>
+<td>می‌تواند پایهٔ خانواده‌های نقش باشد. نحوهٔ پر شدنش بررسی شود.</td>
+</tr>
+<tr>
+<td><code>Application/Common/Interfaces/IJobExtractionAiService.cs</code></td>
+<td><code>ExtractedJobDto</code> فهرست مهارت ندارد.</td>
+<td>یکی اضافه شود تا هر آگهی ذخیره‌شده مهارت‌های لازم را بدهد.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>مدل گراف</h2>
+<p>از Postgres از طریق EF استفاده شود. در این اندازه به پایگاه‌داده گراف نیاز نیست.</p>
+<p><strong>گره‌ها</strong>
+- <code>Skill</code>: نام استاندارد به‌علاوهٔ نام‌های مستعار («C#» و «.NET»، «Java» و «JVM»، «K8s» و «Kubernetes»)، یک دسته (زبان، فریم‌ورک، پلتفرم، روش) و یک خانواده (JVM، موبایل، سیستمی).
+- <code>RoleFamily</code>: یک نوع نقش نام‌دار («Java Backend Developer»، «Android Developer»، «Rust Systems Engineer») با فهرست وزن‌دار مهارت‌ها: ضروری، مهم، امتیازی.</p>
+<p><strong>یال‌ها</strong>
+- <code>SkillTransfer(from, to)</code>: امتیاز انتقال (۰ تا ۱) و بازهٔ زمان یادگیری به هفته؛ مثلاً C# به Java بالاست، C# به Rust متوسط (ownership و lifetime جدید است)، C# به Kotlin بالا، C# به Flutter یا Swift متوسط.
+- هر یال یک <code>Source</code> (دستی یا پیشنهاد AI) و یک پرچم <code>Reviewed</code> دارد.</p>
+<p><strong>نحوهٔ محاسبهٔ امتیاز (قطعی و قابل‌توضیح)</strong>
+- برای هر خانوادهٔ نقش و هر مهارت لازم: پوشش‌داده‌شده (کاربر با شواهد دارد)، قابل‌انتقال (کاربر مهارتی دارد که یال به آن دارد) یا گمشده.
+- تطابق = پوشش وزن‌دار مهارت‌های ضروری، سپس مهم و سپس امتیازی.
+- تخمین زمان = بیشترین بازهٔ یادگیری میان ضروری‌های گمشده، با تنظیم بر اساس ساعت هفتگی کاربر.
+- مدل AI می‌تواند یال و خانوادهٔ نقش پیشنهاد دهد و یک انسان بازبینی می‌کند. امتیاز زمان اجرا هرگز مدل را صدا نمی‌زند، پس ورودی یکسان همیشه پاسخ یکسان می‌دهد.</p>
+<p><strong>کوچک شروع کنید</strong>
+- seed دستی با JSON: حدود ۳۰ تا ۵۰ مهارت و ۱۰ تا ۱۵ خانوادهٔ نقش، با نقش‌های توسعه‌دهنده شروع شود.
+- طبقه‌بندی بزرگ‌تر (ESCO، O*NET) گزینهٔ بعدی است. ابتدا مجوزش بررسی شود. بررسی شود.</p>
+<h2>تولید رزومهٔ Pivot</h2>
+<h3>حالت‌ها</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>حالت</th>
+<th>زمان</th>
+<th>رفتار</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>تطابق کامل (Exact fit)</td>
+<td>ضروری‌ها با شواهد پوشش داده شده‌اند</td>
+<td>تطبیق عادی (جریان موجود، بخش ۹ در <code>cv-builder-improvements.md</code>).</td>
+</tr>
+<tr>
+<td>کشش (Stretch)</td>
+<td>بیشتر پوشش داده شده، چند مورد قابل‌انتقال یا در حال یادگیری</td>
+<td>با نقاط قوت شروع کن، انتقال‌ها را ذکر کن، موارد در حال یادگیری را جدا فهرست کن.</td>
+</tr>
+<tr>
+<td>Pivot</td>
+<td>چند ضروری قابل‌انتقال یا گمشده است</td>
+<td>چیدمان مهارت‌محور، صریح دربارهٔ گذار، پروژه‌ها و شواهد یادگیری در ابتدا.</td>
+</tr>
+</tbody>
+</table></div>
+<h3>سطح تسلط هر مهارت</h3>
+<p>به هر مهارت یک سطح اضافه شود که پرامپت و چیدمان از آن استفاده کنند:</p>
+<ul>
+<li><code>Professional</code>: در کار استفاده شده (به یک تجربه پیوند دارد).</li>
+<li><code>Project</code>: در پروژهٔ شخصی یا متن‌باز استفاده شده (به یک پروژه پیوند دارد).</li>
+<li><code>Learning</code>: در حال یادگیری، با تاریخ شروع و شواهد (دوره، گواهی، ریپو).</li>
+</ul>
+<h3>قوانین پرامپت در حالت Pivot</h3>
+<ul>
+<li>خلاصه گذار را صریح می‌گوید: «توسعه‌دهندهٔ ارشد C# در حال گذار به Java backend، با یک پروژهٔ Spring Boot در حال اجرا.»</li>
+<li>مهارت‌های قابل‌انتقال به‌عنوان قابل‌انتقال توصیف شوند (مثلاً «طراحی REST API، SQL، CI/CD و الگوهای dependency injection از ۸ سال کار با .NET منتقل می‌شوند»).</li>
+<li>کلیدواژه‌های هدف فقط جایی می‌آیند که شواهد وجود دارد.</li>
+<li>هر چیز دیگر در بخش «در حال یادگیری» با تاریخ می‌رود. ATS آن را می‌خواند و انسان می‌بیند صادقانه است.</li>
+<li>بدون سال تجربهٔ ساختگی. بدون ادعای استفادهٔ حرفه‌ای برای مهارت‌های <code>Project</code> یا <code>Learning</code>.</li>
+</ul>
+<h3>چیدمان</h3>
+<ul>
+<li>قالب ترکیبی مهارت‌محور، با پروژه‌ها قبل از تجربه در حالت Pivot. این کار 9.11 در <code>cv-builder-improvements.md</code> را فقط برای این حالت معکوس می‌کند.</li>
+<li>تک‌ستونه، متنی و ایمن برای ATS بماند.</li>
+<li>برچسب‌های جدید («در حال یادگیری»، «مهارت‌های قابل‌انتقال»، «پروژه‌ها») به دیکشنری برچسب‌ها اضافه شود (کار 8.5، شامل فارسی).</li>
+</ul>
+<h3>Grounding</h3>
+<ul>
+<li>اعتبارسنج grounding (کار 1.4) مهارت <code>Learning</code> را فقط با شواهد و مهارت <code>Project</code> را فقط وقتی یک پروژه آن را فهرست کرده بپذیرد.</li>
+<li>قانون «نقش، شرکت و تاریخ‌ها از ردیف‌های پروفایل می‌آیند» (کار 1.3) حفظ شود.</li>
+</ul>
+<h3>نامهٔ همراه (Cover letter)</h3>
+<p>Pivot بیش از یک درخواست عادی به توضیح نیاز دارد. نامهٔ همراه Pivot از قبل در فاز ۳ <code>cv-writer-plan.md</code> بود. برای حالت Pivot جلوتر آورده شود.</p>
+<h2>کارها</h2>
+<p><strong>اولویت:</strong> P0 = ابتدا لازم است، P1 = قابلیت اصلی، P2 = بعداً. <strong>«بررسی شود»</strong> = بر پایهٔ فایل‌هایی که عمیق خوانده نشده‌اند.</p>
+<h3>فاز ۱: داده و نقش‌های قابل‌دسترس</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>اولویت</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td><code>Proficiency</code> (<code>Professional</code> / <code>Project</code> / <code>Learning</code>)، <code>Years</code> و <code>EvidenceUrl</code> به <code>ProfileSkill</code> اضافه شود. migration و mapping.</td>
+<td>P0</td>
+<td><code>Domain/Entities/ProfileSkill.cs</code>، <code>Infrastructure/Migrations/</code>، <code>Application/CandidateProfiles/CandidateProfileMapping.cs</code></td>
+<td>یک مهارت با سطح و شواهد ذخیره می‌شود.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>مهارت‌ها با شناسه به تجربه‌ها و پروژه‌ها پیوند بخورند به‌جای متن آزاد، یا فهرست <code>Skills</code> به <code>ProfileProject</code> اضافه شود.</td>
+<td>P1</td>
+<td><code>ProfileExperience.cs</code>، <code>ProfileProject.cs</code>، migration</td>
+<td>یک پروژه می‌تواند شاهد یک مهارت باشد.</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>موجودیت‌های <code>Skill</code>، <code>SkillAlias</code>، <code>SkillTransfer</code>، <code>RoleFamily</code> و <code>RoleFamilySkill</code> اضافه شود. seed از JSON.</td>
+<td>P0</td>
+<td><code>Domain/Entities/</code> جدید، <code>Infrastructure/Data/Configurations/</code>، فایل seed</td>
+<td>seed حدود ۳۰ تا ۵۰ مهارت و ۱۰ تا ۱۵ خانوادهٔ نقش را بارگذاری می‌کند.</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>نرمال‌سازی مهارت: مهارت‌های پروفایل و متن شغل با نام‌های مستعار به مهارت استاندارد نگاشت شود و برای نام‌های ناشناخته گام AI. نتایج cache شود.</td>
+<td>P1</td>
+<td><code>SkillNormalizer</code> جدید در <code>Application/</code></td>
+<td>«K8s»، «Kubernetes» و «k8s» همه به یک مهارت نگاشت می‌شوند.</td>
+</tr>
+<tr>
+<td>1.5</td>
+<td>سرویس امتیاز Pivot: پوشش، قابل‌انتقال، گمشده، امتیاز تطابق، بازهٔ زمان. قطعی، با تست واحد.</td>
+<td>P0</td>
+<td><code>Application/CareerPivot/</code> جدید</td>
+<td>مثال C# به Java در تست‌ها شکاف‌ها و زمان مورد انتظار را برمی‌گرداند.</td>
+</tr>
+<tr>
+<td>1.6</td>
+<td>کوئری <code>GetReachableRoles</code>: خانواده‌های نقش رتبه‌بندی‌شده برای کاندیدا، با مهارت‌های پوشش‌داده‌شده، قابل‌انتقال و گمشده برای هر کدام.</td>
+<td>P0</td>
+<td>کوئری جدید، endpoint جدید <code>Web/Endpoints/CareerPivot.cs</code></td>
+<td>API فهرست رتبه‌بندی‌شده با توضیح برمی‌گرداند.</td>
+</tr>
+<tr>
+<td>1.7</td>
+<td>صفحهٔ نقش‌های قابل‌دسترس: کارت‌هایی با تطابق، شکاف‌ها، بازهٔ زمان و دکمهٔ «برای این یک رزومه بساز». اطمینان نشان بدهد، نه وعده.</td>
+<td>P1</td>
+<td><code>ui.jobhunter/src/features/career-pivot/</code> (جدید)</td>
+<td>کاربر نقش‌های قابل‌دسترس و شکاف هر کدام را می‌بیند.</td>
+</tr>
+<tr>
+<td>1.8</td>
+<td>کاربر ساعت یادگیری هفتگی و تاریخ هدف را تنظیم کند و تخمین زمان دوباره محاسبه شود.</td>
+<td>P2</td>
+<td>سرویس امتیاز، UI</td>
+<td>تخمین با ساعت‌ها تغییر می‌کند.</td>
+</tr>
+</tbody>
+</table></div>
+<h3>فاز ۲: حالت رزومهٔ Pivot</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>اولویت</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.1</td>
+<td><code>Mode</code> (exact، stretch، pivot) و <code>TargetRoleFamilyId</code> به <code>GenerateCvDraftCommand</code> و <code>CvDraft</code> اضافه شود. migration.</td>
+<td>P0</td>
+<td><code>GenerateCvDraft.cs</code>، <code>CvDraft.cs</code></td>
+<td>پیش‌نویس حالت و هدفش را ذخیره می‌کند.</td>
+</tr>
+<tr>
+<td>2.2</td>
+<td><code>CvBackgroundBuilder</code> گسترش یابد تا مهارت‌ها را با سطح و شواهد و یک بلوک «مهارت‌های قابل‌انتقال» محاسبه‌شده از گراف خروجی دهد.</td>
+<td>P0</td>
+<td><code>CvBackgroundBuilder.cs</code></td>
+<td>متن پس‌زمینه سطح و شواهد هر مهارت را نشان می‌دهد.</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td>پرامپت Pivot (قوانین بالا) با سوئیچ حالت در <code>CvGenerationPrompt</code>. قوانین اصلی بدون تغییر بماند.</td>
+<td>P0</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>نمونهٔ C# به Java صادقانه خوانده می‌شود و گذار را نام می‌برد.</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>اسکیمای رزومه با <code>learning</code> (نام، از تاریخ، شواهد) و <code>transferableSkills</code> گسترش یابد. <code>CvDraftContent</code> و ویرایشگر به‌روز شود.</td>
+<td>P1</td>
+<td><code>CvGenerationPrompt.cs</code> (اسکیما)، <code>CvDraftContent.cs</code>، <code>cv-editor.tsx</code></td>
+<td>بخش‌های جدید رندر و قابل‌ویرایش‌اند.</td>
+</tr>
+<tr>
+<td>2.5</td>
+<td>چیدمان Pivot: مهارت‌محور، پروژه‌ها قبل از تجربه، بخش «در حال یادگیری».</td>
+<td>P1</td>
+<td><code>ClassicCvDocument.cs</code>، <code>CvTemplates.cs</code></td>
+<td>PDF چیدمان Pivot را فقط در حالت Pivot نشان می‌دهد.</td>
+</tr>
+<tr>
+<td>2.6</td>
+<td>اعتبارسنج grounding برای مهارت‌های learning و project به‌روز شود.</td>
+<td>P0</td>
+<td><code>CvGroundingValidator</code> (کار 1.4 طرح اول)</td>
+<td>مهارت learning بدون شواهد رد می‌شود.</td>
+</tr>
+<tr>
+<td>2.7</td>
+<td>رفت‌وبرگشت ATS برای چیدمان Pivot (کار 4.1 و تست فارسی 8.8 را گسترش می‌دهد).</td>
+<td>P1</td>
+<td><code>QuestPdfCvRendererTests.cs</code></td>
+<td>عنوان‌ها و ترتیب پس از استخراج حفظ می‌شوند.</td>
+</tr>
+<tr>
+<td>2.8</td>
+<td>تولید نامهٔ همراه Pivot.</td>
+<td>P1</td>
+<td>command و پرامپت جدید</td>
+<td>نامه گذار را توضیح می‌دهد و به همان شواهد رزومه ارجاع می‌دهد.</td>
+</tr>
+<tr>
+<td>2.9</td>
+<td>برچسب‌های فارسی برای بخش‌های جدید (کار 8.5).</td>
+<td>P1</td>
+<td>دیکشنری برچسب‌ها</td>
+<td>رزومهٔ فارسی عنوان‌های ترجمه‌شده را نشان می‌دهد.</td>
+</tr>
+</tbody>
+</table></div>
+<h3>فاز ۳: برنامهٔ یادگیری و شواهد</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>اولویت</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.1</td>
+<td>برنامهٔ یادگیری برای هر شکاف: گام‌های مرتب (یاد بگیر، بساز، نشان بده) با تخمین زمان. نوشتهٔ AI از مهارت‌های گمشده، محدود به گراف.</td>
+<td>P1</td>
+<td>command و پرامپت جدید</td>
+<td>برنامه برای هر ضروری گمشده گام‌ها را فهرست می‌کند.</td>
+</tr>
+<tr>
+<td>3.2</td>
+<td>ایدهٔ پروژهٔ شروع که مهارت را اثبات می‌کند، متناسب با نقش هدف.</td>
+<td>P2</td>
+<td>پرامپت</td>
+<td>کاربر برای هر شکاف یک پیشنهاد پروژهٔ مشخص می‌گیرد.</td>
+</tr>
+<tr>
+<td>3.3</td>
+<td>ثبت شواهد: URL ریپو، گواهی دوره یا پروژه به یک مهارت <code>Learning</code> پیوست شود.</td>
+<td>P1</td>
+<td><code>ProfileSkill</code>، UI پروفایل</td>
+<td>مهارت learning با شواهد از «شکاف» به «پوشش‌داده‌شده در سطح پروژه» می‌رود.</td>
+</tr>
+<tr>
+<td>3.4</td>
+<td>ردیابی پیشرفت: با افزوده‌شدن شواهد، تطابق دوباره محاسبه و بازتولید رزومه پیشنهاد شود.</td>
+<td>P2</td>
+<td>سرویس امتیاز، UI</td>
+<td>با افزودن شواهد امتیاز تطابق بهتر می‌شود.</td>
+</tr>
+</tbody>
+</table></div>
+<h3>فاز ۴: یادگیری از شغل‌های واقعی</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>اولویت</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.1</td>
+<td><code>RequiredSkills</code> و <code>NiceToHaveSkills</code> به <code>ExtractedJobDto</code> و پرامپت استخراج اضافه شود. مهارت‌های نرمال‌شده روی <code>JobRole</code> ذخیره شود.</td>
+<td>P1</td>
+<td><code>IJobExtractionAiService.cs</code>، <code>JobExtractionPrompt.cs</code>، <code>JobRole.cs</code>، migration</td>
+<td>ذخیرهٔ یک آگهی مهارت‌هایش را ذخیره می‌کند.</td>
+</tr>
+<tr>
+<td>4.2</td>
+<td>نیازمندی‌های خانوادهٔ نقش از آگهی‌های ذخیره‌شده ساخته شود (فراوانی هر مهارت میان آگهی‌های هم‌عنوان). با seed دستی مقایسه شود.</td>
+<td>P2</td>
+<td>job تحلیل</td>
+<td>نیازمندی‌ها بازار واقعی کاربر را منعکس می‌کنند.</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td>تقاضا نشان داده شود: چند آگهی ذخیره‌شده یا باز با هر نقش قابل‌دسترس می‌خواند.</td>
+<td>P2</td>
+<td>کوئری، UI</td>
+<td>فهرست را می‌توان بر اساس تقاضا مرتب کرد.</td>
+</tr>
+<tr>
+<td>4.4</td>
+<td>ادمین‌ها بتوانند یال‌های پیشنهادی AI را بازبینی و تأیید کنند (پرچم <code>Reviewed</code>).</td>
+<td>P2</td>
+<td>UI ادمین</td>
+<td>یال‌های بازبینی‌نشده در خروجی علامت می‌خورند.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>ریسک‌ها و قوانین</h2>
+<ul>
+<li><strong>صداقت خودِ محصول است.</strong> هرگز برای مهارتی که کاربر فقط یاد گرفته ادعای استفادهٔ حرفه‌ای نکنید. بررسی grounding (کار 2.6) این را در کد اجرا می‌کند، نه فقط در پرامپت.</li>
+<li><strong>تخمین زمان فقط تخمین است.</strong> همیشه یک بازه، فرض‌ها و یک کنترل «تنظیم» نشان دهید.</li>
+<li><strong>کیفیت seed مهم است.</strong> یال‌های اشتباه توصیهٔ اشتباه می‌دهند. کوچک شروع کنید، دستی بازبینی کنید و source و پرچم reviewed را قابل‌مشاهده نگه دارید.</li>
+<li><strong>هنگام امتیازدهی مدل را صدا نزنید.</strong> امتیاز قطعی و قابل‌تست است. مدل فقط متن می‌نویسد و یال پیشنهاد می‌دهد.</li>
+<li><strong>حریم خصوصی.</strong> همان قوانین سازندهٔ اصلی: داده‌های پروفایل به ارائه‌دهندهٔ AI می‌رود، پس در UI و سیاست حریم خصوصی گفته شود.</li>
+</ul>
+<h2>پرسش‌های باز</h2>
+<ul>
+<li>کدام خانواده‌های نقش اول؟ شروع پیشنهادی: .NET، Java، Kotlin یا Android، Rust، موبایل (Flutter)، فرانت‌اند، داده.</li>
+<li>آیا کاربر خودش نقش هدف را انتخاب کند یا فقط پیشنهاد ببیند؟ پیشنهاد: هر دو.</li>
+<li>آیا برنامهٔ یادگیری در محدوده است یا فقط رزومه؟ فاز ۳ را می‌توان بدون آسیب به فازهای ۱ و ۲ حذف کرد.</li>
+<li>آیا دوره‌ها و منابع فارسی‌زبان در برنامهٔ یادگیری مورد نظر است؟</li>
+</ul>
+</main>
+</body>
+</html>

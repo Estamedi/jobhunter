@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بهبود سازندهٔ رزومه (CV Builder)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#fff; --fg:#1f2328; --muted:#59636e; --line:#d1d9e0; --soft:#f6f8fa; --accent:#0969da; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#3d444d; --soft:#151b23; --accent:#4493f8; }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font-family:"Vazirmatn", Tahoma, "Segoe UI", sans-serif; line-height:1.9; }
+main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+h1,h2,h3 { line-height:1.4; }
+h1 { font-size:1.9rem; border-bottom:1px solid var(--line); padding-bottom:.4em; }
+h2 { font-size:1.4rem; margin-top:2em; border-bottom:1px solid var(--line); padding-bottom:.3em; }
+h3 { font-size:1.1rem; margin-top:1.6em; }
+a { color:var(--accent); }
+hr { border:0; border-top:1px solid var(--line); margin:2em 0; }
+.table-wrap { overflow-x:auto; margin:1em 0; }
+table { border-collapse:collapse; width:100%; font-size:.92rem; }
+th,td { border:1px solid var(--line); padding:8px 10px; text-align:right; vertical-align:top; }
+th { background:var(--soft); white-space:nowrap; }
+code { direction:ltr; unicode-bidi:isolate; font-family:ui-monospace, Consolas, monospace; font-size:.86em; background:var(--soft); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+pre { direction:ltr; text-align:left; background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:12px; overflow-x:auto; }
+pre code { background:none; border:0; padding:0; }
+ul,ol { padding-inline-start:1.5em; }
+@media print { main { max-width:none; } a { color:inherit; } }
+</style>
+</head>
+<body>
+<main>
+<h1>بهبود سازندهٔ رزومه (CV Builder)</h1>
+<p>ادامهٔ <code>cv-writer-plan.md</code>. این سند فرایند، منطق، پرامپت، قوانین کسب‌وکار، تجربهٔ کاربری، سازگاری با ATS و حرفه‌ای‌بودن سازندهٔ رزومه را پوشش می‌دهد.</p>
+<p><strong>اولویت:</strong> P0 = مشکل درستی یا اعتماد، اول انجام شود. P1 = بهبود واضح کیفیت. P2 = پرداخت نهایی یا رشد.
+<strong>«بررسی شود» (verify)</strong> = بر پایهٔ فایل‌هایی است که هنوز عمیق خوانده نشده‌اند؛ پیش از شروع تأیید شود.</p>
+<h2>وضعیت فعلی</h2>
+<ol>
+<li><code>GenerateCvDraftCommandHandler</code> کاندیدا را بارگذاری می‌کند و با <code>CvBackgroundBuilder</code> یک متن پس‌زمینه می‌سازد (پروفایل به‌علاوهٔ یادداشت‌های آزاد).</li>
+<li><code>CvGenerationPrompt.BuildPrompt</code> یک پیام کاربر شامل قوانین، شغل و پس‌زمینه می‌سازد. <code>CvSchemaJson</code> خروجی را محدود می‌کند.</li>
+<li><code>AiJsonClient</code> به OpenAI یا Anthropic درخواست می‌زند. نتیجه در <code>CvDraft.ContentJson</code> ذخیره می‌شود.</li>
+<li><code>QuestPdfCvRenderer</code> و <code>ClassicCvDocument</code> یک PDF تک‌ستونه با اندازهٔ A4 می‌سازند.</li>
+<li><code>RegenerateCvDraftSection</code> هم‌اکنون فقط بخش درخواست‌شده را از نتیجهٔ AI برمی‌دارد. این را نگه دارید.</li>
+</ol>
+<hr />
+<h2>۱. درستی و اعتماد (P0)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td><strong>شناسهٔ مدل OpenAI را تأیید کنید.</strong> <code>gpt-5.5</code> در <code>appsettings.json</code> تنظیم شد اما تأیید نشده است. با فهرست مدل‌های OpenAI مقایسه و یک تولید آزمایشی انجام شود.</td>
+<td><code>Web/appsettings.json</code></td>
+<td>یک رزومه بدون خطای 404 از OpenAI تولید می‌شود.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><strong>تعارض ترتیب را رفع کنید.</strong> پرامپت می‌گوید «مرتبط‌ترین تجربه اول» اما <code>CvBackgroundBuilder</code> از جدید به قدیم مرتب می‌کند. ATS و کارفرما ترتیب زمانی معکوس را انتظار دارند. قانون را به «ترتیب زمانی معکوس حفظ شود؛ انتخاب و ترتیب بولت‌ها متناسب با شغل باشد» تغییر دهید.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>تجربه‌ها همیشه از جدید به قدیم‌اند.</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td><strong>مدل نباید حقایق سخت تولید کند.</strong> نقش، شرکت، تاریخ‌ها، مدرک و دانشگاه خروجی مدل‌اند و ممکن است تغییر کنند یا ساختگی باشند. هر تجربه و تحصیل را با شناسه بفرستید. AI فقط عنوان، خلاصه، بولت‌ها و انتخاب مهارت را به‌ازای هر شناسه برگرداند. سرور این‌ها را با ردیف‌های پروفایل ادغام کند.</td>
+<td><code>CvGenerationPrompt.cs</code> (اسکیما)، <code>GenerateCvDraft.cs</code>، <code>CvDraftContent.cs</code>، <code>CvBackgroundBuilder.cs</code></td>
+<td>کارفرما، عنوان و تاریخ‌ها در پیش‌نویس همیشه با پروفایل یکی است.</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td><strong>اعتبارسنجی پس از تولید (grounding).</strong> هر کارفرما، دانشگاه، گواهی یا تاریخی که در پروفایل نیست رد یا علامت‌گذاری شود. اعدادی در بولت‌ها که در پس‌زمینه نیستند علامت بخورند. یک بار تلاش مجدد، سپس نمایش هشدار.</td>
+<td><code>CvGroundingValidator</code> جدید در <code>Application/CvDrafts/</code></td>
+<td>یک تست واحد با کارفرمای ساختگی در این بررسی رد می‌شود.</td>
+</tr>
+<tr>
+<td>1.5</td>
+<td><strong>کوتاه‌کردن بی‌صدا را حذف کنید.</strong> فیلدها در ۲۰٬۰۰۰ کاراکتر بریده می‌شوند و ممکن است تجربهٔ قدیمی‌تر بی‌خبر حذف شود. کوتاه‌سازی بر اساس بخش (قدیمی‌ترین اول) انجام شود و هشدار به UI برگردد.</td>
+<td><code>CvGenerationPrompt.cs</code> (<code>Truncate</code>)، <code>GenerateCvDraft.cs</code></td>
+<td>هنگام بریده‌شدن ورودی، کاربر اعلان می‌بیند.</td>
+</tr>
+<tr>
+<td>1.6</td>
+<td><strong>متن چسبانده‌شده را غیرقابل‌اعتماد فرض کنید.</strong> قوانین به پیام system منتقل شود. شرح شغل، دستورات و پس‌زمینه داخل جداکننده قرار گیرد و به مدل گفته شود دستورهای داخل آن‌ها را نادیده بگیرد.</td>
+<td><code>CvGenerationPrompt.cs</code>، <code>AiJsonClient.cs</code> (پشتیبانی پیام system برای هر دو ارائه‌دهنده)</td>
+<td>یک رشتهٔ تزریق در شرح شغل قوانین خروجی را تغییر نمی‌دهد.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۲. پرامپت و منطق (P1)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.1</td>
+<td><strong>از رزومهٔ آپلودشده استفاده کنید.</strong> <code>SourceCvId</code> ذخیره می‌شود اما متنش هرگز ارسال نمی‌شود. <code>ICvTextExtractor</code> موجود است. وقتی پروفایل ناقص است یا کاربر «بر پایهٔ این رزومه» را انتخاب کرده، متن استخراج‌شده به پس‌زمینه اضافه شود.</td>
+<td><code>GenerateCvDraft.cs</code>، <code>CvBackgroundBuilder.cs</code></td>
+<td>کاندیدای با پروفایل خالی و یک رزومهٔ منبع، پیش‌نویس مستند می‌گیرد.</td>
+</tr>
+<tr>
+<td>2.2</td>
+<td><strong>راهنمای طول و سبک.</strong> هدف یک صفحه (برای ۱۰+ سال سابقه دو صفحه). ۳ تا ۵ بولت برای هر نقش (برای نقش‌های قدیمی‌تر کمتر) و سقف طول بولت. شروع بولت‌ها با فعل قوی. قانون «فقط وقتی عدد در پس‌زمینه هست کمّی‌سازی کن». پرهیز از اول‌شخص و عبارت‌های حشو («مسئول…»).</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>خروجی نمونه‌ها در محدودیت‌ها می‌ماند.</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td><strong>ابتدا شرح شغل را استخراج کنید.</strong> یک گام کوچک مهارت‌های ضروری، مهارت‌های امتیازی، سطح ارشدیت و کلیدواژه‌ها را از شرح شغل بیرون بکشد. این ساختار به پرامپت اصلی داده شود و برای گزارش کلیدواژه (3.2) هم استفاده شود.</td>
+<td>پرامپت جدید در <code>Infrastructure/AiCvGeneration/</code>، <code>GenerateCvDraft.cs</code></td>
+<td>نتیجهٔ استخراج ذخیره می‌شود و کاربر آن را می‌بیند.</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td><strong>انتخاب کنید، نه تخلیه.</strong> به مدل بگویید نقش‌ها، پروژه‌ها و مهارت‌های نامرتبط را رتبه‌بندی و حذف کند. مهارت‌ها حدود ۱۵ مورد گروه‌بندی‌شده و مرتب بر اساس ارتباط با شغل.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>بخش مهارت‌ها فقط موارد مرتبط را نشان می‌دهد.</td>
+</tr>
+<tr>
+<td>2.5</td>
+<td><strong>به زبان انتخاب‌شده احترام بگذارید.</strong> وقتی زبان انگلیسی نیست، عنوان بخش‌ها هم باید ترجمه شود، نه فقط محتوا.</td>
+<td><code>ClassicCvDocument.cs</code>، <code>CvTemplates.cs</code></td>
+<td>عنوان‌ها با زبان انتخاب‌شده می‌خوانند. بررسی شود که فیلد به رندرر می‌رسد.</td>
+</tr>
+<tr>
+<td>2.6</td>
+<td><strong>پرامپت را نسخه‌بندی کنید.</strong> <code>PromptVersion</code> و <code>Model</code> به <code>CvDraft</code> اضافه شود تا نتایج قابل بازتولید و مقایسه باشند. نیاز به migration.</td>
+<td><code>Domain/Entities/CvDraft.cs</code>، <code>Infrastructure/Migrations/</code></td>
+<td>هر پیش‌نویس نشان می‌دهد با کدام پرامپت و مدل ساخته شده.</td>
+</tr>
+<tr>
+<td>2.7</td>
+<td><strong>تنظیم فراخوانی مدل.</strong> در صورت پشتیبانی، سطح استدلال برای مدل OpenAI تنظیم شود و برای 429 و 5xx تلاش مجدد با backoff اضافه شود. بررسی شود.</td>
+<td><code>AiJsonClient.cs</code></td>
+<td>یک 429 گذرا درخواست را شکست نمی‌دهد.</td>
+</tr>
+<tr>
+<td>2.8</td>
+<td><strong>خطاها را واضح نشان دهید.</strong> خطاهای AI («رد شد»، «بریده شد»، «ارائه‌دهنده تنظیم نشده») به پیام‌های قابل‌فهم برای کاربر تبدیل شوند، نه استثنای خام.</td>
+<td><code>AiJsonClient.cs</code>، مدیریت استثنا در <code>Web</code></td>
+<td>UI پیام دوستانه و دکمهٔ تلاش مجدد نشان می‌دهد.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۳. تجربهٔ کاربری (P1)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.1</td>
+<td><strong>بررسی کامل‌بودن پروفایل پیش از تولید.</strong> وقتی تجربه، مهارت یا اطلاعات تماس نیست هشدار با لینک برای تکمیل.</td>
+<td><code>ui.jobhunter/src/features/cv-builder/index.tsx</code>، کوئری جدید کامل‌بودن</td>
+<td>برای پروفایل خالی هشدار نمایش داده می‌شود.</td>
+</tr>
+<tr>
+<td>3.2</td>
+<td><strong>گزارش تطابق کلیدواژه.</strong> کلیدواژه‌های منطبق و گمشدهٔ شرح شغل و یک امتیاز تطابق (فاز ۲ در <code>cv-writer-plan.md</code>). از استخراج 2.3 محاسبه شود.</td>
+<td>کوئری جدید <code>GetCvDraftMatch</code>، <code>cv-preview.tsx</code></td>
+<td>گزارش پس از ویرایش به‌روز می‌شود.</td>
+</tr>
+<tr>
+<td>3.3</td>
+<td><strong>Undo و diff هنگام بازتولید.</strong> محتوای قبلی بخش نگه داشته شود و قبل و بعد با پذیرش یا بازگشت نمایش داده شود.</td>
+<td><code>RegenerateCvDraftSection.cs</code>، <code>cv-editor.tsx</code></td>
+<td>با یک کلیک نسخهٔ قبلی برمی‌گردد.</td>
+</tr>
+<tr>
+<td>3.4</td>
+<td><strong>تاریخچهٔ نسخه‌ها.</strong> در هر ذخیره یا بازتولید یک snapshot با امکان بازگردانی.</td>
+<td><code>CvDraft</code> یا <code>CvDraftVersion</code> جدید، migration، UI</td>
+<td>کاربر می‌تواند نسخهٔ قبلی را باز و بازگردانی کند.</td>
+</tr>
+<tr>
+<td>3.5</td>
+<td><strong>راهنمای حین ویرایش.</strong> بولت‌های خیلی بلند، بدون فعل یا عدد، و نشانگرهای <code>**</code> بسته‌نشده برجسته شوند.</td>
+<td><code>cv-editor.tsx</code></td>
+<td>راهنما هنگام تایپ زنده نمایش داده می‌شود.</td>
+</tr>
+<tr>
+<td>3.6</td>
+<td><strong>استریم یا پیشرفت.</strong> حین فراخوانی AI پیشرفت نمایش داده شود (spinner با مراحل یا استریم). حالت‌های loading موجود در UI بررسی شود.</td>
+<td><code>cv-builder/api/index.ts</code>، <code>index.tsx</code></td>
+<td>کاربر هرگز صفحهٔ یخ‌زده نمی‌بیند.</td>
+</tr>
+<tr>
+<td>3.7</td>
+<td><strong>نقاط ورود.</strong> تأیید شود دکمهٔ «Tailor CV» روی درخواست شغلی عنوان و شرح را پر می‌کند. بررسی شود.</td>
+<td><code>ui.jobhunter/src/features/</code> (applications)</td>
+<td>با یک کلیک سازنده با شغل پرشده باز می‌شود.</td>
+</tr>
+<tr>
+<td>3.8</td>
+<td><strong>خروجی DOCX.</strong> بسیاری از کارفرماها Word می‌خواهند. از همان محتوای ساختاریافته خروجی گرفته شود.</td>
+<td><code>Infrastructure/CvRendering/</code>، <code>ExportCvDraft.cs</code></td>
+<td>DOCX تمیز و با همان محتوا باز می‌شود.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۴. سازگاری با ATS (P0 و P1)</h2>
+<p>قالب فعلی پایهٔ خوبی است: تک‌ستونه، بدون جدول یا تصویر، بولت‌های متنی، لینک‌های واقعی.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.1</td>
+<td><strong>تست رفت‌وبرگشت ATS (P0).</strong> با <code>QuestPdfCvRenderer</code> یک PDF بسازید، <code>CvTextExtractor</code> را روی آن اجرا کنید و تأیید کنید عنوان‌ها، ترتیب خواندن، اطلاعات تماس و تاریخ‌ها حفظ می‌شوند. هر دو کلاس و تست‌هایشان موجودند.</td>
+<td><code>tests/Application.UnitTests/Infrastructure/QuestPdfCvRendererTests.cs</code></td>
+<td>تست در CI می‌گذرد و با حذف یک عنوان شکست می‌خورد.</td>
+</tr>
+<tr>
+<td>4.2</td>
+<td><strong>عنوان‌های استاندارد.</strong> «Professional Skills»، «Recent Projects» و «Additional Information» به «Skills»، «Projects» و «Additional Information» یا «Links» تغییر کنند. «Summary»، «Experience»، «Education»، «Certifications» بماند.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>عنوان‌ها با نام بخش‌های رایج ATS می‌خوانند.</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td><strong>اطلاعات تماس ساده.</strong> هدر از برچسب‌های «Resident:»، «Phone:» و «email:» استفاده می‌کند. از «Location»، «Phone»، «Email» استفاده شود و اطلاعات در محتوای صفحه باشد، نه header صفحه. LinkedIn یا پورتفولیو هم اضافه شود.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>متن استخراج‌شده با نام و اطلاعات تماس شروع می‌شود.</td>
+</tr>
+<tr>
+<td>4.4</td>
+<td><strong>تعبیهٔ فونت و متادیتا.</strong> تأیید شود Lato تعبیه شده و متن PDF قابل انتخاب است. عنوان، نویسنده و کلیدواژه در متادیتا تنظیم شود.</td>
+<td><code>ClassicCvDocument.cs</code> (<code>GetMetadata</code>)، ثبت فونت</td>
+<td>PDF در بررسی استخراج متن می‌گذرد و متادیتا را نشان می‌دهد.</td>
+</tr>
+<tr>
+<td>4.5</td>
+<td><strong>تاریخ‌های یکدست.</strong> به یک قالب واحد نرمال شود (مثلاً «Jan 2022 - Present»). AI امروز رشتهٔ آزاد برمی‌گرداند.</td>
+<td><code>CvDraftContent.cs</code>، <code>ClassicCvDocument.cs</code> (<code>DateRange</code>)</td>
+<td>همهٔ تاریخ‌ها یک قالب دارند.</td>
+</tr>
+<tr>
+<td>4.6</td>
+<td><strong>از بولت‌های تزئینی و متن justify پرهیز کنید.</strong> متن justify می‌تواند هنگام استخراج فاصله‌های عجیب بسازد. چپ‌چین استفاده شود. با تست 4.1 بررسی شود.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>تست استخراج کلمات ادغام‌شده نشان نمی‌دهد.</td>
+</tr>
+<tr>
+<td>4.7</td>
+<td><strong>نام فایل امن.</strong> خروجی به‌صورت <code>Firstname-Lastname-CV.pdf</code> باشد، نه شناسهٔ تولیدی.</td>
+<td><code>ExportCvDraft.cs</code></td>
+<td>نام فایل دانلودشده خوانا است.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۵. ظاهر حرفه‌ای (P2)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.1</td>
+<td><strong>قالب دوم.</strong> یک نسخهٔ فشرده، همچنان تک‌ستونه و ایمن برای ATS. انتخاب بر اساس <code>TemplateId</code>.</td>
+<td><code>CvTemplates.cs</code>، کلاس سند جدید</td>
+<td>کاربر می‌تواند قالب را عوض و پیش‌نمایش کند.</td>
+</tr>
+<tr>
+<td>5.2</td>
+<td><strong>رنگ‌ها را آرام‌تر کنید.</strong> آبی پررنگ عنوان‌ها برای صفحه مناسب است، نه چاپ یا سیاه‌وسفید. یک پالت خنثی ارائه شود.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>چاپ سیاه‌وسفید خوانا می‌ماند.</td>
+</tr>
+<tr>
+<td>5.3</td>
+<td><strong>قواعد شکست صفحه.</strong> نقش از اولین بولتش جدا نشود و عنوان بخش در پایین صفحه تنها نماند.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>رزومهٔ بلند تمیز بین صفحه‌ها شکسته می‌شود.</td>
+</tr>
+<tr>
+<td>5.4</td>
+<td><strong>بدون عکس به‌صورت پیش‌فرض.</strong> همین‌طور بماند و در UI صریحاً گفته شود.</td>
+<td>متن UI</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۶. قوانین کسب‌وکار (P1 و P2)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6.1</td>
+<td><strong>محدودیت نرخ و سهمیه.</strong> <code>cv-writer-plan.md</code> محدودیت به‌ازای کاربر را ذکر کرده است. بررسی شود وجود دارد یا نه. اگر نه، محدودیت روزانه برای generate و regenerate اضافه شود.</td>
+<td><code>Web/Program.cs</code> یا MediatR behaviour</td>
+<td>فراخوانی اضافی 429 واضح با زمان بازنشانی برمی‌گرداند.</td>
+</tr>
+<tr>
+<td>6.2</td>
+<td><strong>ردیابی هزینه.</strong> مدل، توکن ورودی و خروجی و تأخیر هر فراخوانی لاگ شود.</td>
+<td><code>AiJsonClient.cs</code></td>
+<td>یک خط لاگ برای هر فراخوانی، با خلاصهٔ هزینهٔ روزانه.</td>
+</tr>
+<tr>
+<td>6.3</td>
+<td><strong>حریم خصوصی.</strong> پرامپت هم‌اکنون ایمیل و تلفن را کنار می‌گذارد؛ همین بماند. در UI و سیاست حریم خصوصی گفته شود داده‌های پروفایل به ارائه‌دهندهٔ AI ارسال می‌شود. بررسی شود هیچ متن رزومه‌ای لاگ نمی‌شود.</td>
+<td>متن UI، <code>LoggingBehaviour</code></td>
+<td>در کد و اسناد حقوقی تأیید شده.</td>
+</tr>
+<tr>
+<td>6.4</td>
+<td><strong>جایگزینی ارائه‌دهنده.</strong> اگر ارائه‌دهندهٔ ترجیحی شکست خورد و هر دو کلید موجود است، به دیگری سوئیچ شود.</td>
+<td><code>AiJsonClient.cs</code></td>
+<td>شکست اجباری OpenAI همچنان با Anthropic رزومه تولید می‌کند.</td>
+</tr>
+<tr>
+<td>6.5</td>
+<td><strong>انتخاب مدل به‌ازای هر گام.</strong> برای تولید مدل قوی‌تر و برای استخراج (2.3) و بررسی‌ها مدل ارزان‌تر.</td>
+<td><code>AiExtractionOptions.cs</code>، <code>appsettings.json</code></td>
+<td>هر گام تنظیم مدل مخصوص خود را دارد.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۷. ارزیابی کیفیت (P1)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7.1</td>
+<td>۵ تا ۱۰ پروفایل و شرح شغل ثابت برای تست بسازید، شامل پروفایل ناقص، تغییر مسیر شغلی و پروفایل ارشد با نقش‌های زیاد.</td>
+<td>مجموعه در پروژهٔ تست ذخیره شده است.</td>
+</tr>
+<tr>
+<td>7.2</td>
+<td>هر خروجی را خودکار امتیاز بدهید: بررسی grounding (1.4)، پوشش کلیدواژه (3.2)، محدودیت طول (2.2) و رفت‌وبرگشت ATS (4.1).</td>
+<td>یک دستور جدول امتیاز را چاپ می‌کند.</td>
+</tr>
+<tr>
+<td>7.3</td>
+<td>با هر تغییر پرامپت یا مدل (2.6) اجرا شود و با نسخهٔ قبلی مقایسه شود.</td>
+<td>اثر تغییر پرامپت پیش از merge دیده می‌شود.</td>
+</tr>
+</tbody>
+</table></div>
+<h2>۸. رزومهٔ فارسی (P1)</h2>
+<p>فیلد <code>Language</code> هم‌اکنون متن آزاد در <code>GenerateCvDraftCommand</code> و پرامپت است («Language: {x}»)، پس AI امروز هم می‌تواند فارسی بنویسد. شکاف واقعی در رندرر است. <code>ClassicCvDocument</code> چپ‌به‌راست است و از Lato استفاده می‌کند که حروف فارسی ندارد؛ بنابراین PDF فارسی کاراکتر گمشده یا متن وارونه نشان می‌دهد.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.1</td>
+<td><strong>زبان را به انتخاب ثابت تبدیل کنید.</strong> متن آزاد با فهرست (<code>en</code>، <code>fa</code>، بعداً بقیه) در درخواست، validator و UI جایگزین شود. روی <code>CvDraft</code> ذخیره شود. نیاز به migration.</td>
+<td><code>GenerateCvDraft.cs</code>، <code>GenerateCvDraftCommandValidator.cs</code>، <code>CvDraft.cs</code>، <code>cv-builder/index.tsx</code></td>
+<td>کدهای زبان ناشناخته رد می‌شوند.</td>
+</tr>
+<tr>
+<td>8.2</td>
+<td><strong>قوانین پرامپت فارسی.</strong> فارسی طبیعی و حرفه‌ای (نه ترجمهٔ کلمه‌به‌کلمه). نام شرکت‌ها، فناوری‌ها، URL و ایمیل به خط لاتین بماند. ارقام فارسی یا لاتین، یک انتخاب برای هر رزومه. نشانگرهای <code>**bold**</code> دست‌نخورده بمانند. قانون grounding در مسیر فارسی هم تکرار شود.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>رزومهٔ فارسی نمونه نام‌ها و اصطلاحات فنی را لاتین نگه می‌دارد و طبیعی خوانده می‌شود.</td>
+</tr>
+<tr>
+<td>8.3</td>
+<td><strong>فونت فارسی تعبیه کنید.</strong> Vazirmatn یا Noto Naskh Arabic اضافه، در QuestPDF ثبت و وقتی زبان <code>fa</code> است استفاده شود. مجوز فونت بررسی شود.</td>
+<td><code>Infrastructure/CvRendering/</code>، فایل فونت، <code>QuestPdfCvRenderer.cs</code></td>
+<td>متن فارسی بدون glyph گمشده رندر می‌شود.</td>
+</tr>
+<tr>
+<td>8.4</td>
+<td><strong>چیدمان راست‌به‌چپ.</strong> <code>ContentDirection.RightToLeft</code> برای صفحه تنظیم و ستون تاریخ، جای بولت و ترازبندی آینه شود. هدر وسط‌چین بماند. ایمیل، URL و شمارهٔ تلفن داخل متن RTL خوانا بمانند.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>PDF پیش‌نمایش بولت‌ها را راست و تاریخ‌ها را چپ دارد و اطلاعات تماس سالم است.</td>
+</tr>
+<tr>
+<td>8.5</td>
+<td><strong>عنوان‌ها و برچسب‌ها را ترجمه کنید.</strong> عنوان‌های انگلیسی ثابت («Summary»، «Experience»، «Present»، «Location») به دیکشنری هر زبان منتقل شوند. فارسی: خلاصه، سوابق کاری، تحصیلات، مهارت‌ها، پروژه‌ها، گواهینامه‌ها، زبان‌ها، تاکنون. برای کار 2.5 هم لازم است.</td>
+<td><code>ClassicCvDocument.cs</code>، <code>CvLabels.cs</code> جدید</td>
+<td>عنوان‌ها و «Present» از زبان رزومه پیروی می‌کنند.</td>
+</tr>
+<tr>
+<td>8.6</td>
+<td><strong>قالب تاریخ.</strong> بین میلادی (پیش‌فرض، امن‌تر برای کارفرمای بین‌المللی) و شمسی تصمیم بگیرید. نام ماه‌ها بر اساس زبان قالب‌بندی شود. AI امروز رشتهٔ آزاد برمی‌گرداند، پس به کار 4.5 وابسته است.</td>
+<td><code>CvDraftContent.cs</code>، <code>ClassicCvDocument.cs</code></td>
+<td>تاریخ‌ها در رزومهٔ فارسی یکدست‌اند.</td>
+</tr>
+<tr>
+<td>8.7</td>
+<td><strong>RTL در ویرایشگر و پیش‌نمایش.</strong> وقتی زبان <code>fa</code> است <code>dir="rtl"</code> روی بخش‌های قابل‌ویرایش و پیش‌نمایش گذاشته شود و متن در بولت‌های ترکیبی فارسی و انگلیسی درست تراز شود.</td>
+<td><code>cv-editor.tsx</code>، <code>cv-preview.tsx</code></td>
+<td>تایپ فارسی در بولت درست رفتار می‌کند.</td>
+</tr>
+<tr>
+<td>8.8</td>
+<td><strong>رفت‌وبرگشت ATS برای فارسی.</strong> تست 4.1 گسترش یابد: PDF فارسی رندر، متن با <code>CvTextExtractor</code> استخراج و بررسی شود کلمات به ترتیب منطقی‌اند، نه وارونه یا شکسته به presentation forms. اگر استخراج شکست خورد فونت یا تنظیمات shaping تغییر کند.</td>
+<td><code>QuestPdfCvRendererTests.cs</code></td>
+<td>متن فارسی استخراج‌شده با متن منبع برابر است.</td>
+</tr>
+<tr>
+<td>8.9</td>
+<td><strong>شرح شغل فارسی و خروجی دوزبانه.</strong> شرح شغل فارسی برای رزومهٔ انگلیسی و برعکس پذیرفته شود. اختیاری: تولید هر دو نسخه از یک پیش‌نویس.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>رزومهٔ انگلیسی از شرح شغل فارسی کلیدواژه‌ها را نگه می‌دارد.</td>
+</tr>
+<tr>
+<td>8.10</td>
+<td><strong>داده‌های تست فارسی.</strong> موارد فارسی به مجموعهٔ ارزیابی (7.1) اضافه شود: پروفایل فارسی، پروفایل ترکیبی و شرح شغل فارسی.</td>
+<td>پروژهٔ تست</td>
+<td>داده‌ها در دستور امتیازدهی (7.2) اجرا می‌شوند.</td>
+</tr>
+<tr>
+<td>8.11</td>
+<td><strong>کیفیت مدل AI در فارسی را بسنجید.</strong> <code>gpt-5.5</code> و مدل‌های Claude روی یک نمونهٔ فارسی مقایسه و بهتر نگه داشته شود.</td>
+<td><code>appsettings.json</code></td>
+<td>یک یادداشت کوتاه مقایسه اضافه می‌شود.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>نکتهٔ ATS:</strong> بسیاری از سیستم‌های ATS فارسی را ضعیف تجزیه می‌کنند. برای نقش‌های خارج از ایران معمولاً رزومهٔ انگلیسی امن‌تر است. وقتی <code>fa</code> انتخاب می‌شود این راهنما در UI نمایش داده شود و نسخهٔ انگلیسی هم پیشنهاد شود.</p>
+<hr />
+<h2>۹. تطابق با شرح شغل (P0 و P1)</h2>
+<p>شرح شغل هم‌اکنون در کارهای 2.3 (استخراج نیازمندی‌ها)، 2.4 (انتخاب، نه تخلیه)، 3.2 (گزارش کلیدواژه) و 8.9 (شرح شغل فارسی و انگلیسی) استفاده می‌شود. این بخش شکاف‌ها را پر می‌کند. اصل: <strong>رزومه را با شغل متناسب کنید، بدون افزودن چیزی که کاندیدا نمی‌تواند پشتوانه‌اش را نشان دهد.</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>کار</th>
+<th>فایل‌ها</th>
+<th>معیار پذیرش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9.1</td>
+<td><strong>بازتولید بخش زبان، لحن و دستورات اولیه را از دست می‌دهد (P0).</strong> <code>BuildRefinePrompt</code> خط Tone یا Language ندارد و <code>RegenerateCvDraftSection</code> فقط دستور همان بخش را می‌فرستد، نه <code>draft.Instructions</code> را. رزومهٔ فارسی ممکن است انگلیسی برگردد و راهنمایی‌هایی مثل «روی X تأکید کن» از بین برود. <code>Tone</code> و <code>Language</code> روی <code>CvDraft</code> ذخیره شود (همراه با 8.1) و همراه دستورات به درخواست و پرامپت refine داده شود.</td>
+<td><code>CvGenerationPrompt.cs</code> (<code>BuildRefinePrompt</code>)، <code>RegenerateCvDraftSection.cs</code>، <code>CvSectionRefineRequest</code>، <code>CvDraft.cs</code>، migration</td>
+<td>بازتولید بخش فارسی، فارسی برمی‌گرداند و دستورات مخصوص شغل را حفظ می‌کند.</td>
+</tr>
+<tr>
+<td>9.2</td>
+<td><strong>شرح شغل را از درخواست پیوندخورده پر کنید (بررسی شود).</strong> <code>JobDescription</code> اختیاری است و handler فقط وجود <code>JobApplicationId</code> را بررسی می‌کند. <code>JobApplication</code> به یک <code>JobRole</code> پیوند دارد و UI متن را از description و requirements آن می‌سازد (<code>lib/job-text.ts</code>). وقتی <code>JobApplicationId</code> تنظیم شده و شرح خالی است، روی سرور بارگذاری شود. ابتدا نام فیلدهای <code>JobRole</code> تأیید شود.</td>
+<td><code>GenerateCvDraft.cs</code>، <code>Domain/Entities/JobRole.cs</code> (بررسی شود)</td>
+<td>پیش‌نویسی که از یک درخواست ساخته می‌شود حتی اگر کلاینت شرحی نفرستاد، متناسب با شغل است.</td>
+</tr>
+<tr>
+<td>9.3</td>
+<td><strong>وقتی شرح شغل نیست هشدار دهید.</strong> به کاربر گفته شود رزومه بدون آن عمومی خواهد بود و چسباندن شرح یا انتخاب نقش شغلی پیشنهاد شود.</td>
+<td><code>cv-builder/index.tsx</code></td>
+<td>وقتی شرح خالی است هشدار نمایش داده می‌شود.</td>
+</tr>
+<tr>
+<td>9.4</td>
+<td><strong>عنوان و سطح شغل هدف را صادقانه هدف بگیرید.</strong> عنوان و خلاصه هر جا پس‌زمینه پشتیبانی می‌کند با عنوان و ارشدیت شغل همخوان باشد و هر جا نه، صادق بماند.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>عنوان رزومه نقش هدف را نشان می‌دهد، بدون ادعای فراتر از پروفایل.</td>
+</tr>
+<tr>
+<td>9.5</td>
+<td><strong>بولت‌ها را داخل هر نقش بر اساس ارتباط مرتب کنید.</strong> نقش‌ها ترتیب زمانی معکوس بمانند (کار 1.2) اما هر نقش با بولت‌های مهم‌تر برای شغل شروع شود و کم‌ارتباط‌ترین‌ها اول حذف شوند.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>بولت‌های بالای هر نقش با نیازمندی‌های شغل می‌خوانند.</td>
+</tr>
+<tr>
+<td>9.6</td>
+<td><strong>از واژگان خود شغل استفاده کنید.</strong> وقتی واژهٔ شغل و واژهٔ پس‌زمینه یک معنا دارند («Kubernetes» و «K8s»)، واژهٔ شغل استفاده شود و مخفف و شکل کامل یک بار نوشته شود.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>رزومه همان اصطلاحات دقیق شغل را نشان می‌دهد.</td>
+</tr>
+<tr>
+<td>9.7</td>
+<td><strong>بدون کپی و بدون keyword stuffing.</strong> کپی جملات شرح شغل ممنوع شود. وجود عبارات عیناً کپی‌شده در خروجی بررسی شود و سقفی برای تکرار هر کلیدواژه گذاشته شود.</td>
+<td>پرامپت، <code>CvGroundingValidator</code> (کار 1.4)</td>
+<td>تستی با شرح شغل چسبانده‌شده در صورت کپی جملات شکست می‌خورد.</td>
+</tr>
+<tr>
+<td>9.8</td>
+<td><strong>کلیدواژه در بافت، نه فقط در Skills.</strong> کلیدواژه‌های منطبق باید در خلاصه یا بولت‌ها بیایند، جایی که ATS و کارفرما وزن بیشتری می‌دهند. در امتیازدهی ارزیابی (7.2) سنجیده شود.</td>
+<td><code>CvGenerationPrompt.cs</code>، مجموعهٔ ارزیابی</td>
+<td>امتیاز نشان می‌دهد چند کلیدواژهٔ منطبق در بولت‌های تجربه آمده است.</td>
+</tr>
+<tr>
+<td>9.9</td>
+<td><strong>حلقهٔ شکاف صادقانه (مهم‌ترین برای تطابق).</strong> اگر شغل چیزی ضروری می‌خواهد که پس‌زمینه ندارد، مدل نباید آن را اضافه کند. گزارش تطابق (3.2) آن را به‌عنوان گمشده با اقدام «این را دارم، به پروفایلم اضافه کن» فهرست می‌کند و سپس بازتولید می‌شود. این کار تطابق و grounding (1.3 و 1.4) را هماهنگ نگه می‌دارد.</td>
+<td><code>GetCvDraftMatch</code> (3.2)، جریان به‌روزرسانی پروفایل، <code>cv-preview.tsx</code></td>
+<td>مهارت گمشده‌ای که به پروفایل اضافه شد در تولید بعدی ظاهر می‌شود.</td>
+</tr>
+<tr>
+<td>9.10</td>
+<td><strong>رزومهٔ فارسی از شرح شغل انگلیسی.</strong> کلیدواژه‌های شغل به خط لاتین بمانند تا تطبیق ATS کار کند. 8.2 و 8.9 را گسترش می‌دهد.</td>
+<td><code>CvGenerationPrompt.cs</code></td>
+<td>رزومهٔ فارسی اصطلاحات فناوری شغل را لاتین نگه می‌دارد.</td>
+</tr>
+<tr>
+<td>9.11</td>
+<td><strong>ترتیب بخش‌ها بر اساس نوع شغل (P2).</strong> <code>ClassicCvDocument</code> پروژه‌ها را قبل از تجربه می‌گذارد. تجربه به‌صورت پیش‌فرض اول باشد و ترتیب بر اساس نوع شغل بررسی شود.</td>
+<td><code>ClassicCvDocument.cs</code></td>
+<td>تجربه به‌صورت پیش‌فرض قبل از پروژه‌ها می‌آید.</td>
+</tr>
+<tr>
+<td>9.12</td>
+<td><strong>امتیاز تطابق در مجموعهٔ ارزیابی.</strong> بررسی‌های تطابق با شغل به 7.2 اضافه شود: پوشش مهارت‌های ضروری، تطابق عنوان و نبود جملات کپی‌شده.</td>
+<td>مجموعهٔ ارزیابی</td>
+<td>دستور امتیازدهی ستون تطابق شغل را چاپ می‌کند.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2>ترتیب پیشنهادی</h2>
+<ol>
+<li><strong>هفتهٔ ۱ (اعتماد):</strong> 1.1، 1.2، 1.5، 1.6، 4.1، 4.2، 4.3، 9.1</li>
+<li><strong>هفتهٔ ۲ (grounding و تطابق):</strong> 1.3، 1.4، 2.1، 2.2، 2.8، 9.2، 9.3، 9.4، 9.5، 9.6</li>
+<li><strong>هفتهٔ ۳ (UX):</strong> 3.1، 3.2، 9.9، 3.3، 2.3، 7.1 تا 7.3، 9.7، 9.8، 9.12</li>
+<li><strong>فارسی (پس از 4.1 و 4.5):</strong> 8.1، 8.3، 8.4، 8.5، 8.2، 8.7، 8.8، سپس 8.6 و 8.9 تا 8.11</li>
+<li><strong>بعداً:</strong> 3.4، 3.8، 5.x، 6.x، 2.6، 2.7</li>
+</ol>
+<h2>پرسش‌های باز</h2>
+<ul>
+<li>آیا AI مجاز است نام شرکت و نقش را بازنویسی کند (مثلاً «Acme Ltd.» را نرمال کند) یا باید دقیقاً مثل پروفایل بماند؟ کار 1.3 فرض می‌کند دقیقاً مثل پروفایل.</li>
+<li>آیا خروجی DOCX لازم است یا PDF کافی است؟</li>
+<li>آیا سقف هزینه به‌ازای کاربر لازم است یا فقط محدودیت نرخ؟</li>
+</ul>
+</main>
+</body>
+</html>
