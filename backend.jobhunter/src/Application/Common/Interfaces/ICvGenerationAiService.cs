@@ -82,8 +82,26 @@ public record CvSectionRefineRequest
     public string? BackgroundText { get; init; }
 }
 
+public record JobRequirementDto
+{
+    public string Name { get; init; } = string.Empty;
+    // Other spellings the posting or a CV might use, e.g. "K8s" for "Kubernetes".
+    public List<string> Aliases { get; init; } = [];
+}
+
+public record JobRequirementsDto
+{
+    public List<JobRequirementDto> MustHave { get; init; } = [];
+    public List<JobRequirementDto> NiceToHave { get; init; } = [];
+    // Years of experience, degrees, location, spoken languages: shown to the user, never matched as skills.
+    public List<string> OtherRequirements { get; init; } = [];
+}
+
 public interface ICvGenerationAiService
 {
+    // Reads a job description and lists the skills it asks for, so a CV can be checked against them.
+    Task<JobRequirementsDto> ExtractRequirementsAsync(string jobDescription, CancellationToken cancellationToken);
+
     Task<GeneratedCvDto> GenerateAsync(CvGenerationRequest request, CancellationToken cancellationToken);
 
     // Returns the full CV with only the requested section rewritten.

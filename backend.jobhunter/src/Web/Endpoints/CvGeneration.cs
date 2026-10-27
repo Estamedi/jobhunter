@@ -1,3 +1,5 @@
+using backend.jobhunter.Application.CvDrafts;
+using backend.jobhunter.Application.CvDrafts.Commands.AnalyzeCvDraftMatch;
 using backend.jobhunter.Application.CvDrafts.Commands.DeleteCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.GenerateCvDraft;
@@ -21,6 +23,7 @@ public class CvGeneration : IEndpointGroup
         group.MapPut(UpdateCvDraft, "{id}");
         group.MapPost(ExportCvDraft, "{id}/export");
         group.MapPost(RegenerateSection, "{id}/regenerate-section");
+        group.MapPost(AnalyzeMatch, "{id}/match");
         group.MapDelete(DeleteCvDraft, "{id}");
     }
 
@@ -50,6 +53,11 @@ public class CvGeneration : IEndpointGroup
         if (id != command.Id) return TypedResults.BadRequest();
         return TypedResults.Ok(await sender.Send(command, ct));
     }
+
+    [EndpointSummary("Check a CV draft against its job description")]
+    [EndpointDescription("Lists the skills the draft's job description asks for and whether the CV or the candidate's profile covers each. The first call asks the AI to read the job description and caches the result on the draft.")]
+    public static async Task<Ok<CvJobMatchDto>> AnalyzeMatch(ISender sender, int id, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new AnalyzeCvDraftMatchCommand(id), ct));
 
     [EndpointSummary("Regenerate a CV draft section")]
     [EndpointDescription("Rewrites one section (headline, summary, skills, projects, experience, education, certifications, languages or links) of a draft following the given instruction.")]

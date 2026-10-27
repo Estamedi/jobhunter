@@ -15,6 +15,9 @@ public class CvDraft : OwnedEntity
     // CEFR level (A2 to C2) the text was written at; null on drafts made before levels existed.
     public string? LanguageLevel { get; set; }
     public string ContentJson { get; set; } = "{}";
+    // The skills the job description asks for, extracted once on the first match check; the job
+    // description never changes after the draft is made, so this cannot go stale.
+    public string? JobRequirementsJson { get; set; }
     public string TemplateId { get; set; } = "classic";
 
     public Candidate Candidate { get; set; } = null!;

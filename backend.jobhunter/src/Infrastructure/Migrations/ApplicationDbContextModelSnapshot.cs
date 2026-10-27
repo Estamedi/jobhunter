@@ -439,6 +439,9 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasMaxLength(20000)
                         .HasColumnType("character varying(20000)");
 
+                    b.Property<string>("JobRequirementsJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("JobTitle")
                         .IsRequired()
                         .HasMaxLength(200)

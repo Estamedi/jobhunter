@@ -84,6 +84,22 @@ export interface ExportCvResult {
   existingCvKept: boolean
 }
 
+export type RequirementStatus = 'InCv' | 'SkillsOnly' | 'InProfile' | 'Missing'
+
+export interface RequirementMatch {
+  name: string
+  mustHave: boolean
+  status: RequirementStatus
+}
+
+export interface CvJobMatch {
+  hasJobDescription: boolean
+  requirements: RequirementMatch[]
+  otherRequirements: string[]
+  mustHaveCovered: number
+  mustHaveTotal: number
+}
+
 export interface GenerateCvDraftDto {
   candidateId: number
   jobTitle: string
@@ -129,6 +145,10 @@ export const cvBuilderApi = {
     http
       .put<CvDraft>(`/api/CvGeneration/${id}`, { id, ...dto })
       .then((r) => r.data),
+
+  // Checks the draft against its job description. The first call reads the job description with the AI.
+  match: (id: number) =>
+    http.post<CvJobMatch>(`/api/CvGeneration/${id}/match`).then((r) => r.data),
 
   regenerateSection: (id: number, dto: RegenerateSectionDto) =>
     http

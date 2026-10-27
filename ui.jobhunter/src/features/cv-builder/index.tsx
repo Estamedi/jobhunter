@@ -39,6 +39,7 @@ import {
 } from './api'
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
+import { JobMatchPanel } from './components/job-match-panel'
 import { SectionEditor } from './components/section-editor'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
 import { serverDetail } from './lib/error-message'
@@ -697,6 +698,19 @@ export function CvBuilder({
                   onRefine={(section) => setRefining(section)}
                 />
               </div>
+            )}
+
+            {!editing && candidate && (
+              <JobMatchPanel
+                draftId={draft.id}
+                lastModified={draft.lastModified}
+                hasJobDescription={!!draft.jobDescription?.trim()}
+                candidateId={candidate.id}
+                onRefine={(section, text) => {
+                  setInstruction(text)
+                  setRefining(section)
+                }}
+              />
             )}
           </div>
         )}
