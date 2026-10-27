@@ -45,6 +45,16 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
         var background = await CvBackgroundBuilder.BuildAsync(
             context, request.CandidateId, request.BackgroundText, cancellationToken);
 
+        var warnings = new List<string>(background.Warnings);
+        if (request.JobDescription?.Length > CvLimits.MaxFieldLength)
+        {
+            warnings.Add("The job description was too long, so the end of it was cut off before writing the CV.");
+        }
+        if (request.Instructions?.Length > CvLimits.MaxFieldLength)
+        {
+            warnings.Add("Your instructions were too long, so the end of them was cut off before writing the CV.");
+        }
+
         var generated = await aiService.GenerateAsync(new CvGenerationRequest
         {
             FullName = candidate.FullName,
@@ -54,10 +64,13 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             JobTitle = request.JobTitle,
             JobDescription = request.JobDescription,
             Instructions = request.Instructions,
-            BackgroundText = background,
+            BackgroundText = background.Text,
             Tone = request.Tone,
             Language = request.Language,
         }, cancellationToken);
+
+        generated = CvProfileMerger.Merge(generated, background.Profile, warnings);
+        warnings.AddRange(CvGroundingValidator.Validate(generated, background.Text));
 
         var draft = new CvDraft
         {
@@ -68,6 +81,8 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             JobTitle = request.JobTitle,
             JobDescription = request.JobDescription,
             Instructions = request.Instructions,
+            Tone = request.Tone,
+            Language = request.Language,
             TemplateId = string.IsNullOrWhiteSpace(request.TemplateId) ? "classic" : request.TemplateId,
             ContentJson = CvDraftContent.Serialize(generated),
         };
@@ -75,6 +90,6 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
         context.CvDrafts.Add(draft);
         await context.SaveChangesAsync(cancellationToken);
 
-        return draft.ToDetailDto();
+        return draft.ToDetailDto(warnings);
     }
 }

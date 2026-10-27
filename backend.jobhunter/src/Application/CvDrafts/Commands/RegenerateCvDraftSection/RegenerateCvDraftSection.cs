@@ -49,10 +49,17 @@ public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext contex
             Current = current,
             Section = section,
             Instruction = request.Instruction,
+            DraftInstructions = draft.Instructions,
+            Tone = draft.Tone,
+            Language = draft.Language,
             JobTitle = draft.JobTitle,
             JobDescription = draft.JobDescription,
-            BackgroundText = background,
+            BackgroundText = background.Text,
         }, cancellationToken);
+
+        // Experience and education facts come from the profile, same as when the draft was generated.
+        var warnings = new List<string>(background.Warnings);
+        refined = CvProfileMerger.Merge(refined, background.Profile, []);
 
         // Take only the requested section from the AI result so nothing else can drift.
         var updated = section switch
@@ -72,6 +79,7 @@ public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext contex
         draft.ContentJson = CvDraftContent.Serialize(updated);
         await context.SaveChangesAsync(cancellationToken);
 
-        return draft.ToDetailDto();
+        warnings.AddRange(CvGroundingValidator.Validate(updated, background.Text));
+        return draft.ToDetailDto(warnings);
     }
 }

@@ -99,7 +99,8 @@ export function ImportDialog({
           title: e.title,
           employmentType: e.employmentType ?? null,
           company: e.company,
-          isCurrent: e.isCurrent,
+          // A role with no end date is shown as "Present" in the review, so save it as current.
+          isCurrent: e.isCurrent || !e.endDate,
           startDate: e.startDate!,
           endDate: e.isCurrent ? null : (e.endDate ?? null),
           location: e.location ?? null,

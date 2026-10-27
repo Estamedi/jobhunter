@@ -28,17 +28,11 @@ export const preferencesApi = {
     http.put('/api/CandidatePreferences', {
       candidateId,
       workStatus: answers.workStatus,
-      searchIntensity: answers.searchIntensity,
       primaryGoal: answers.primaryGoal,
       targetRoles: answers.targetRoles,
-      minSalary: answers.minSalary,
-      salaryCurrency: answers.salaryCurrency,
-      employmentTypes: answers.employmentTypes,
+      employmentTypes: ['full-time'],
       workModes: answers.workModes,
-      willingToRelocate: answers.willingToRelocate,
       remoteRegions: answers.remoteRegions,
-      commuteCities: answers.commuteCities,
       workAuthorization: answers.workAuthorization,
-      industries: answers.industries,
     }),
 }

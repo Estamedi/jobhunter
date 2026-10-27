@@ -6,9 +6,13 @@ namespace backend.jobhunter.Application.CvDrafts;
 
 // Turns the candidate's saved profile (plus any extra notes typed in the CV Writer) into the
 // "source of truth" text the AI writes the CV from.
+// Text is null when there is nothing to write from. Profile is the loaded profile the text was built
+// from, so callers can merge hard facts back from it. Warnings describe anything left out.
+public record CvBackground(string? Text, CandidateProfile? Profile, IReadOnlyList<string> Warnings);
+
 public static class CvBackgroundBuilder
 {
-    public static async Task<string?> BuildAsync(
+    public static async Task<CvBackground> BuildAsync(
         IApplicationDbContext context, int candidateId, string? extraNotes, CancellationToken cancellationToken)
     {
         var profile = await context.CandidateProfiles.AsNoTracking()
@@ -21,10 +25,43 @@ public static class CvBackgroundBuilder
             .Include(p => p.Links)
             .FirstOrDefaultAsync(p => p.CandidateId == candidateId, cancellationToken);
 
-        return Build(profile, extraNotes);
+        return BuildWithWarnings(profile, extraNotes);
     }
 
     public static string? Build(CandidateProfile? profile, string? extraNotes)
+        => BuildWithWarnings(profile, extraNotes).Text;
+
+    // When the text is over maxLength, the descriptions of the oldest roles are left out first, so
+    // recent experience, the candidate's own notes and the other sections survive.
+    public static CvBackground BuildWithWarnings(
+        CandidateProfile? profile, string? extraNotes, int maxLength = CvLimits.MaxFieldLength)
+    {
+        var warnings = new List<string>();
+        var experienceCount = profile?.Experiences.Count ?? 0;
+
+        var droppedDescriptions = 0;
+        var text = Render(profile, extraNotes, droppedDescriptions);
+        while (text is not null && text.Length > maxLength && droppedDescriptions < experienceCount)
+        {
+            droppedDescriptions++;
+            text = Render(profile, extraNotes, droppedDescriptions);
+        }
+
+        if (droppedDescriptions > 0)
+        {
+            warnings.Add($"Your background was too long, so the descriptions of your {droppedDescriptions} oldest role(s) were left out of the CV.");
+        }
+
+        if (text is not null && text.Length > maxLength)
+        {
+            text = text[..maxLength];
+            warnings.Add("Your background was still too long, so the end of it was cut off before writing the CV.");
+        }
+
+        return new CvBackground(text, profile, warnings);
+    }
+
+    private static string? Render(CandidateProfile? profile, string? extraNotes, int droppedDescriptions)
     {
         var sb = new StringBuilder();
 
@@ -37,8 +74,10 @@ public static class CvBackgroundBuilder
             if (experiences.Count > 0)
             {
                 sb.AppendLine().AppendLine("Experience:");
-                foreach (var e in experiences)
+                for (var i = 0; i < experiences.Count; i++)
                 {
+                    var e = experiences[i];
+                    var keepDescription = i < experiences.Count - droppedDescriptions;
                     var end = e.IsCurrent || e.EndDate is null ? "Present" : e.EndDate.Value.ToString("MMM yyyy");
                     var place = string.Join(", ", new[] { e.Location, e.WorkplaceType?.ToString() }
                         .Where(v => !string.IsNullOrWhiteSpace(v)));
@@ -47,8 +86,8 @@ public static class CvBackgroundBuilder
                     sb.AppendLine($"- {e.Title} at {e.Company}" +
                                   (type is null ? "" : $" ({type})") +
                                   (place.Length == 0 ? "" : $", {place}") +
-                                  $" | {e.StartDate:MMM yyyy} - {end}");
-                    if (!string.IsNullOrWhiteSpace(e.Description)) sb.AppendLine(Indent(e.Description));
+                                  $" | {e.StartDate:MMM yyyy} - {end} [id:{e.Id}]");
+                    if (keepDescription && !string.IsNullOrWhiteSpace(e.Description)) sb.AppendLine(Indent(e.Description));
                     if (e.Skills.Count > 0) sb.AppendLine($"  Skills: {string.Join(", ", e.Skills)}");
                 }
             }
@@ -64,7 +103,8 @@ public static class CvBackgroundBuilder
                 sb.AppendLine($"- {e.Degree}" +
                               (string.IsNullOrWhiteSpace(e.FieldOfStudy) ? "" : $", {e.FieldOfStudy}") +
                               $" at {e.Institution}" +
-                              (dates.Length == 0 ? "" : $" | {dates}"));
+                              (dates.Length == 0 ? "" : $" | {dates}") +
+                              $" [id:{e.Id}]");
                 if (!string.IsNullOrWhiteSpace(e.Details)) sb.AppendLine(Indent(e.Details));
             }
         }

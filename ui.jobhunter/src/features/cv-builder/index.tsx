@@ -37,6 +37,19 @@ import { jobPostingText } from './lib/job-text'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
 
+// Things the server noticed while writing: text that was cut off, or details it could not verify.
+function showWarnings(warnings?: string[] | null) {
+  if (!warnings || warnings.length === 0) return
+  const shown = warnings.slice(0, 5)
+  const extra = warnings.length - shown.length
+  toast.warning('Please check the CV', {
+    description: [...shown, ...(extra > 0 ? [`and ${extra} more`] : [])].join(
+      '\n'
+    ),
+    duration: 12000,
+  })
+}
+
 function loadBackground() {
   try {
     return localStorage.getItem(BACKGROUND_KEY) ?? ''
@@ -307,6 +320,7 @@ export function CvBuilder({
       setSelectedId(created.id)
       setEditing(false)
       toast.success('CV generated')
+      showWarnings(created.warnings)
     },
     onError: () => toast.error('Failed to generate CV'),
   })
@@ -382,6 +396,7 @@ export function CvBuilder({
       setRefining(null)
       setInstruction('')
       toast.success('Section updated')
+      showWarnings(updated.warnings)
     },
     onError: () => toast.error('Failed to refine section'),
   })

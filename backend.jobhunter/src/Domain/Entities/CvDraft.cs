@@ -9,6 +9,9 @@ public class CvDraft : OwnedEntity
     public string JobTitle { get; set; } = string.Empty;
     public string? JobDescription { get; set; }
     public string? Instructions { get; set; }
+    // Kept so regenerating a section writes in the same tone and language as the original draft.
+    public string? Tone { get; set; }
+    public string? Language { get; set; }
     public string ContentJson { get; set; } = "{}";
     public string TemplateId { get; set; } = "classic";
 

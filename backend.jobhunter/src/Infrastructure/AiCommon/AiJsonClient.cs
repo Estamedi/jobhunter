@@ -24,11 +24,17 @@ public class AiJsonClient(IHttpClientFactory httpClientFactory, IOptions<AiExtra
     public Task<T> CompleteAsync<T>(
         string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
+        => CompleteAsync<T>(null, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel, cancellationToken);
+
+    // systemPrompt carries the fixed rules; prompt carries the untrusted, user-supplied content.
+    public Task<T> CompleteAsync<T>(
+        string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
+        string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
     {
         return PickProvider() switch
         {
-            "OpenAI" => WithOpenAiAsync<T>(prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, cancellationToken),
-            "Anthropic" => WithClaudeAsync<T>(prompt, schemaJson, maxTokens, anthropicModel ?? _options.AnthropicModel, cancellationToken),
+            "OpenAI" => WithOpenAiAsync<T>(systemPrompt, prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, cancellationToken),
+            "Anthropic" => WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, anthropicModel ?? _options.AnthropicModel, cancellationToken),
             _ => throw new InvalidOperationException("No AI provider is configured. Set an Anthropic or OpenAI API key."),
         };
     }
@@ -47,7 +53,7 @@ public class AiJsonClient(IHttpClientFactory httpClientFactory, IOptions<AiExtra
     }
 
     private async Task<T> WithClaudeAsync<T>(
-        string prompt, string schemaJson, int maxTokens, string model, CancellationToken cancellationToken)
+        string? systemPrompt, string prompt, string schemaJson, int maxTokens, string model, CancellationToken cancellationToken)
     {
         var body = new JsonObject
         {
@@ -59,6 +65,7 @@ public class AiJsonClient(IHttpClientFactory httpClientFactory, IOptions<AiExtra
             },
             ["messages"] = new JsonArray { new JsonObject { ["role"] = "user", ["content"] = prompt } },
         };
+        if (!string.IsNullOrWhiteSpace(systemPrompt)) body["system"] = systemPrompt;
 
         using var client = httpClientFactory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages")
@@ -86,8 +93,15 @@ public class AiJsonClient(IHttpClientFactory httpClientFactory, IOptions<AiExtra
     }
 
     private async Task<T> WithOpenAiAsync<T>(
-        string prompt, string schemaJson, string schemaName, string model, CancellationToken cancellationToken)
+        string? systemPrompt, string prompt, string schemaJson, string schemaName, string model, CancellationToken cancellationToken)
     {
+        var messages = new JsonArray();
+        if (!string.IsNullOrWhiteSpace(systemPrompt))
+        {
+            messages.Add(new JsonObject { ["role"] = "system", ["content"] = systemPrompt });
+        }
+        messages.Add(new JsonObject { ["role"] = "user", ["content"] = prompt });
+
         var body = new JsonObject
         {
             ["model"] = model,
@@ -101,7 +115,7 @@ public class AiJsonClient(IHttpClientFactory httpClientFactory, IOptions<AiExtra
                     ["schema"] = JsonNode.Parse(schemaJson),
                 },
             },
-            ["messages"] = new JsonArray { new JsonObject { ["role"] = "user", ["content"] = prompt } },
+            ["messages"] = messages,
         };
 
         using var client = httpClientFactory.CreateClient();

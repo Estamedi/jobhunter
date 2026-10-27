@@ -12,6 +12,8 @@ export interface CvProject {
 }
 
 export interface CvExperience {
+  // Profile row this entry comes from; the server keeps role, company and dates in sync with it.
+  sourceId?: number | null
   role: string
   company: string
   location?: string | null
@@ -21,6 +23,7 @@ export interface CvExperience {
 }
 
 export interface CvEducation {
+  sourceId?: number | null
   degree: string
   institution: string
   startDate?: string | null
@@ -55,6 +58,8 @@ export interface CvDraft {
   content: CvContent
   created: string
   lastModified: string
+  // Only present on the response to generate and regenerate.
+  warnings?: string[] | null
 }
 
 export interface CvDraftSummary {

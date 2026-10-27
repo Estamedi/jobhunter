@@ -16,6 +16,9 @@ public record CvGenerationRequest
 
 public record CvExperienceDto
 {
+    // Id of the profile experience this entry comes from; the server overwrites role, company and
+    // dates from that row so the AI cannot alter them. Null for entries typed in by hand.
+    public int? SourceId { get; init; }
     public string Role { get; init; } = string.Empty;
     public string Company { get; init; } = string.Empty;
     public string? Location { get; init; }
@@ -26,6 +29,7 @@ public record CvExperienceDto
 
 public record CvEducationDto
 {
+    public int? SourceId { get; init; }
     public string Degree { get; init; } = string.Empty;
     public string Institution { get; init; } = string.Empty;
     public string? StartDate { get; init; }
@@ -64,6 +68,10 @@ public record CvSectionRefineRequest
     public required GeneratedCvDto Current { get; init; }
     public required string Section { get; init; }
     public required string Instruction { get; init; }
+    // The instructions the draft was originally generated with, so refining keeps the job-specific guidance.
+    public string? DraftInstructions { get; init; }
+    public string? Tone { get; init; }
+    public string? Language { get; init; }
     public string JobTitle { get; init; } = string.Empty;
     public string? JobDescription { get; init; }
     public string? BackgroundText { get; init; }

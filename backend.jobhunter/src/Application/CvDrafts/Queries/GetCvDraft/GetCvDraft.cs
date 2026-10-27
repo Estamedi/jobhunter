@@ -16,7 +16,9 @@ public record CvDraftDetailDto(
     string TemplateId,
     GeneratedCvDto Content,
     DateTimeOffset Created,
-    DateTimeOffset LastModified
+    DateTimeOffset LastModified,
+    // Only set on the response to generate and regenerate; never stored.
+    IReadOnlyList<string>? Warnings = null
 );
 
 [Authorize]
@@ -37,8 +39,8 @@ public class GetCvDraftQueryHandler(IApplicationDbContext context)
 
 internal static class CvDraftDetailMapping
 {
-    public static CvDraftDetailDto ToDetailDto(this CvDraft d) => new(
+    public static CvDraftDetailDto ToDetailDto(this CvDraft d, IReadOnlyList<string>? warnings = null) => new(
         d.Id, d.CandidateId, d.SourceCvId, d.JobApplicationId, d.Title, d.JobTitle,
         d.JobDescription, d.Instructions, d.TemplateId,
-        CvDraftContent.Deserialize(d.ContentJson), d.Created, d.LastModified);
+        CvDraftContent.Deserialize(d.ContentJson), d.Created, d.LastModified, warnings);
 }

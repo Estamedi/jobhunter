@@ -12,15 +12,9 @@ import { preferencesApi } from './api'
 import { OptionTile } from './components/option-tile'
 import { TagInput } from './components/tag-input'
 import {
-  MAX_SALARY,
-  SALARY_STEP,
-  currencies,
-  employmentTypeOptions,
   goalOptions,
-  industryOptions,
   questions,
   remoteRegionOptions,
-  searchIntensityOptions,
   workAuthorizationOptions,
   workModeOptions,
   workStatusOptions,
@@ -29,7 +23,6 @@ import {
   type Question,
 } from './data/questions'
 import { useOnboardingAnswers } from './store'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const roleSuggestions = [
   'Software Engineer',
@@ -45,11 +38,6 @@ function toggle(list: string[], value: string) {
 
 function labelOf(options: Option[], values: string[]) {
   return values.map((v) => options.find((o) => o.value === v)?.label ?? v)
-}
-
-function formatSalary(value: number, currency: string) {
-  const text = new Intl.NumberFormat('en-US').format(value)
-  return value >= MAX_SALARY ? `${text}+ ${currency}` : `${text} ${currency}`
 }
 
 function SingleChoice({
@@ -126,8 +114,6 @@ function QuestionBody({
   switch (question.id) {
     case 'workStatus':
       return <SingleChoice options={workStatusOptions} value={answers.workStatus} onChange={(v) => set('workStatus', v)} />
-    case 'searchIntensity':
-      return <SingleChoice options={searchIntensityOptions} value={answers.searchIntensity} onChange={(v) => set('searchIntensity', v)} />
     case 'primaryGoal':
       return <SingleChoice options={goalOptions} value={answers.primaryGoal} onChange={(v) => set('primaryGoal', v)} />
     case 'targetRoles':
@@ -139,63 +125,12 @@ function QuestionBody({
           suggestions={roleSuggestions}
         />
       )
-    case 'minSalary':
-      return (
-        <div className='space-y-5 rounded-lg border bg-card p-5'>
-          <div className='flex items-center justify-between gap-3'>
-            <span className='text-2xl font-bold tracking-tight'>
-              {formatSalary(answers.minSalary, answers.salaryCurrency)}
-            </span>
-            <Select value={answers.salaryCurrency} onValueChange={(v) => set('salaryCurrency', v)}>
-              <SelectTrigger aria-label='Currency' className='h-9 w-auto'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {currencies.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <input
-            type='range'
-            aria-label='Minimum salary'
-            min={0}
-            max={MAX_SALARY}
-            step={SALARY_STEP}
-            value={answers.minSalary}
-            onChange={(e) => set('minSalary', Number(e.target.value))}
-            className='w-full accent-primary'
-          />
-          <div className='flex justify-between text-xs text-muted-foreground'>
-            <span>0</span>
-            <span>{new Intl.NumberFormat('en-US').format(MAX_SALARY)}+</span>
-          </div>
-        </div>
-      )
-    case 'employmentTypes':
-      return <MultiChoice columns options={employmentTypeOptions} values={answers.employmentTypes} onChange={(v) => set('employmentTypes', v)} />
     case 'workModes':
       return <MultiChoice columns options={workModeOptions} values={answers.workModes} onChange={(v) => set('workModes', v)} />
-    case 'willingToRelocate':
-      return (
-        <SingleChoice
-          options={[
-            { value: 'yes', label: 'Yes' },
-            { value: 'no', label: 'No' },
-          ]}
-          value={answers.willingToRelocate === undefined ? undefined : answers.willingToRelocate ? 'yes' : 'no'}
-          onChange={(v) => set('willingToRelocate', v === 'yes')}
-        />
-      )
     case 'remoteRegions':
       return <MultiChoice exclusive='anywhere' options={remoteRegionOptions} values={answers.remoteRegions} onChange={(v) => set('remoteRegions', v)} />
-    case 'commuteCities':
-      return <TagInput values={answers.commuteCities} onChange={(v) => set('commuteCities', v)} placeholder='Type a city name…' />
     case 'workAuthorization':
       return <SingleChoice options={workAuthorizationOptions} value={answers.workAuthorization} onChange={(v) => set('workAuthorization', v)} />
-    case 'industries':
-      return <MultiChoice exclusive='any' options={industryOptions} values={answers.industries} onChange={(v) => set('industries', v)} />
   }
 }
 
@@ -206,7 +141,7 @@ export function OnboardingQuestions() {
   const [index, setIndex] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Questions that apply to the current answers (remote / commute are conditional).
+  // Questions that apply to the current answers (remote is conditional).
   const visible = useMemo(
     () => questions.filter((q) => !q.when || q.when(answers)),
     [answers]
@@ -222,10 +157,7 @@ export function OnboardingQuestions() {
       const { items } = await candidatesApi.mine()
       const me = items[0]
       const candidateId = me.id
-      const countries = [
-        ...labelOf(remoteRegionOptions, answers.remoteRegions),
-        ...answers.commuteCities,
-      ]
+      const countries = labelOf(remoteRegionOptions, answers.remoteRegions)
       await preferencesApi.save(candidateId, answers)
       await authApi.updateOnboardingStatus('Completed')
       auth.setOnboardingStatus('Completed')
