@@ -133,7 +133,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
     {
         container.AlignCenter().Column(col =>
         {
-            col.Item().AlignCenter().Text(header.FullName).FontSize(18).FontColor(NameColor);
+            col.Item().AlignCenter().Text(header.FullName).FontSize(16).FontColor(NameColor);
             if (!string.IsNullOrWhiteSpace(cv.Headline))
             {
                 col.Item().AlignCenter().Text(cv.Headline).FontSize(14).Bold().FontColor(NameColor);
