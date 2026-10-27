@@ -12,6 +12,8 @@ public record CvGenerationRequest
     public string? BackgroundText { get; init; }
     public string? Tone { get; init; }
     public string? Language { get; init; }
+    // Printed A4 pages to aim for (see CvLengthGuide); null when there is nothing to judge from.
+    public int? TargetPages { get; init; }
 }
 
 public record CvExperienceDto

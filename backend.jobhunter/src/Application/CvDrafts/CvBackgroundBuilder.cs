@@ -13,7 +13,8 @@ public record CvBackground(string? Text, CandidateProfile? Profile, IReadOnlyLis
 public static class CvBackgroundBuilder
 {
     public static async Task<CvBackground> BuildAsync(
-        IApplicationDbContext context, int candidateId, string? extraNotes, CancellationToken cancellationToken)
+        IApplicationDbContext context, int candidateId, string? extraNotes, string? sourceCvText,
+        CancellationToken cancellationToken)
     {
         var profile = await context.CandidateProfiles.AsNoTracking()
             .Include(p => p.Experiences)
@@ -25,26 +26,36 @@ public static class CvBackgroundBuilder
             .Include(p => p.Links)
             .FirstOrDefaultAsync(p => p.CandidateId == candidateId, cancellationToken);
 
-        return BuildWithWarnings(profile, extraNotes);
+        return BuildWithWarnings(profile, extraNotes, sourceCvText);
     }
 
     public static string? Build(CandidateProfile? profile, string? extraNotes)
         => BuildWithWarnings(profile, extraNotes).Text;
 
-    // When the text is over maxLength, the descriptions of the oldest roles are left out first, so
-    // recent experience, the candidate's own notes and the other sections survive.
+    // When the text is over maxLength, the uploaded CV's text shrinks first, then the descriptions of the
+    // oldest roles are left out, so recent experience, the candidate's own notes and the other sections survive.
     public static CvBackground BuildWithWarnings(
-        CandidateProfile? profile, string? extraNotes, int maxLength = CvLimits.MaxFieldLength)
+        CandidateProfile? profile, string? extraNotes, string? sourceCvText = null, int maxLength = CvLimits.MaxFieldLength)
     {
         var warnings = new List<string>();
         var experienceCount = profile?.Experiences.Count ?? 0;
 
+        // The uploaded CV only backs up the profile, so its text is the first thing to shrink.
+        var cvText = string.IsNullOrWhiteSpace(sourceCvText) ? null : sourceCvText.Trim();
         var droppedDescriptions = 0;
-        var text = Render(profile, extraNotes, droppedDescriptions);
+        var text = Render(profile, extraNotes, droppedDescriptions, cvText);
+        if (text is not null && text.Length > maxLength && cvText is not null)
+        {
+            var overflow = text.Length - maxLength;
+            cvText = overflow >= cvText.Length ? null : cvText[..(cvText.Length - overflow)];
+            warnings.Add("Your uploaded CV was too long, so only the start of its text was used.");
+            text = Render(profile, extraNotes, droppedDescriptions, cvText);
+        }
+
         while (text is not null && text.Length > maxLength && droppedDescriptions < experienceCount)
         {
             droppedDescriptions++;
-            text = Render(profile, extraNotes, droppedDescriptions);
+            text = Render(profile, extraNotes, droppedDescriptions, cvText);
         }
 
         if (droppedDescriptions > 0)
@@ -61,7 +72,7 @@ public static class CvBackgroundBuilder
         return new CvBackground(text, profile, warnings);
     }
 
-    private static string? Render(CandidateProfile? profile, string? extraNotes, int droppedDescriptions)
+    private static string? Render(CandidateProfile? profile, string? extraNotes, int droppedDescriptions, string? sourceCvText)
     {
         var sb = new StringBuilder();
 
@@ -156,6 +167,13 @@ public static class CvBackgroundBuilder
             {
                 sb.AppendLine($"- {l.Label}: {l.Url}");
             }
+        }
+
+        if (!string.IsNullOrWhiteSpace(sourceCvText))
+        {
+            if (sb.Length > 0) sb.AppendLine();
+            sb.AppendLine("Text of the candidate's uploaded CV (secondary source; the [id:N] entries above take priority):");
+            sb.AppendLine(sourceCvText);
         }
 
         if (!string.IsNullOrWhiteSpace(extraNotes))

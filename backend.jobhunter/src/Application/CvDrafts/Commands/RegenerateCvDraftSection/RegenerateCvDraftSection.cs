@@ -30,7 +30,8 @@ public record RegenerateCvDraftSectionCommand : IRequest<CvDraftDetailDto>
     public string? BackgroundText { get; init; }
 }
 
-public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext context, ICvGenerationAiService aiService)
+public class RegenerateCvDraftSectionCommandHandler(
+    IApplicationDbContext context, ICvGenerationAiService aiService, IFileStorage fileStorage, ICvTextExtractor textExtractor)
     : IRequestHandler<RegenerateCvDraftSectionCommand, CvDraftDetailDto>
 {
     public async Task<CvDraftDetailDto> Handle(RegenerateCvDraftSectionCommand request, CancellationToken cancellationToken)
@@ -41,8 +42,15 @@ public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext contex
         var section = request.Section.ToLowerInvariant();
         var current = CvDraftContent.Deserialize(draft.ContentJson);
 
+        // Same sources as when the draft was generated, including the uploaded CV it was based on.
+        var warnings = new List<string>();
+        var sourceCv = draft.SourceCvId.HasValue
+            ? await context.Cvs.AsNoTracking().FirstOrDefaultAsync(c => c.Id == draft.SourceCvId, cancellationToken)
+            : null;
+        var sourceCvText = await CvSourceText.ReadAsync(sourceCv, fileStorage, textExtractor, warnings, cancellationToken);
         var background = await CvBackgroundBuilder.BuildAsync(
-            context, draft.CandidateId, request.BackgroundText, cancellationToken);
+            context, draft.CandidateId, request.BackgroundText, sourceCvText, cancellationToken);
+        warnings.AddRange(background.Warnings);
 
         var refined = await aiService.RefineSectionAsync(new CvSectionRefineRequest
         {
@@ -58,7 +66,6 @@ public class RegenerateCvDraftSectionCommandHandler(IApplicationDbContext contex
         }, cancellationToken);
 
         // Experience and education facts come from the profile, same as when the draft was generated.
-        var warnings = new List<string>(background.Warnings);
         refined = CvProfileMerger.Merge(refined, background.Profile, []);
 
         // Take only the requested section from the AI result so nothing else can drift.

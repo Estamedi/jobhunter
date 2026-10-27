@@ -14,12 +14,19 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { applicationsApi } from '@/features/applications/api'
 import { candidatesApi } from '@/features/candidates/api'
-import { cvsApi } from '@/features/cvs/api'
+import { cvsApi, type Cv } from '@/features/cvs/api'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 import { jobRolesApi } from '@/features/job-roles/api'
 import { profileApi } from '@/features/profile/api'
@@ -33,6 +40,7 @@ import {
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
+import { serverDetail } from './lib/error-message'
 import { jobPostingText } from './lib/job-text'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
@@ -85,16 +93,19 @@ interface GenerateFormData {
   backgroundText: string
   tone: string
   language: string
+  sourceCvId?: number
 }
 
 function GenerateForm({
   isPending,
   initial,
   profileRoles,
+  cvs,
   onSubmit,
 }: {
   isPending: boolean
   profileRoles: number
+  cvs: Cv[]
   initial?: { jobTitle: string; jobDescription: string }
   onSubmit: (data: GenerateFormData) => void
 }) {
@@ -106,6 +117,7 @@ function GenerateForm({
   const [backgroundText, setBackgroundText] = useState(loadBackground)
   const [tone, setTone] = useState('')
   const [language, setLanguage] = useState('')
+  const [sourceCvId, setSourceCvId] = useState('none')
 
   return (
     <form
@@ -120,6 +132,7 @@ function GenerateForm({
           backgroundText,
           tone,
           language,
+          sourceCvId: sourceCvId === 'none' ? undefined : Number(sourceCvId),
         })
       }}
     >
@@ -140,6 +153,12 @@ function GenerateForm({
           onChange={(e) => setJobDescription(e.target.value)}
           placeholder='Paste the job posting'
         />
+        {!jobDescription.trim() && (
+          <p className='text-xs text-muted-foreground'>
+            Without a job description the CV will be general, not tailored to a
+            job.
+          </p>
+        )}
       </div>
       <div className='rounded-md bg-muted/50 p-3 text-sm'>
         {profileRoles > 0 ? (
@@ -178,6 +197,27 @@ function GenerateForm({
           }
         />
       </div>
+      {cvs.length > 0 && (
+        <div className='space-y-1'>
+          <Label>Also use an uploaded CV (optional)</Label>
+          <Select value={sourceCvId} onValueChange={setSourceCvId}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='none'>Profile only</SelectItem>
+              {cvs.map((cv) => (
+                <SelectItem key={cv.id} value={String(cv.id)}>
+                  {cv.fileName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className='text-xs text-muted-foreground'>
+            Its text backs up your profile; the profile wins when they differ.
+          </p>
+        </div>
+      )}
       <div className='space-y-1'>
         <Label>Instructions</Label>
         <Textarea
@@ -285,6 +325,12 @@ export function CvBuilder({
     enabled: !!candidate,
   })
 
+  const { data: cvsResult } = useQuery({
+    queryKey: ['cvs', candidate?.id],
+    queryFn: () => cvsApi.list({ candidateId: candidate?.id, pageSize: 50 }),
+    enabled: !!candidate,
+  })
+
   const { data: draftsResult, isLoading: draftsLoading } = useQuery({
     queryKey: ['cv-drafts', candidate?.id],
     queryFn: () =>
@@ -309,6 +355,7 @@ export function CvBuilder({
         candidateId: candidate!.id,
         jobTitle: data.jobTitle,
         jobApplicationId: applicationId,
+        sourceCvId: data.sourceCvId,
         jobDescription: data.jobDescription || undefined,
         instructions: data.instructions || undefined,
         backgroundText: data.backgroundText || undefined,
@@ -322,7 +369,8 @@ export function CvBuilder({
       toast.success('CV generated')
       showWarnings(created.warnings)
     },
-    onError: () => toast.error('Failed to generate CV'),
+    onError: (error) =>
+      toast.error(serverDetail(error, 'Failed to generate CV')),
   })
 
   // Writes one CV per wishlist job that has a posting and no draft yet, one after another so a
@@ -398,7 +446,8 @@ export function CvBuilder({
       toast.success('Section updated')
       showWarnings(updated.warnings)
     },
-    onError: () => toast.error('Failed to refine section'),
+    onError: (error) =>
+      toast.error(serverDetail(error, 'Failed to refine section')),
   })
 
   const exportPdf = useMutation({
@@ -490,6 +539,7 @@ export function CvBuilder({
               key={`${applicationId}-${jobRoleId}`}
               initial={prefill}
               profileRoles={profile?.experiences.length ?? 0}
+              cvs={cvsResult?.items ?? []}
               isPending={generate.isPending || !candidate}
               onSubmit={(d) => generate.mutate(d)}
             />

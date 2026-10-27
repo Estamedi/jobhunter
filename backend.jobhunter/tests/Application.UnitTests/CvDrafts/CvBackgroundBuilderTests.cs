@@ -139,4 +139,45 @@ public class CvBackgroundBuilderTests
     {
         CvBackgroundBuilder.BuildWithWarnings(null, "short note").Warnings.ShouldBeEmpty();
     }
+
+    [Test]
+    public void ShouldAppendTheUploadedCvTextBeforeTheNotes()
+    {
+        var text = CvBackgroundBuilder.Build(
+            new CandidateProfile { Headline = "Engineer" }, "my notes")!;
+        text.ShouldNotContain("uploaded CV");
+
+        var withCv = CvBackgroundBuilder.BuildWithWarnings(
+            new CandidateProfile { Headline = "Engineer" }, "my notes", "Acme 2020 - 2022").Text!;
+
+        withCv.ShouldContain("uploaded CV");
+        withCv.ShouldContain("Acme 2020 - 2022");
+        withCv.IndexOf("Acme 2020", StringComparison.Ordinal).ShouldBeLessThan(withCv.IndexOf("my notes", StringComparison.Ordinal));
+    }
+
+    [Test]
+    public void ShouldShrinkTheUploadedCvTextBeforeTouchingTheProfile()
+    {
+        var profile = new CandidateProfile
+        {
+            Experiences = { new ProfileExperience { Id = 1, Title = "Dev", Company = "Acme", StartDate = new DateOnly(2024, 1, 1), IsCurrent = true, Description = "recent work" } },
+        };
+
+        var result = CvBackgroundBuilder.BuildWithWarnings(profile, null, new string('c', 2000), maxLength: 500);
+
+        result.Text!.Length.ShouldBeLessThanOrEqualTo(500);
+        result.Text.ShouldContain("recent work");
+        result.Warnings.ShouldHaveSingleItem().ShouldContain("uploaded CV was too long");
+    }
+
+    [Test]
+    public void ShouldDropTheUploadedCvTextEntirelyWhenTheProfileAloneFillsTheLimit()
+    {
+        var profile = new CandidateProfile { Summary = new string('s', 400) };
+
+        var result = CvBackgroundBuilder.BuildWithWarnings(profile, null, "uploaded text", maxLength: 410);
+
+        result.Text!.ShouldNotContain("uploaded text");
+        result.Warnings.ShouldHaveSingleItem();
+    }
 }

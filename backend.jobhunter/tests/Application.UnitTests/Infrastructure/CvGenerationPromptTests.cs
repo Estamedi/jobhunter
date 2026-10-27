@@ -75,4 +75,27 @@ public class CvGenerationPromptTests
             item["required"]!.AsArray().Select(n => n!.GetValue<string>()).ShouldContain("sourceId");
         }
     }
+
+    [Test]
+    public void ShouldStateTheLengthTargetOnlyWhenThereIsOne()
+    {
+        var with = CvGenerationPrompt.BuildUserPrompt(new CvGenerationRequest { FullName = "Jane", JobTitle = "Engineer", TargetPages = 2 });
+        var without = CvGenerationPrompt.BuildUserPrompt(new CvGenerationRequest { FullName = "Jane", JobTitle = "Engineer" });
+
+        with.ShouldContain("Length target: about 2 printed A4 page(s)");
+        without.ShouldNotContain("Length target");
+        CvGenerationPrompt.SystemPrompt.ShouldContain("instructions take priority");
+    }
+
+    [Test]
+    public void ShouldTellTheModelHowToTailorTheHeadlineAndWording()
+    {
+        var rules = CvGenerationPrompt.SystemPrompt;
+
+        rules.ShouldContain("Headline:");
+        rules.ShouldContain("own wording");
+        rules.ShouldContain("full form once");
+        rules.ShouldContain("Never copy whole sentences");
+        rules.ShouldContain("uploaded CV");
+    }
 }

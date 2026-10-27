@@ -21,7 +21,8 @@ public record GenerateCvDraftCommand : IRequest<CvDraftDetailDto>
     public string? Language { get; init; }
 }
 
-public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGenerationAiService aiService)
+public class GenerateCvDraftCommandHandler(
+    IApplicationDbContext context, ICvGenerationAiService aiService, IFileStorage fileStorage, ICvTextExtractor textExtractor)
     : IRequestHandler<GenerateCvDraftCommand, CvDraftDetailDto>
 {
     public async Task<CvDraftDetailDto> Handle(GenerateCvDraftCommand request, CancellationToken cancellationToken)
@@ -30,23 +31,41 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             .FirstOrDefaultAsync(c => c.Id == request.CandidateId, cancellationToken)
             ?? throw new NotFoundException(nameof(Candidate), request.CandidateId);
 
-        if (request.SourceCvId.HasValue
-            && !await context.Cvs.AnyAsync(c => c.Id == request.SourceCvId, cancellationToken))
+        Cv? sourceCv = null;
+        if (request.SourceCvId.HasValue)
         {
-            throw new NotFoundException(nameof(Cv), request.SourceCvId.Value);
+            sourceCv = await context.Cvs.AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == request.SourceCvId, cancellationToken)
+                ?? throw new NotFoundException(nameof(Cv), request.SourceCvId.Value);
         }
 
-        if (request.JobApplicationId.HasValue
-            && !await context.Applications.AnyAsync(a => a.Id == request.JobApplicationId, cancellationToken))
+        var jobDescription = request.JobDescription;
+        if (request.JobApplicationId.HasValue)
         {
-            throw new NotFoundException(nameof(JobApplication), request.JobApplicationId.Value);
+            var role = await context.Applications.AsNoTracking()
+                .Where(a => a.Id == request.JobApplicationId)
+                .Select(a => new { a.JobRole.Description, a.JobRole.Requirements })
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new NotFoundException(nameof(JobApplication), request.JobApplicationId.Value);
+
+            // A draft made from an application is tailored to that job even if the form sent no description.
+            if (string.IsNullOrWhiteSpace(jobDescription))
+            {
+                jobDescription = CvJobPosting.Compose(role.Description, role.Requirements);
+            }
         }
 
+        var warnings = new List<string>();
+        var sourceCvText = await CvSourceText.ReadAsync(sourceCv, fileStorage, textExtractor, warnings, cancellationToken);
         var background = await CvBackgroundBuilder.BuildAsync(
-            context, request.CandidateId, request.BackgroundText, cancellationToken);
+            context, request.CandidateId, request.BackgroundText, sourceCvText, cancellationToken);
+        warnings.AddRange(background.Warnings);
 
-        var warnings = new List<string>(background.Warnings);
-        if (request.JobDescription?.Length > CvLimits.MaxFieldLength)
+        if (string.IsNullOrWhiteSpace(jobDescription))
+        {
+            warnings.Add("No job description was given, so this CV is general rather than tailored to a job.");
+        }
+        else if (jobDescription.Length > CvLimits.MaxFieldLength)
         {
             warnings.Add("The job description was too long, so the end of it was cut off before writing the CV.");
         }
@@ -62,11 +81,12 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             Phone = candidate.Phone,
             Location = candidate.CurrentLocation,
             JobTitle = request.JobTitle,
-            JobDescription = request.JobDescription,
+            JobDescription = jobDescription,
             Instructions = request.Instructions,
             BackgroundText = background.Text,
             Tone = request.Tone,
             Language = request.Language,
+            TargetPages = CvLengthGuide.TargetPages(background.Profile, DateOnly.FromDateTime(DateTime.UtcNow)),
         }, cancellationToken);
 
         generated = CvProfileMerger.Merge(generated, background.Profile, warnings);
@@ -79,7 +99,9 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             JobApplicationId = request.JobApplicationId,
             Title = string.IsNullOrWhiteSpace(request.Title) ? $"{request.JobTitle} CV" : request.Title,
             JobTitle = request.JobTitle,
-            JobDescription = request.JobDescription,
+            JobDescription = jobDescription is { Length: > CvLimits.MaxFieldLength }
+                ? jobDescription[..CvLimits.MaxFieldLength]
+                : jobDescription,
             Instructions = request.Instructions,
             Tone = request.Tone,
             Language = request.Language,

@@ -77,7 +77,7 @@ public class QuestPdfCvRendererTests
         // Name, contact details, dates and company names survive as plain text.
         foreach (var expected in new[]
                  {
-                     "Jane Sample", "jane@example.com", "Muscat", "Senior Engineer", "Acme", "Globex",
+                     "Jane Sample", "Location: Muscat", "Phone: 123", "Email: jane@example.com", "Senior Engineer", "Acme", "Globex",
                      "Jan 2025", "Feb 2020 - Apr 2022", "Cut costs by 30%", "Built the billing API", "AZ-204",
                  })
         {
@@ -85,7 +85,7 @@ public class QuestPdfCvRendererTests
         }
 
         // Standard headings appear, in reading order.
-        var headings = new[] { "Summary", "Professional Skills", "Recent Projects", "Experience", "Education", "Certifications", "Additional Information" };
+        var headings = new[] { "Summary", "Skills", "Projects", "Experience", "Education", "Certifications", "Additional Information" };
         var positions = headings.Select(h => text.IndexOf(h, StringComparison.Ordinal)).ToList();
         positions.ShouldAllBe(p => p >= 0);
         positions.ShouldBe(positions.OrderBy(p => p).ToList());

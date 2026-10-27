@@ -39,7 +39,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
 
                 if (cv.Skills.Count > 0)
                 {
-                    col.Item().Element(c => Section(c, "Professional Skills", s =>
+                    col.Item().Element(c => Section(c, "Skills", s =>
                     {
                         foreach (var group in cv.Skills)
                         {
@@ -54,7 +54,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
 
                 if (cv.Projects.Count > 0)
                 {
-                    col.Item().Element(c => Section(c, "Recent Projects", s =>
+                    col.Item().Element(c => Section(c, "Projects", s =>
                     {
                         foreach (var project in cv.Projects)
                         {
@@ -139,8 +139,8 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                 col.Item().AlignCenter().Text(cv.Headline).FontSize(14).Bold().FontColor(NameColor);
             }
 
-            // "Resident: Muscat, Oman | Phone: (+968) ... | email: ..." with bold values.
-            var contact = new[] { ("Resident", header.Location), ("Phone", header.Phone), ("email", header.Email) }
+            // "Location: Muscat, Oman | Phone: (+968) ... | Email: ..." with bold values.
+            var contact = new[] { ("Location", header.Location), ("Phone", header.Phone), ("Email", header.Email) }
                 .Where(c => !string.IsNullOrWhiteSpace(c.Item2))
                 .ToList();
             if (contact.Count > 0)

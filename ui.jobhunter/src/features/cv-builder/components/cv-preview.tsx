@@ -76,9 +76,9 @@ export function CvPreview({
   onRefine?: (section: CvSection) => void
 }) {
   const contact = [
-    { label: 'Resident', value: header.location },
+    { label: 'Location', value: header.location },
     { label: 'Phone', value: header.phone },
-    { label: 'email', value: header.email },
+    { label: 'Email', value: header.email },
   ].filter((c) => c.value)
 
   return (
@@ -120,11 +120,7 @@ export function CvPreview({
       )}
 
       {content.skills.length > 0 && (
-        <Section
-          title='Professional Skills'
-          section='skills'
-          onRefine={onRefine}
-        >
+        <Section title='Skills' section='skills' onRefine={onRefine}>
           <ul className='list-disc pl-5'>
             {content.skills.map((g, i) => (
               <li key={i}>
@@ -137,7 +133,7 @@ export function CvPreview({
       )}
 
       {content.projects.length > 0 && (
-        <Section title='Recent Projects' section='projects' onRefine={onRefine}>
+        <Section title='Projects' section='projects' onRefine={onRefine}>
           {content.projects.map((p, i) => (
             <div key={i}>
               <strong>{p.name}</strong>
