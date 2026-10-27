@@ -15,6 +15,7 @@ import {
   FileText,
   Mail,
   MapPin,
+  Phone,
   Sparkles,
   Upload,
   UserRound,
@@ -164,6 +165,7 @@ export function Onboarding() {
     const email = String(data.get('email') ?? auth.user?.email ?? '').trim()
     const jobTitle = String(data.get('jobTitle') ?? '').trim()
     const location = String(data.get('location') ?? '').trim()
+    const phone = String(data.get('phone') ?? '').trim()
     const skills = String(data.get('skills') ?? '').trim()
     const summary = String(data.get('summary') ?? '').trim()
 
@@ -174,6 +176,7 @@ export function Onboarding() {
       await candidatesApi.update(candidateId, {
         fullName,
         email,
+        phone: phone || undefined,
         currentLocation: location || undefined,
         targetRoles: jobTitle || undefined,
         // Without an analyzed CV the typed summary and skills are kept as notes.
@@ -238,6 +241,10 @@ export function Onboarding() {
     const initialName = candidate?.fullName || nameFromResume(selectedFile.name)
     const initialEmail = candidate?.email || auth.user?.email || ''
     const initialTitle = parsed?.headline || parsed?.experiences[0]?.title || ''
+    const initialPhone = candidate?.phone || parsed?.phone || ''
+    const initialLocation =
+      candidate?.currentLocation ||
+      [parsed?.city, parsed?.country].filter(Boolean).join(', ')
     const initialSkills = (parsed?.skills ?? []).map((k) => k.name).join(', ')
 
     return (
@@ -327,13 +334,27 @@ export function Onboarding() {
                 </div>
 
                 <div className='space-y-2'>
+                  <Label htmlFor='parsed-phone'>Phone</Label>
+                  <div className='relative'>
+                    <Phone className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Input
+                      id='parsed-phone'
+                      name='phone'
+                      type='tel'
+                      defaultValue={initialPhone}
+                      className='h-11 rounded-xl pl-10'
+                    />
+                  </div>
+                </div>
+
+                <div className='space-y-2'>
                   <Label htmlFor='parsed-location'>Location</Label>
                   <div className='relative'>
                     <MapPin className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
                     <Input
                       id='parsed-location'
                       name='location'
-                      defaultValue={candidate?.currentLocation ?? ''}
+                      defaultValue={initialLocation}
                       placeholder='City, country'
                       className='h-11 rounded-xl pl-10'
                     />

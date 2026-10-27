@@ -156,6 +156,9 @@ export interface ParsedLanguage {
 export interface ParsedProfile {
   headline?: string | null
   summary?: string | null
+  phone?: string | null
+  city?: string | null
+  country?: string | null
   experiences: ParsedExperience[]
   educations: ParsedEducation[]
   skills: ParsedSkill[]
@@ -173,6 +176,8 @@ export interface ImportProfileDto {
   mode: ImportMode
   headline?: string | null
   summary?: string | null
+  phone?: string | null
+  currentLocation?: string | null
   experiences: SaveExperienceDto[]
   educations: SaveEducationDto[]
   skills: ParsedSkill[]

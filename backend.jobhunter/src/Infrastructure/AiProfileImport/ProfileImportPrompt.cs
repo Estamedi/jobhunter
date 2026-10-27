@@ -8,6 +8,9 @@ public static class ProfileImportPrompt
       "properties": {
         "headline": { "type": ["string", "null"], "description": "Professional headline, max 220 characters" },
         "summary": { "type": ["string", "null"], "description": "The CV's own summary/about text, max 2600 characters" },
+        "phone": { "type": ["string", "null"], "description": "The candidate's own phone number as written, including country code if present" },
+        "city": { "type": ["string", "null"], "description": "City of the candidate's current residence, from the CV header/contact block" },
+        "country": { "type": ["string", "null"], "description": "Country of the candidate's current residence; use the full country name, also when only a city or country code is written" },
         "experiences": {
           "type": "array",
           "items": {
@@ -122,7 +125,7 @@ public static class ProfileImportPrompt
         }
       },
       "required": [
-        "headline", "summary", "experiences", "educations", "skills",
+        "headline", "summary", "phone", "city", "country", "experiences", "educations", "skills",
         "projects", "certifications", "languages", "links"
       ],
       "additionalProperties": false
@@ -141,6 +144,7 @@ public static class ProfileImportPrompt
                "- One experience entry per role. If a company lists several roles, create one entry per role.\n" +
                "- Write each achievement on its own line starting with '• ' in the description; keep the CV's wording and any metrics.\n" +
                "- Dates use YYYY-MM-01. 'Present'/'Current' means isCurrent=true and endDate=null.\n" +
+               "- Phone, city and country: the candidate's own contact details, usually in the header. City and country are where they currently live, not an employer's location.\n" +
                "- Use null for anything not stated in the CV.\n" +
                "- Skills per role: only technologies or skills explicitly mentioned for that role.\n" +
                "- Education: one entry per degree or school; the degree is the qualification, fieldOfStudy the subject if separate.\n" +

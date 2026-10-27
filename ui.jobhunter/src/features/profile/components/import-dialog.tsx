@@ -113,6 +113,9 @@ export function ImportDialog({
         mode,
         headline: parsed!.headline ?? null,
         summary: parsed!.summary ?? null,
+        phone: parsed!.phone ?? null,
+        currentLocation:
+          [parsed!.city, parsed!.country].filter(Boolean).join(', ') || null,
         experiences,
         educations: parsed!.educations
           .filter((_, i) => selectedEdu.has(i))

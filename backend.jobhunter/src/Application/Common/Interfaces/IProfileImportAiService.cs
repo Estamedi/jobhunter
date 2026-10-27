@@ -65,6 +65,9 @@ public record ParsedProfileDto
 {
     public string? Headline { get; init; }
     public string? Summary { get; init; }
+    public string? Phone { get; init; }
+    public string? City { get; init; }
+    public string? Country { get; init; }
     public List<ParsedExperienceDto> Experiences { get; init; } = [];
     public List<ParsedEducationDto> Educations { get; init; } = [];
     public List<ParsedSkillDto> Skills { get; init; } = [];

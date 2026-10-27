@@ -20,8 +20,15 @@ function grabPage() {
   const root =
     document.querySelector('[class*="jobs-description"], [class*="job-description"], [id*="job-description"], [class*="jobsearch-JobComponent"], main, [role="main"]') ||
     document.body;
-  // innerText keeps line breaks; fall back to the whole body if the container is tiny.
-  let text = root?.innerText || "";
+  // innerText keeps line breaks; skip navigation/footer chrome, and fall back
+  // to the whole body if the container yields almost nothing.
+  const SKIP = "nav, header, footer, aside, script, style, noscript";
+  const collect = (el) => {
+    if (el.matches(SKIP)) return "";
+    if (!el.querySelector(SKIP)) return el.innerText || "";
+    return Array.from(el.children).map(collect).filter(Boolean).join("\n");
+  };
+  let text = root ? collect(root) : "";
   if (text.trim().length < 200) text = document.body?.innerText || "";
   out.text = text
     .replace(/[ \t]+\n/g, "\n")

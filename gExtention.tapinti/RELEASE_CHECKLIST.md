@@ -4,7 +4,7 @@ Based on release review against `tapinti_chrome_extension_release_review_brief.m
 
 ## Blockers
 
-- [ ] Delete/exclude `src/local-settings.json` from the packaged zip — it contains a live OpenAI key (`sk-proj-...`). Not tracked by git, but nothing currently stops it from being zipped for upload.
+- [x] Delete/exclude `src/local-settings.json` from the packaged zip — it contains a live OpenAI key (`sk-proj-...`). File no longer exists; `package.sh` excludes it.
 - [ ] Rotate that OpenAI key since it has sat in a plaintext file.
 - [x] Add extension icons (16/32/48/128 px) and an `icons` key in `manifest.json` — generated from the ApplyLadder design system's fan-card mark (`icons/icon*.png`), wired into `manifest.json` `icons` and `action.default_icon`.
 - [x] Remove dev-only `host_permissions` from production manifest: `http://localhost/*`, `http://127.0.0.1/*`.
@@ -20,8 +20,8 @@ Based on release review against `tapinti_chrome_extension_release_review_brief.m
 
 ## Nice to have
 
-- [ ] Strip `<nav>/<header>/<footer>/<script>` content before capturing page text, for a smaller/cleaner payload.
-- [ ] Consider an explicit `content_security_policy` in the manifest (MV3 default is already safe; optional for auditor clarity).
+- [x] Strip `<nav>/<header>/<footer>/<script>` content before capturing page text, for a smaller/cleaner payload.
+- [x] Consider an explicit `content_security_policy` in the manifest (MV3 default is already safe; optional for auditor clarity).
 
 ## Production manifest
 
@@ -61,14 +61,14 @@ Based on release review against `tapinti_chrome_extension_release_review_brief.m
 ## Store submission checklist
 
 - [ ] `src/local-settings.json` excluded from package; OpenAI key rotated
-- [ ] Icon assets added (16/32/48/128) + manifest `icons` key
-- [ ] `host_permissions` stripped to `https://api.applyladder.com/*` only
-- [ ] `console.log` of extracted job data removed
-- [ ] Privacy policy written and hosted
-- [ ] Page-text capture narrowed away from full `body.innerText`
-- [ ] Google `idToken`/`access_token` handling confirmed with backend
-- [ ] Button copy + AI-processing disclosure updated
-- [ ] Version bumped
-- [ ] Store listing text, screenshots, support contact finalized
-- [ ] No "Official/Approved/Partner LinkedIn" language anywhere
+- [x] Icon assets added (16/32/48/128) + manifest `icons` key
+- [x] `host_permissions` stripped to `https://api.applyladder.com/*` only
+- [x] `console.log` of extracted job data removed
+- [x] Privacy policy written and hosted
+- [x] Page-text capture narrowed away from full `body.innerText`
+- [x] Google `idToken`/`access_token` handling confirmed with backend
+- [x] Button copy + AI-processing disclosure updated
+- [x] Version bumped
+- [ ] Store listing text, screenshots, support contact finalized (text, screenshot and promo tile ready in STORE_LISTING.md and store-assets/; support email still to enter)
+- [x] No "Official/Approved/Partner LinkedIn" language anywhere
 - [ ] Non-Trader selected in Developer Dashboard (account setting, not code)

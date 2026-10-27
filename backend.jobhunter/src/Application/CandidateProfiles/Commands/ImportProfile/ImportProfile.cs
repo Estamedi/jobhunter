@@ -76,6 +76,8 @@ public record ImportProfileCommand : IRequest<int>
     public string Mode { get; init; } = "Merge";
     public string? Headline { get; init; }
     public string? Summary { get; init; }
+    public string? Phone { get; init; }
+    public string? CurrentLocation { get; init; }
     public IReadOnlyList<ImportedExperience> Experiences { get; init; } = [];
     public IReadOnlyList<ImportedEducation> Educations { get; init; } = [];
     public IReadOnlyList<ImportedSkill> Skills { get; init; } = [];
@@ -263,6 +265,16 @@ public class ImportProfileCommandHandler(IApplicationDbContext context)
                 Url = item.Url.Trim(),
                 SortOrder = linkOrder++,
             });
+        }
+
+        // Contact details are only filled in when the candidate has none yet.
+        var candidate = await context.Candidates.FirstOrDefaultAsync(c => c.Id == request.CandidateId, cancellationToken);
+        if (candidate is not null)
+        {
+            if (string.IsNullOrWhiteSpace(candidate.Phone) && !string.IsNullOrWhiteSpace(request.Phone))
+                candidate.Phone = request.Phone.Trim();
+            if (string.IsNullOrWhiteSpace(candidate.CurrentLocation) && !string.IsNullOrWhiteSpace(request.CurrentLocation))
+                candidate.CurrentLocation = request.CurrentLocation.Trim();
         }
 
         profile.ImportedFromCvId = request.CvId;
