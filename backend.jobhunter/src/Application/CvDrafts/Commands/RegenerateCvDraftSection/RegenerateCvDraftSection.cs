@@ -84,10 +84,14 @@ public class RegenerateCvDraftSectionCommandHandler(
             _ => throw new ArgumentOutOfRangeException(nameof(request), section, "Unknown CV section."),
         };
 
-        draft.ContentJson = CvDraftContent.Serialize(updated);
+        var newContentJson = CvDraftContent.Serialize(updated);
+        var previous = await CvVersioning.SnapshotAsync(
+            context, draft, newContentJson, $"Before refining {section}", cancellationToken);
+
+        draft.ContentJson = newContentJson;
         await context.SaveChangesAsync(cancellationToken);
 
         warnings.AddRange(CvGroundingValidator.Validate(updated, background.Text));
-        return draft.ToDetailDto(warnings);
+        return draft.ToDetailDto(warnings, previous?.Id);
     }
 }

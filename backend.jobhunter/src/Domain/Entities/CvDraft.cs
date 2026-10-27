@@ -23,4 +23,5 @@ public class CvDraft : OwnedEntity
     public Candidate Candidate { get; set; } = null!;
     public Cv? SourceCv { get; set; }
     public JobApplication? JobApplication { get; set; }
+    public ICollection<CvDraftVersion> Versions { get; set; } = new List<CvDraftVersion>();
 }

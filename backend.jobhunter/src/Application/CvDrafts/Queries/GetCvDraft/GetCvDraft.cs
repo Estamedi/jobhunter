@@ -18,7 +18,9 @@ public record CvDraftDetailDto(
     DateTimeOffset Created,
     DateTimeOffset LastModified,
     // Only set on the response to generate and regenerate; never stored.
-    IReadOnlyList<string>? Warnings = null
+    IReadOnlyList<string>? Warnings = null,
+    // The saved copy of the content this change replaced; Undo restores exactly this version. Never stored.
+    int? PreviousVersionId = null
 );
 
 [Authorize]
@@ -39,8 +41,9 @@ public class GetCvDraftQueryHandler(IApplicationDbContext context)
 
 internal static class CvDraftDetailMapping
 {
-    public static CvDraftDetailDto ToDetailDto(this CvDraft d, IReadOnlyList<string>? warnings = null) => new(
+    public static CvDraftDetailDto ToDetailDto(
+        this CvDraft d, IReadOnlyList<string>? warnings = null, int? previousVersionId = null) => new(
         d.Id, d.CandidateId, d.SourceCvId, d.JobApplicationId, d.Title, d.JobTitle,
         d.JobDescription, d.Instructions, d.TemplateId,
-        CvDraftContent.Deserialize(d.ContentJson), d.Created, d.LastModified, warnings);
+        CvDraftContent.Deserialize(d.ContentJson), d.Created, d.LastModified, warnings, previousVersionId);
 }

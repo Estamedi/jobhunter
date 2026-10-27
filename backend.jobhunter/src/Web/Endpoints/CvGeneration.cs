@@ -4,8 +4,11 @@ using backend.jobhunter.Application.CvDrafts.Commands.DeleteCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.GenerateCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.RegenerateCvDraftSection;
+using backend.jobhunter.Application.CvDrafts.Commands.RestoreCvDraftVersion;
 using backend.jobhunter.Application.CvDrafts.Commands.UpdateCvDraft;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraft;
+using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraftVersion;
+using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraftVersions;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDrafts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -24,6 +27,9 @@ public class CvGeneration : IEndpointGroup
         group.MapPost(ExportCvDraft, "{id}/export");
         group.MapPost(RegenerateSection, "{id}/regenerate-section");
         group.MapPost(AnalyzeMatch, "{id}/match");
+        group.MapGet(GetVersions, "{id}/versions");
+        group.MapGet(GetVersion, "{id}/versions/{versionId}");
+        group.MapPost(RestoreVersion, "{id}/versions/{versionId}/restore");
         group.MapDelete(DeleteCvDraft, "{id}");
     }
 
@@ -58,6 +64,23 @@ public class CvGeneration : IEndpointGroup
     [EndpointDescription("Lists the skills the draft's job description asks for and whether the CV or the candidate's profile covers each. The first call asks the AI to read the job description and caches the result on the draft.")]
     public static async Task<Ok<CvJobMatchDto>> AnalyzeMatch(ISender sender, int id, CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(new AnalyzeCvDraftMatchCommand(id), ct));
+
+    [EndpointSummary("List earlier versions of a CV draft")]
+    [EndpointDescription("The last 20 saved copies of the draft's content, newest first. A copy is saved just before a hand edit, a section refine or a restore replaces the content.")]
+    public static async Task<Ok<IReadOnlyList<CvDraftVersionSummaryDto>>> GetVersions(
+        ISender sender, int id, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new GetCvDraftVersionsQuery(id), ct));
+
+    [EndpointSummary("Get one earlier version of a CV draft")]
+    public static async Task<Ok<CvDraftVersionDetailDto>> GetVersion(
+        ISender sender, int id, int versionId, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new GetCvDraftVersionQuery(id, versionId), ct));
+
+    [EndpointSummary("Restore an earlier version of a CV draft")]
+    [EndpointDescription("Replaces the draft's content with the chosen version. The current content is saved first, so the restore can be undone.")]
+    public static async Task<Ok<CvDraftDetailDto>> RestoreVersion(
+        ISender sender, int id, int versionId, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new RestoreCvDraftVersionCommand(id, versionId), ct));
 
     [EndpointSummary("Regenerate a CV draft section")]
     [EndpointDescription("Rewrites one section (headline, summary, skills, projects, experience, education, certifications, languages or links) of a draft following the given instruction.")]

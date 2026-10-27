@@ -492,6 +492,48 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.ToTable("CvDrafts");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CvDraftVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CvDraftId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CvDraftId");
+
+                    b.ToTable("CvDraftVersions");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.Property<int>("Id")
@@ -1606,6 +1648,17 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Navigation("SourceCv");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CvDraftVersion", b =>
+                {
+                    b.HasOne("backend.jobhunter.Domain.Entities.CvDraft", "CvDraft")
+                        .WithMany("Versions")
+                        .HasForeignKey("CvDraftId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CvDraft");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobActivity", b =>
                 {
                     b.HasOne("backend.jobhunter.Domain.Entities.JobApplication", "Application")
@@ -1859,6 +1912,11 @@ namespace backend.jobhunter.Infrastructure.Migrations
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.Cv", b =>
                 {
                     b.Navigation("Applications");
+                });
+
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CvDraft", b =>
+                {
+                    b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.JobApplication", b =>

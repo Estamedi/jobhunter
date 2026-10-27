@@ -2,7 +2,14 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { FileDown, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
+import {
+  FileDown,
+  History,
+  Loader2,
+  Pencil,
+  Sparkles,
+  Trash2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +48,7 @@ import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
 import { JobMatchPanel } from './components/job-match-panel'
 import { SectionEditor } from './components/section-editor'
+import { VersionHistoryDialog } from './components/version-history-dialog'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
 import { serverDetail } from './lib/error-message'
 import { jobPostingText } from './lib/job-text'
@@ -311,6 +319,7 @@ export function CvBuilder({
   const [refining, setRefining] = useState<CvSection | null>(null)
   const [editingSection, setEditingSection] = useState<CvSection | null>(null)
   const [instruction, setInstruction] = useState('')
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [progress, setProgress] = useState<BatchProgress | null>(null)
   const [deleting, setDeleting] = useState<CvDraftSummary | CvDraft | null>(
     null
@@ -460,6 +469,26 @@ export function CvBuilder({
     onError: () => toast.error('Failed to write the CVs'),
   })
 
+  // Every hand edit, refine and restore saves the content it replaced; Undo puts exactly that back.
+  const undoAction = (versionId?: number | null) =>
+    versionId
+      ? { label: 'Undo', onClick: () => restore.mutate(versionId) }
+      : undefined
+
+  const restore = useMutation({
+    mutationFn: (versionId: number) =>
+      cvBuilderApi.restoreVersion(draft!.id, versionId),
+    onSuccess: (updated) => {
+      applyDraft(updated)
+      setHistoryOpen(false)
+      toast.success('Earlier version restored', {
+        action: undoAction(updated.previousVersionId),
+      })
+    },
+    onError: (error) =>
+      toast.error(serverDetail(error, 'Failed to restore the version')),
+  })
+
   const save = useMutation({
     mutationFn: (content: CvContent) =>
       cvBuilderApi.update(draft!.id, {
@@ -471,7 +500,9 @@ export function CvBuilder({
       applyDraft(updated)
       setEditing(false)
       setEditingSection(null)
-      toast.success('Changes saved')
+      toast.success('Changes saved', {
+        action: undoAction(updated.previousVersionId),
+      })
     },
     onError: () => toast.error('Failed to save changes'),
   })
@@ -487,7 +518,9 @@ export function CvBuilder({
       applyDraft(updated)
       setRefining(null)
       setInstruction('')
-      toast.success('Section updated')
+      toast.success('Section updated', {
+        action: undoAction(updated.previousVersionId),
+      })
       showWarnings(updated.warnings)
     },
     onError: (error) =>
@@ -642,6 +675,13 @@ export function CvBuilder({
                 <Button
                   variant='outline'
                   size='sm'
+                  onClick={() => setHistoryOpen(true)}
+                >
+                  <History className='mr-1 h-4 w-4' /> History
+                </Button>
+                <Button
+                  variant='outline'
+                  size='sm'
                   onClick={() => setEditing((v) => !v)}
                 >
                   <Pencil className='mr-1 h-4 w-4' />{' '}
@@ -753,6 +793,23 @@ export function CvBuilder({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {draft && candidate && (
+        <VersionHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          draftId={draft.id}
+          lastModified={draft.lastModified}
+          header={{
+            fullName: candidate.fullName,
+            email: candidate.email,
+            phone: candidate.phone,
+            location: candidate.currentLocation,
+          }}
+          isRestoring={restore.isPending}
+          onRestore={(versionId) => restore.mutate(versionId)}
+        />
+      )}
 
       <Dialog
         open={editingSection !== null}

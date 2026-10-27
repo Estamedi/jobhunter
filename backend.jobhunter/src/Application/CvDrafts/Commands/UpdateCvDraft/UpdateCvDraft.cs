@@ -22,12 +22,16 @@ public class UpdateCvDraftCommandHandler(IApplicationDbContext context)
         var draft = await context.CvDrafts.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        var newContentJson = CvDraftContent.Serialize(request.Content);
+        var previous = await CvVersioning.SnapshotAsync(
+            context, draft, newContentJson, "Before editing by hand", cancellationToken);
+
         draft.Title = request.Title;
         draft.TemplateId = request.TemplateId;
-        draft.ContentJson = CvDraftContent.Serialize(request.Content);
+        draft.ContentJson = newContentJson;
 
         await context.SaveChangesAsync(cancellationToken);
 
-        return draft.ToDetailDto();
+        return draft.ToDetailDto(previousVersionId: previous?.Id);
     }
 }

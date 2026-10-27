@@ -60,6 +60,18 @@ export interface CvDraft {
   lastModified: string
   // Only present on the response to generate and regenerate.
   warnings?: string[] | null
+  // The saved copy of the content this change replaced; Undo restores exactly this version.
+  previousVersionId?: number | null
+}
+
+export interface CvDraftVersionSummary {
+  id: number
+  reason: string
+  created: string
+}
+
+export interface CvDraftVersion extends CvDraftVersionSummary {
+  content: CvContent
 }
 
 export interface CvDraftSummary {
@@ -149,6 +161,22 @@ export const cvBuilderApi = {
   // Checks the draft against its job description. The first call reads the job description with the AI.
   match: (id: number) =>
     http.post<CvJobMatch>(`/api/CvGeneration/${id}/match`).then((r) => r.data),
+
+  versions: (id: number) =>
+    http
+      .get<CvDraftVersionSummary[]>(`/api/CvGeneration/${id}/versions`)
+      .then((r) => r.data),
+
+  version: (id: number, versionId: number) =>
+    http
+      .get<CvDraftVersion>(`/api/CvGeneration/${id}/versions/${versionId}`)
+      .then((r) => r.data),
+
+  // Replaces the content with an earlier version; the current content is saved first so this can be undone.
+  restoreVersion: (id: number, versionId: number) =>
+    http
+      .post<CvDraft>(`/api/CvGeneration/${id}/versions/${versionId}/restore`)
+      .then((r) => r.data),
 
   regenerateSection: (id: number, dto: RegenerateSectionDto) =>
     http
