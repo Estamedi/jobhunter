@@ -39,6 +39,7 @@ import {
 } from './api'
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
+import { SectionEditor } from './components/section-editor'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
 import { serverDetail } from './lib/error-message'
 import { jobPostingText } from './lib/job-text'
@@ -84,6 +85,13 @@ const SECTION_LABELS: Record<CvSection, string> = {
   certifications: 'certifications',
   languages: 'languages',
   links: 'links',
+}
+
+// "Additional Information" shows links and languages together, so editing either edits both.
+function editSections(section: CvSection): CvSection[] {
+  return section === 'links' || section === 'languages'
+    ? ['links', 'languages']
+    : [section]
 }
 
 interface GenerateFormData {
@@ -268,6 +276,7 @@ export function CvBuilder({
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState(false)
   const [refining, setRefining] = useState<CvSection | null>(null)
+  const [editingSection, setEditingSection] = useState<CvSection | null>(null)
   const [instruction, setInstruction] = useState('')
   const [progress, setProgress] = useState<BatchProgress | null>(null)
   const [deleting, setDeleting] = useState<CvDraftSummary | CvDraft | null>(
@@ -427,6 +436,7 @@ export function CvBuilder({
     onSuccess: (updated) => {
       applyDraft(updated)
       setEditing(false)
+      setEditingSection(null)
       toast.success('Changes saved')
     },
     onError: () => toast.error('Failed to save changes'),
@@ -591,7 +601,7 @@ export function CvBuilder({
               <div>
                 <h2 className='font-semibold'>{draft.title}</h2>
                 <p className='text-xs text-muted-foreground'>
-                  Hover a section and click Refine to rewrite it with AI.
+                  Hover a section to Edit it by hand or Refine it with AI.
                 </p>
               </div>
               <div className='flex gap-2'>
@@ -650,6 +660,7 @@ export function CvBuilder({
                     location: candidate.currentLocation,
                   }}
                   content={draft.content}
+                  onEdit={(section) => setEditingSection(section)}
                   onRefine={(section) => setRefining(section)}
                 />
               </div>
@@ -693,6 +704,39 @@ export function CvBuilder({
               Rewrite
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={editingSection !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingSection(null)
+        }}
+      >
+        <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-2xl'>
+          <DialogHeader>
+            <DialogTitle>
+              Edit {editingSection ? SECTION_LABELS[editingSection] : ''}
+            </DialogTitle>
+          </DialogHeader>
+          {editingSection === 'headline' && (
+            <p className='text-sm text-muted-foreground'>
+              Your name and contact details come from your profile.{' '}
+              <Link to='/profile' className='underline'>
+                Edit profile
+              </Link>
+            </p>
+          )}
+          {editingSection && draft && (
+            <SectionEditor
+              key={`${editingSection}-${draft.lastModified}`}
+              content={draft.content}
+              sections={editSections(editingSection)}
+              isSaving={save.isPending}
+              onSave={(c) => save.mutate(c)}
+              onCancel={() => setEditingSection(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
