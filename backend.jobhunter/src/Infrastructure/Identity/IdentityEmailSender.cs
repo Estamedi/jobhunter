@@ -39,11 +39,19 @@ public class IdentityEmailSender(IEmailNotificationService emailNotificationServ
             $"<p>Please reset your password by <a href='{resetLink}'>clicking here</a>.</p>");
     }
 
+    // MapIdentityApi's /forgotPassword calls this one (not the link version) with the reset token. Email
+    // a link to the frontend reset page that carries the address and token, so the user does not have to
+    // copy a code around. The reset page posts them to /resetPassword.
     public Task SendPasswordResetCodeAsync(ApplicationUser user, string email, string resetCode)
     {
+        var webUrl = (_configuration["Domain:WebUrl"] ?? "http://localhost:5173").TrimEnd('/');
+        var link = $"{webUrl}/reset-password?email={Uri.EscapeDataString(email)}&code={Uri.EscapeDataString(resetCode)}";
+
         return _emailNotificationService.SendEmailAsync(
             email,
-            "Your JobHunter password reset code",
-            $"<p>Your password reset code is: <strong>{resetCode}</strong></p>");
+            "Reset your JobHunter password",
+            $"<p>We received a request to reset your JobHunter password.</p>" +
+            $"<p><a href='{WebUtility.HtmlEncode(link)}'>Choose a new password</a></p>" +
+            "<p>If you did not ask for this, you can ignore this email; your password will not change.</p>");
     }
 }

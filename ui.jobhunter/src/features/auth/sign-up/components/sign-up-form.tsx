@@ -7,8 +7,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconGoogle } from '@/assets/brand-icons'
-import { authApi } from '@/features/auth/api'
-import { getGoogleIdToken } from '@/features/auth/google-identity'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -22,6 +20,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { authApi } from '@/features/auth/api'
+import { getGoogleIdToken } from '@/features/auth/google-identity'
+import { getAuthErrorMessage } from '@/features/auth/lib/auth-error'
 
 const formSchema = z
   .object({
@@ -39,33 +40,6 @@ const formSchema = z
     message: "Passwords don't match.",
     path: ['confirmPassword'],
   })
-
-interface ErrorResponse {
-  title?: string
-  detail?: string
-  errors?: Record<string, string | string[] | undefined>
-}
-
-function getAuthErrorMessage(err: unknown, fallback: string) {
-  if (axios.isAxiosError(err)) {
-    const data = err.response?.data as ErrorResponse | undefined
-    const firstError = data?.errors
-      ? Object.values(data.errors)
-          .flatMap((messages) =>
-            Array.isArray(messages) ? messages : [messages]
-          )
-          .find(Boolean)
-      : undefined
-
-    return firstError ?? data?.detail ?? data?.title ?? fallback
-  }
-
-  if (err instanceof Error) {
-    return err.message
-  }
-
-  return fallback
-}
 
 export function SignUpForm({
   className,
@@ -226,7 +200,7 @@ export function SignUpForm({
           variant='outline'
           type='button'
           // Google brand button: fixed colors per theme so it never inherits the green theme accent.
-          className='mx-auto mt-3 h-12 w-full max-w-xs rounded-2xl text-base font-bold border-[#747775] bg-white text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1f1f21] dark:hover:text-[#E3E3E3]'
+          className='mx-auto mt-3 h-12 w-full max-w-xs rounded-2xl border-[#747775] bg-white text-base font-bold text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1f1f21] dark:hover:text-[#E3E3E3]'
           disabled={isLoading || isGoogleLoading}
           onClick={onGoogleSignUp}
         >
