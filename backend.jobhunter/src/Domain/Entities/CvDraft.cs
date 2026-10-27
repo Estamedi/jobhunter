@@ -12,6 +12,8 @@ public class CvDraft : OwnedEntity
     // Kept so regenerating a section writes in the same tone and language as the original draft.
     public string? Tone { get; set; }
     public string? Language { get; set; }
+    // CEFR level (A2 to C2) the text was written at; null on drafts made before levels existed.
+    public string? LanguageLevel { get; set; }
     public string ContentJson { get; set; } = "{}";
     public string TemplateId { get; set; } = "classic";
 

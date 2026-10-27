@@ -98,4 +98,45 @@ public class CvGenerationPromptTests
         rules.ShouldContain("Never copy whole sentences");
         rules.ShouldContain("uploaded CV");
     }
+
+    [Test]
+    public void ShouldWriteAtB2WhenNoLevelIsGiven()
+    {
+        var user = CvGenerationPrompt.BuildUserPrompt(new CvGenerationRequest { FullName = "Jane", JobTitle = "Engineer" });
+
+        user.ShouldContain("Writing level: CEFR B2");
+    }
+
+    [Test]
+    public void ShouldUseTheChosenWritingLevel()
+    {
+        var user = CvGenerationPrompt.BuildUserPrompt(
+            new CvGenerationRequest { FullName = "Jane", JobTitle = "Engineer", LanguageLevel = "c1" });
+
+        user.ShouldContain("Writing level: CEFR C1");
+        user.ShouldNotContain("CEFR B2");
+    }
+
+    [Test]
+    public void ShouldKeepTechnicalTermsOutOfTheWritingLevelInBothPrompts()
+    {
+        CvGenerationPrompt.SystemPrompt.ShouldContain("never simplified or changed");
+        CvGenerationPrompt.RefineSystemPrompt.ShouldContain("never simplified");
+    }
+
+    [Test]
+    public void ShouldCarryTheDraftsWritingLevelIntoTheRefinePrompt()
+    {
+        var chosen = CvGenerationPrompt.BuildRefineUserPrompt(new CvSectionRefineRequest
+        {
+            Current = new GeneratedCvDto(), Section = "summary", Instruction = "Shorter", LanguageLevel = "B1",
+        });
+        var older = CvGenerationPrompt.BuildRefineUserPrompt(new CvSectionRefineRequest
+        {
+            Current = new GeneratedCvDto(), Section = "summary", Instruction = "Shorter",
+        });
+
+        chosen.ShouldContain("Writing level: CEFR B1");
+        older.ShouldContain("Writing level: CEFR B2");
+    }
 }

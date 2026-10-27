@@ -95,6 +95,8 @@ export interface GenerateCvDraftDto {
   jobApplicationId?: number
   tone?: string
   language?: string
+  // CEFR writing level; the server uses B2 when it is left out.
+  languageLevel?: string
 }
 
 export interface UpdateCvDraftDto {

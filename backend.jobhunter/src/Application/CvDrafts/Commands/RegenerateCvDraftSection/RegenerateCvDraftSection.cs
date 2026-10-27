@@ -60,6 +60,7 @@ public class RegenerateCvDraftSectionCommandHandler(
             DraftInstructions = draft.Instructions,
             Tone = draft.Tone,
             Language = draft.Language,
+            LanguageLevel = CvLanguageLevel.Normalize(draft.LanguageLevel),
             JobTitle = draft.JobTitle,
             JobDescription = draft.JobDescription,
             BackgroundText = background.Text,

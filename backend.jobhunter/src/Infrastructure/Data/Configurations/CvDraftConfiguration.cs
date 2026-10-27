@@ -14,6 +14,7 @@ public class CvDraftConfiguration : IEntityTypeConfiguration<CvDraft>
         builder.Property(d => d.Instructions).HasMaxLength(4000);
         builder.Property(d => d.Tone).HasMaxLength(50);
         builder.Property(d => d.Language).HasMaxLength(50);
+        builder.Property(d => d.LanguageLevel).HasMaxLength(2);
         builder.Property(d => d.TemplateId).HasMaxLength(50).IsRequired();
         builder.Property(d => d.ContentJson).HasColumnType("jsonb").IsRequired();
 

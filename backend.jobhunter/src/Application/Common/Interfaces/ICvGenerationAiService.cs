@@ -12,6 +12,8 @@ public record CvGenerationRequest
     public string? BackgroundText { get; init; }
     public string? Tone { get; init; }
     public string? Language { get; init; }
+    // CEFR level the text is written at (A2 to C2); see CvLanguageLevel.
+    public string? LanguageLevel { get; init; }
     // Printed A4 pages to aim for (see CvLengthGuide); null when there is nothing to judge from.
     public int? TargetPages { get; init; }
 }
@@ -74,6 +76,7 @@ public record CvSectionRefineRequest
     public string? DraftInstructions { get; init; }
     public string? Tone { get; init; }
     public string? Language { get; init; }
+    public string? LanguageLevel { get; init; }
     public string JobTitle { get; init; } = string.Empty;
     public string? JobDescription { get; init; }
     public string? BackgroundText { get; init; }

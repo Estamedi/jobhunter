@@ -19,6 +19,8 @@ public record GenerateCvDraftCommand : IRequest<CvDraftDetailDto>
     public string? TemplateId { get; init; }
     public string? Tone { get; init; }
     public string? Language { get; init; }
+    // CEFR writing level, A2 to C2. Defaults to B2 when not given.
+    public string? LanguageLevel { get; init; }
 }
 
 public class GenerateCvDraftCommandHandler(
@@ -86,6 +88,7 @@ public class GenerateCvDraftCommandHandler(
             BackgroundText = background.Text,
             Tone = request.Tone,
             Language = request.Language,
+            LanguageLevel = CvLanguageLevel.Normalize(request.LanguageLevel),
             TargetPages = CvLengthGuide.TargetPages(background.Profile, DateOnly.FromDateTime(DateTime.UtcNow)),
         }, cancellationToken);
 
@@ -105,6 +108,7 @@ public class GenerateCvDraftCommandHandler(
             Instructions = request.Instructions,
             Tone = request.Tone,
             Language = request.Language,
+            LanguageLevel = CvLanguageLevel.Normalize(request.LanguageLevel),
             TemplateId = string.IsNullOrWhiteSpace(request.TemplateId) ? "classic" : request.TemplateId,
             ContentJson = CvDraftContent.Serialize(generated),
         };

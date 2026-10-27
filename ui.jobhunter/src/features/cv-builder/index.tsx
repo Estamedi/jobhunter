@@ -75,6 +75,16 @@ function saveBackground(value: string) {
   }
 }
 
+// CEFR levels for the wording of the CV. B2 reads as clear, natural professional writing.
+const DEFAULT_LANGUAGE_LEVEL = 'B2'
+const LANGUAGE_LEVELS = [
+  { value: 'A2', label: 'A2 – elementary' },
+  { value: 'B1', label: 'B1 – intermediate' },
+  { value: 'B2', label: 'B2 – upper intermediate (default)' },
+  { value: 'C1', label: 'C1 – advanced' },
+  { value: 'C2', label: 'C2 – proficient' },
+]
+
 const SECTION_LABELS: Record<CvSection, string> = {
   headline: 'headline',
   summary: 'summary',
@@ -101,6 +111,7 @@ interface GenerateFormData {
   backgroundText: string
   tone: string
   language: string
+  languageLevel: string
   sourceCvId?: number
 }
 
@@ -125,6 +136,7 @@ function GenerateForm({
   const [backgroundText, setBackgroundText] = useState(loadBackground)
   const [tone, setTone] = useState('')
   const [language, setLanguage] = useState('')
+  const [languageLevel, setLanguageLevel] = useState(DEFAULT_LANGUAGE_LEVEL)
   const [sourceCvId, setSourceCvId] = useState('none')
 
   return (
@@ -140,6 +152,7 @@ function GenerateForm({
           backgroundText,
           tone,
           language,
+          languageLevel,
           sourceCvId: sourceCvId === 'none' ? undefined : Number(sourceCvId),
         })
       }}
@@ -252,6 +265,25 @@ function GenerateForm({
             placeholder='English'
           />
         </div>
+      </div>
+      <div className='space-y-1'>
+        <Label>Language level</Label>
+        <Select value={languageLevel} onValueChange={setLanguageLevel}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {LANGUAGE_LEVELS.map((l) => (
+              <SelectItem key={l.value} value={l.value}>
+                {l.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className='text-xs text-muted-foreground'>
+          How plain or sophisticated the wording is. Technical terms and job
+          keywords are not simplified.
+        </p>
       </div>
       <Button type='submit' className='w-full' disabled={isPending}>
         {isPending ? (
@@ -370,6 +402,7 @@ export function CvBuilder({
         backgroundText: data.backgroundText || undefined,
         tone: data.tone || undefined,
         language: data.language || undefined,
+        languageLevel: data.languageLevel,
       }),
     onSuccess: (created) => {
       applyDraft(created)

@@ -13,5 +13,8 @@ public class GenerateCvDraftCommandValidator : AbstractValidator<GenerateCvDraft
         RuleFor(x => x.TemplateId).MaximumLength(50);
         RuleFor(x => x.Tone).MaximumLength(50);
         RuleFor(x => x.Language).MaximumLength(50);
+        RuleFor(x => x.LanguageLevel)
+            .Must(CvLanguageLevel.IsValid)
+            .WithMessage("Language level must be one of A2, B1, B2, C1 or C2.");
     }
 }
