@@ -1,6 +1,8 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { APP_URL } from "@/lib/links";
+import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
+import { contentPages } from "@/content/pages";
 
 const columns = [
   {
@@ -17,9 +19,12 @@ const columns = [
   },
 ] as const;
 
+const internalHrefs: Record<string, string> = {
+  features: "/#features",
+  pricing: "/#pricing",
+};
+
 const linkHrefs: Record<string, string> = {
-  features: "#features",
-  pricing: "#pricing",
   contact: "mailto:support@applyladder.com",
   privacy: `${APP_URL}/privacy`,
   terms: `${APP_URL}/terms`,
@@ -27,6 +32,7 @@ const linkHrefs: Record<string, string> = {
 
 export function SiteFooter() {
   const t = useTranslations("footer");
+  const locale = useLocale();
   const year = 2026;
 
   return (
@@ -46,14 +52,35 @@ export function SiteFooter() {
               <ul className="mt-4 space-y-3">
                 {col.links.map((link) => (
                   <li key={link}>
-                    <a
-                      href={linkHrefs[link] ?? "#top"}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {t(`links.${link}`)}
-                    </a>
+                    {internalHrefs[link] ? (
+                      <Link
+                        href={internalHrefs[link]}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {t(`links.${link}`)}
+                      </Link>
+                    ) : (
+                      <a
+                        href={linkHrefs[link]}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {t(`links.${link}`)}
+                      </a>
+                    )}
                   </li>
                 ))}
+                {col.heading === "product" &&
+                  locale === "en" &&
+                  contentPages.map((p) => (
+                    <li key={p.slug}>
+                      <Link
+                        href={`/${p.slug}`}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {p.label}
+                      </Link>
+                    </li>
+                  ))}
               </ul>
             </div>
           ))}

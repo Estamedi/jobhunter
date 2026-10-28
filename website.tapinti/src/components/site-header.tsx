@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -40,19 +41,19 @@ export function SiteHeader() {
       )}
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <a href="#top" className="shrink-0" aria-label="ApplyLadder">
+        <Link href="/" className="shrink-0" aria-label="ApplyLadder">
           <Logo />
-        </a>
+        </Link>
 
         <ul className="hidden items-center gap-1 md:flex">
           {SECTIONS.map((s) => (
             <li key={s.id}>
-              <a
-                href={`#${s.id}`}
+              <Link
+                href={`/#${s.id}`}
                 className="rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
               >
                 {t(s.key)}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -93,13 +94,13 @@ export function SiteHeader() {
           <ul className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4">
             {SECTIONS.map((s) => (
               <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
+                <Link
+                  href={`/#${s.id}`}
                   onClick={() => setOpen(false)}
                   className="block rounded-lg px-3 py-2.5 text-foreground/80 hover:bg-muted"
                 >
                   {t(s.key)}
-                </a>
+                </Link>
               </li>
             ))}
             <li className="mt-2 flex items-center justify-between gap-2">

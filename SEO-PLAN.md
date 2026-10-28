@@ -41,7 +41,7 @@ The Next.js version in `website.tapinti` has breaking changes (see its `AGENTS.m
 15. Stable, citable facts: one page with pricing, plan limits, supported languages, data and privacy policy, and a changelog. Keep the numbers identical everywhere.
 16. Agent actions (optional, later): document the API (`api.applyladder.com`) with an OpenAPI file, and consider an MCP server for tracking applications.
 
-## Phase 3: Content that earns rankings (ongoing, starts in week 2)
+## Phase 3: Content that earns rankings (ongoing, starts in week 2) — first 3 pages DONE
 
 17. Build the English pages first, then translate. Each page gets a unique title, meta description, h1, FAQ block, internal links, a sitemap entry and `BreadcrumbList` schema:
     - `/job-application-tracker`
@@ -69,3 +69,9 @@ Phase 1 (items 1-9), then items 10-14 from Phase 2, then the first three content
 - Item 4: dead footer links (roadmap, blog, about) and the placeholder social links (generic github.com / linkedin.com / twitter.com) removed. Add them back when real pages and profiles exist.
 - Item 5: not changed. next-intl issues the locale redirect as 307; `x-default` now covers the root.
 - Item 8: per-route titles are derived from the first path segment (`/job-roles` becomes "Job Roles · ApplyLadder").
+
+## Phase 3 notes
+- Done: `/en/job-application-tracker`, `/en/job-search-crm`, `/en/resume-tracker`. Content lives in `website.tapinti/src/content/pages.ts`; add a page by adding an entry there (route, sitemap, footer link, markdown mirror, `llms.txt` and structured data follow automatically).
+- English only. `/fa/...` and `/ar/...` return 404 for these slugs until reviewed translations exist.
+- Not done yet: `/interview-tracker`, the spreadsheet template page, the `/compare/...` pages and the blog/guides section. The comparison pages need honest claims about Notion and spreadsheets.
+- The header and footer anchor links now point to `/{locale}#section`, so they also work from the content pages.

@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         // /en.md -> markdown mirror of the page
         { source: "/:locale(en|fa|ar).md", destination: "/md/:locale" },
+        { source: "/en/:slug.md", destination: "/md/en/:slug" },
+        {
+          source: "/en/:slug",
+          has: [{ type: "header", key: "accept", value: "(.*)text/markdown(.*)" }],
+          destination: "/md/en/:slug",
+        },
         // Agents that ask for markdown get it from the normal URL
         {
           source: "/:locale(en|fa|ar)",

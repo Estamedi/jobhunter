@@ -1,5 +1,6 @@
 import { routing } from "@/i18n/routing";
 import { APP_URL, SIGN_UP_URL } from "@/lib/links";
+import { CONTENT_LOCALE, contentPages, getContentPage } from "@/content/pages";
 
 export const SITE_URL = "https://applyladder.com";
 
@@ -106,6 +107,9 @@ export async function llmsIndex(): Promise<string> {
       (l) =>
         `- [Home (${l})](${SITE_URL}/${l}.md): Product overview, features, pricing and FAQ in markdown`,
     ),
+    ...contentPages.map(
+      (p) => `- [${p.label}](${SITE_URL}/${CONTENT_LOCALE}/${p.slug}.md): ${p.description}`,
+    ),
     "",
     "## Optional",
     "",
@@ -114,4 +118,24 @@ export async function llmsIndex(): Promise<string> {
     "",
   ];
   return lines.join("\n");
+}
+
+/** A content page as markdown, or undefined for an unknown slug. */
+export function contentPageMarkdown(slug: string): string | undefined {
+  const page = getContentPage(slug);
+  if (!page) return undefined;
+
+  const out: string[] = [`# ${page.h1}`, "", `> ${page.description}`, "", page.intro, ""];
+  for (const section of page.sections) {
+    out.push(`## ${section.heading}`, "", ...section.body.flatMap((p) => [p, ""]));
+    if (section.bullets) {
+      out.push(...section.bullets.map((b) => `- ${b}`), "");
+    }
+  }
+  out.push("## Frequently asked questions", "");
+  for (const f of page.faq) {
+    out.push(`### ${f.q}`, "", f.a, "");
+  }
+  out.push(`Source: ${SITE_URL}/${CONTENT_LOCALE}/${page.slug}`, `Sign up: ${SIGN_UP_URL}`, "");
+  return out.join("\n");
 }
