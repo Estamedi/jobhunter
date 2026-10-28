@@ -35,7 +35,12 @@ export function ContentPageView({ page }: { page: ContentPage }) {
         <ButtonLink href={SIGN_UP_URL} size="lg">
           Start Free
         </ButtonLink>
-        <ButtonLink href="/#pricing" variant="secondary" size="lg">
+        {page.download && (
+          <ButtonLink href={page.download.href} variant="secondary" size="lg" download>
+            {page.download.label}
+          </ButtonLink>
+        )}
+        <ButtonLink href="/en#pricing" variant="secondary" size="lg">
           See pricing
         </ButtonLink>
       </div>

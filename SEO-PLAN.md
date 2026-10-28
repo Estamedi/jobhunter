@@ -71,7 +71,7 @@ Phase 1 (items 1-9), then items 10-14 from Phase 2, then the first three content
 - Item 8: per-route titles are derived from the first path segment (`/job-roles` becomes "Job Roles · ApplyLadder").
 
 ## Phase 3 notes
-- Done: `/en/job-application-tracker`, `/en/job-search-crm`, `/en/resume-tracker`. Content lives in `website.tapinti/src/content/pages.ts`; add a page by adding an entry there (route, sitemap, footer link, markdown mirror, `llms.txt` and structured data follow automatically).
+- Done: `/en/job-application-tracker`, `/en/job-search-crm`, `/en/resume-tracker`, `/en/interview-tracker`, `/en/job-application-tracker-spreadsheet-template` (with a downloadable CSV at `/templates/job-application-tracker-template.csv`). Content lives in `website.tapinti/src/content/pages.ts`; add a page by adding an entry there (route, sitemap, footer link, markdown mirror, `llms.txt` and structured data follow automatically).
 - English only. `/fa/...` and `/ar/...` return 404 for these slugs until reviewed translations exist.
-- Not done yet: `/interview-tracker`, the spreadsheet template page, the `/compare/...` pages and the blog/guides section. The comparison pages need honest claims about Notion and spreadsheets.
+- Not done yet: the `/compare/...` pages and the blog/guides section. The comparison pages need honest claims about Notion and spreadsheets.
 - The header and footer anchor links now point to `/{locale}#section`, so they also work from the content pages.

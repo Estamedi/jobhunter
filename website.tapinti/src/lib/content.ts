@@ -132,6 +132,9 @@ export function contentPageMarkdown(slug: string): string | undefined {
       out.push(...section.bullets.map((b) => `- ${b}`), "");
     }
   }
+  if (page.download) {
+    out.push(`Download: ${SITE_URL}${page.download.href}`, "");
+  }
   out.push("## Frequently asked questions", "");
   for (const f of page.faq) {
     out.push(`### ${f.q}`, "", f.a, "");
