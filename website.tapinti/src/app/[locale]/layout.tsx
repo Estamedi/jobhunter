@@ -71,6 +71,7 @@ export async function generateMetadata({
         ar: "/ar",
         "x-default": "/en",
       },
+      types: { "text/markdown": `/${locale}.md` },
     },
     openGraph: {
       type: "website",
