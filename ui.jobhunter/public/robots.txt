@@ -1,0 +1,4 @@
+# The app is behind sign-in. Crawling stays allowed so crawlers can see the
+# noindex directive (X-Robots-Tag / meta) and drop any already-indexed URLs.
+User-agent: *
+Allow: /

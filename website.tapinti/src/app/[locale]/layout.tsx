@@ -37,6 +37,12 @@ const jetbrainsMono = JetBrains_Mono({
 
 const SITE_URL = "https://applyladder.com";
 
+const OG_LOCALES: Record<string, string> = {
+  en: "en_US",
+  fa: "fa_IR",
+  ar: "ar_AR",
+};
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -57,20 +63,13 @@ export async function generateMetadata({
     },
     description: t("description"),
     applicationName: "ApplyLadder",
-    keywords: [
-      "career CRM",
-      "job application tracker",
-      "job search organizer",
-      "recruiter CRM",
-      "interview tracker",
-      "resume manager",
-    ],
     alternates: {
       canonical: `/${locale}`,
       languages: {
         en: "/en",
         fa: "/fa",
         ar: "/ar",
+        "x-default": "/en",
       },
     },
     openGraph: {
@@ -79,7 +78,10 @@ export async function generateMetadata({
       siteName: "ApplyLadder",
       title: t("title"),
       description: t("description"),
-      locale,
+      locale: OG_LOCALES[locale] ?? "en_US",
+      alternateLocale: Object.entries(OG_LOCALES)
+        .filter(([l]) => l !== locale)
+        .map(([, v]) => v),
     },
     twitter: {
       card: "summary_large_image",

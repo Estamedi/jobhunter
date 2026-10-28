@@ -6,12 +6,15 @@ const SITE_URL = "https://applyladder.com";
 export default function sitemap(): MetadataRoute.Sitemap {
   return routing.locales.map((locale) => ({
     url: `${SITE_URL}/${locale}`,
-    lastModified: new Date("2026-07-02"),
+    lastModified: new Date(),
     changeFrequency: "weekly",
     priority: locale === routing.defaultLocale ? 1 : 0.8,
     alternates: {
       languages: Object.fromEntries(
-        routing.locales.map((l) => [l, `${SITE_URL}/${l}`]),
+        [
+          ...routing.locales.map((l) => [l, `${SITE_URL}/${l}`]),
+          ["x-default", `${SITE_URL}/${routing.defaultLocale}`],
+        ],
       ),
     },
   }));

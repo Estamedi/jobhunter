@@ -8,8 +8,6 @@ import { Disconnected } from "@/components/sections/disconnected";
 import { ConnectedFlow } from "@/components/sections/connected-flow";
 import { Features } from "@/components/sections/features";
 import { Mindset } from "@/components/sections/mindset";
-import { Stats } from "@/components/sections/stats";
-import { Testimonials } from "@/components/sections/testimonials";
 import { Team } from "@/components/sections/team";
 import { Pricing } from "@/components/sections/pricing";
 import { Faq } from "@/components/sections/faq";
@@ -34,8 +32,6 @@ export default async function Home({
         <ConnectedFlow />
         <Features />
         <Mindset />
-        <Stats />
-        <Testimonials />
         <Team />
         <Pricing />
         <Faq />

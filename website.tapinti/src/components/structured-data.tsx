@@ -31,11 +31,6 @@ export async function StructuredData({ locale }: { locale: string }) {
             priceCurrency: "USD",
           },
         ],
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: "4.9",
-          ratingCount: "1280",
-        },
       },
       {
         "@type": "Organization",

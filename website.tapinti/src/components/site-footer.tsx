@@ -1,16 +1,15 @@
 import { useTranslations } from "next-intl";
 import { APP_URL } from "@/lib/links";
 import { Logo } from "@/components/logo";
-import { GithubIcon, LinkedinIcon, XIcon } from "@/components/brand-icons";
 
 const columns = [
   {
     heading: "product",
-    links: ["features", "pricing", "roadmap", "blog"],
+    links: ["features", "pricing"],
   },
   {
     heading: "company",
-    links: ["about", "contact"],
+    links: ["contact"],
   },
   {
     heading: "legal",
@@ -26,12 +25,6 @@ const linkHrefs: Record<string, string> = {
   terms: `${APP_URL}/terms`,
 };
 
-const socials = [
-  { key: "github", icon: GithubIcon, href: "https://github.com" },
-  { key: "linkedin", icon: LinkedinIcon, href: "https://linkedin.com" },
-  { key: "twitter", icon: XIcon, href: "https://twitter.com" },
-] as const;
-
 export function SiteFooter() {
   const t = useTranslations("footer");
   const year = 2026;
@@ -45,23 +38,6 @@ export function SiteFooter() {
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               {t("tagline")}
             </p>
-            <div className="mt-6 flex gap-2">
-              {socials.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <a
-                    key={s.key}
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={t(`links.${s.key}`)}
-                    className="grid size-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    <Icon className="size-4" />
-                  </a>
-                );
-              })}
-            </div>
           </div>
 
           {columns.map((col) => (
