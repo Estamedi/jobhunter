@@ -17,6 +17,8 @@ export type ContentPage = {
   sections: ContentSection[];
   faq: { q: string; a: string }[];
   related: string[];
+  /** Date the content last changed (YYYY-MM-DD); used as sitemap lastmod. Update it when you edit the page. */
+  updated: string;
   /** Optional file shown as a download button */
   download?: { href: string; label: string };
   /** Short label for navigation and link lists */
@@ -26,6 +28,7 @@ export type ContentPage = {
 export const contentPages: ContentPage[] = [
   {
     slug: "job-application-tracker",
+    updated: "2026-10-28",
     label: "Job application tracker",
     title: "Job Application Tracker for Serious Job Searches",
     description:
@@ -95,6 +98,7 @@ export const contentPages: ContentPage[] = [
   },
   {
     slug: "job-search-crm",
+    updated: "2026-10-28",
     label: "Job search CRM",
     title: "Job Search CRM: Manage Your Career Pipeline",
     description:
@@ -159,6 +163,7 @@ export const contentPages: ContentPage[] = [
   },
   {
     slug: "resume-tracker",
+    updated: "2026-10-28",
     label: "Resume tracker",
     title: "Resume Tracker: Which Resume Went Where",
     description:
@@ -217,6 +222,7 @@ export const contentPages: ContentPage[] = [
   },
   {
     slug: "interview-tracker",
+    updated: "2026-10-28",
     label: "Interview tracker",
     title: "Interview Tracker: Notes, Rounds and Questions",
     description:
@@ -275,6 +281,7 @@ export const contentPages: ContentPage[] = [
   },
   {
     slug: "job-application-tracker-spreadsheet-template",
+    updated: "2026-10-28",
     label: "Job application tracker template",
     title: "Free Job Application Tracker Spreadsheet Template",
     description:
@@ -337,6 +344,9 @@ export const contentPages: ContentPage[] = [
 export function getContentPage(slug: string): ContentPage | undefined {
   return contentPages.find((p) => p.slug === slug);
 }
+
+/** Date the home page copy last changed (YYYY-MM-DD); used as sitemap lastmod. */
+export const HOME_UPDATED = "2026-10-28";
 
 /** Content pages are English-only; other locales get the home page only. */
 export const CONTENT_LOCALE = "en";
