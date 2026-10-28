@@ -4,6 +4,11 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    // Permanent, so search engines treat /en as the canonical home page
+    // (a 307 made Google pick "/" as canonical over "/en").
+    return [{ source: "/", destination: "/en", permanent: true }];
+  },
   async rewrites() {
     return {
       beforeFiles: [

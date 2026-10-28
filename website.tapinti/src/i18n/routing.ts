@@ -9,4 +9,6 @@ export const routing = defineRouting({
   locales,
   defaultLocale: "en",
   localePrefix: "always",
+  // Deterministic URLs for crawlers: no Accept-Language / cookie redirects.
+  localeDetection: false,
 });
