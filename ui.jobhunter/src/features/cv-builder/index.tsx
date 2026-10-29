@@ -46,6 +46,7 @@ import {
 } from './api'
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
+import { GeneratingPanel } from './components/generating-panel'
 import { JobMatchPanel } from './components/job-match-panel'
 import { SectionEditor } from './components/section-editor'
 import { VersionHistoryDialog } from './components/version-history-dialog'
@@ -654,15 +655,16 @@ export function CvBuilder({
       </div>
 
       <div className='min-w-0'>
-        {selectedId === null && (
+        {generate.isPending && <GeneratingPanel />}
+        {!generate.isPending && selectedId === null && (
           <div className='flex h-64 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground'>
             Generate a CV or pick a draft to see it here.
           </div>
         )}
-        {selectedId !== null && draftLoading && (
+        {!generate.isPending && selectedId !== null && draftLoading && (
           <Skeleton className='h-96 w-full' />
         )}
-        {draft && candidate && (
+        {!generate.isPending && draft && candidate && (
           <div className='space-y-3'>
             <div className='flex flex-wrap items-center justify-between gap-2'>
               <div>
