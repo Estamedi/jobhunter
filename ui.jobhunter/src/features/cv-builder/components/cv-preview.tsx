@@ -30,6 +30,54 @@ function dateRange(start?: string | null, end?: string | null) {
   return [start?.trim(), to].filter(Boolean).join(' - ')
 }
 
+const MONTH_NAMES = [
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
+]
+
+// CV dates are free text ("Jul 2025", "2025"); returns a month index or null when unparseable.
+function monthIndex(value: string) {
+  const year = /\b(\d{4})\b/.exec(value)
+  if (!year) return null
+  const month = MONTH_NAMES.indexOf(value.trim().slice(0, 3).toLowerCase())
+  return Number(year[1]) * 12 + Math.max(month, 0)
+}
+
+// Inclusive of both months, like LinkedIn: "Jul 2023 - Jan 2025" is "1 yr 7 mos".
+function duration(start?: string | null, end?: string | null) {
+  const from = start?.trim() ? monthIndex(start) : null
+  if (from === null) return ''
+  const to = end?.trim()
+    ? monthIndex(end)
+    : new Date().getFullYear() * 12 + new Date().getMonth()
+  if (to === null) return ''
+  const months = Math.max(1, to - from + 1)
+  const years = Math.floor(months / 12)
+  const rest = months % 12
+  return [
+    years > 0 && `${years} ${years === 1 ? 'yr' : 'yrs'}`,
+    rest > 0 && `${rest} ${rest === 1 ? 'mo' : 'mos'}`,
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
+function experienceRange(start?: string | null, end?: string | null) {
+  const range = dateRange(start, end)
+  const length = duration(start, end)
+  return length ? `${range} · ${length}` : range
+}
+
 // Edit and Refine buttons. They sit in the heading row so they never cover the text, show on hover or
 // keyboard focus, and are always visible on touch screens.
 function SectionActions({
@@ -276,7 +324,7 @@ export function CvPreview({
                       className='shrink-0 text-[11px]'
                       style={{ color: MUTED }}
                     >
-                      {dateRange(job.startDate, job.endDate)}
+                      {experienceRange(job.startDate, job.endDate)}
                     </span>
                   </div>
                   {job.bullets.length > 0 && (

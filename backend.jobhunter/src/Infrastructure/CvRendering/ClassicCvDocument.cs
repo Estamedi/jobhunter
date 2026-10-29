@@ -190,7 +190,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                         .Bold().FontColor(CompanyColor);
                     if (!string.IsNullOrWhiteSpace(job.Role)) t.Span($", {job.Role}").Italic().FontColor(MutedColor);
                 });
-                var dates = DateRange(job.StartDate, job.EndDate);
+                var dates = ExperienceRange(job.StartDate, job.EndDate);
                 if (dates.Length > 0) row.AutoItem().Text(dates).FontColor(MutedColor).FontSize(9);
             });
 
@@ -206,5 +206,30 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         var from = start?.Trim();
         var to = string.IsNullOrWhiteSpace(end) ? (string.IsNullOrWhiteSpace(from) ? null : "Present") : end.Trim();
         return string.Join(" - ", new[] { from, to }.Where(v => !string.IsNullOrWhiteSpace(v)));
+    }
+
+    // Inclusive of both months, like LinkedIn: "Jul 2023 - Jan 2025" is "1 yr 7 mos".
+    private static string ExperienceRange(string? start, string? end)
+    {
+        var range = DateRange(start, end);
+        var from = MonthIndex(start);
+        var to = string.IsNullOrWhiteSpace(end) ? DateTime.Today.Year * 12 + DateTime.Today.Month - 1 : MonthIndex(end);
+        if (from is null || to is null) return range;
+
+        var months = Math.Max(1, to.Value - from.Value + 1);
+        var parts = new List<string>();
+        if (months / 12 > 0) parts.Add($"{months / 12} {(months / 12 == 1 ? "yr" : "yrs")}");
+        if (months % 12 > 0) parts.Add($"{months % 12} {(months % 12 == 1 ? "mo" : "mos")}");
+        return $"{range} · {string.Join(' ', parts)}";
+    }
+
+    private static int? MonthIndex(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var year = System.Text.RegularExpressions.Regex.Match(value, @"\b(\d{4})\b");
+        if (!year.Success) return null;
+        var month = Array.IndexOf(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            value.Trim().ToLowerInvariant()[..Math.Min(3, value.Trim().Length)]);
+        return int.Parse(year.Groups[1].Value) * 12 + Math.Max(month, 0);
     }
 }
