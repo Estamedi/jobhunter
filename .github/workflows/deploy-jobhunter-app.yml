@@ -124,9 +124,9 @@ jobs:
             VITE_GOOGLE_CLIENT_ID='${{ secrets.VITE_GOOGLE_CLIENT_ID }}' \
             AUTHENTICATION__GOOGLE__CLIENTID='${{ secrets.AUTHENTICATION__GOOGLE__CLIENTID }}' \
             AIEXTRACTION__OPENAIAPIKEY='${{ secrets.AIEXTRACTION__OPENAIAPIKEY }}' \
-            LANGFUSE__HOST='${{ secrets.LANGFUSE__HOST }}' \
-            LANGFUSE__PUBLICKEY='${{ secrets.LANGFUSE__PUBLICKEY }}' \
-            LANGFUSE__SECRETKEY='${{ secrets.LANGFUSE__SECRETKEY }}' \
+            LANGFUSE__HOST='${{ secrets.LANGFUSE_BASE_URL }}' \
+            LANGFUSE__PUBLICKEY='${{ secrets.LANGFUSE_PUBLIC_KEY }}' \
+            LANGFUSE__SECRETKEY='${{ secrets.LANGFUSE_SECRET_KEY }}' \
             /opt/jobhunter/deploy-jobhunter-app.sh
 
             rm -f /tmp/jobhunter-app.tar.gz

@@ -141,20 +141,6 @@ export function JobMatchPanel({
     match.data
 
   const action = (r: RequirementMatch) => {
-    if (r.status === 'Missing') {
-      return (
-        <Checkbox
-          aria-label={`I have ${r.name}`}
-          checked={selected.includes(r.name)}
-          disabled={addSkills.isPending}
-          onCheckedChange={(c) =>
-            setSelected((prev) =>
-              c ? [...prev, r.name] : prev.filter((n) => n !== r.name)
-            )
-          }
-        />
-      )
-    }
     if (r.status === 'InProfile' || r.status === 'SkillsOnly') {
       return (
         <Button
@@ -227,22 +213,51 @@ export function JobMatchPanel({
                   ) : (
                     <Plus className='mr-1 h-3 w-3' />
                   )}
-                  I have these – add {selected.length || ''} to my profile
+                  {selected.length > 0
+                    ? `I have these ${selected.length} – add to my profile`
+                    : 'Tick the skills you have'}
                 </Button>
               </div>
             )}
             <ul className='space-y-1'>
-              {items.map((r) => (
-                <li
-                  key={r.name}
-                  className='flex flex-wrap items-center justify-between gap-2 text-sm'
-                >
-                  <span className='flex items-center gap-2'>
-                    {r.name} <Badge mustHave={r.mustHave} />
-                  </span>
-                  {action(r)}
-                </li>
-              ))}
+              {items.map((r) =>
+                r.status === 'Missing' ? (
+                  <li key={r.name}>
+                    <label
+                      className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50 ${
+                        selected.includes(r.name)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-transparent'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={selected.includes(r.name)}
+                        disabled={addSkills.isPending}
+                        onCheckedChange={(c) =>
+                          setSelected((prev) =>
+                            c
+                              ? [...prev, r.name]
+                              : prev.filter((n) => n !== r.name)
+                          )
+                        }
+                      />
+                      <span className='flex items-center gap-2'>
+                        {r.name} <Badge mustHave={r.mustHave} />
+                      </span>
+                    </label>
+                  </li>
+                ) : (
+                  <li
+                    key={r.name}
+                    className='flex flex-wrap items-center justify-between gap-2 px-3 py-1 text-sm'
+                  >
+                    <span className='flex items-center gap-2'>
+                      {r.name} <Badge mustHave={r.mustHave} />
+                    </span>
+                    {action(r)}
+                  </li>
+                )
+              )}
             </ul>
           </div>
         )
