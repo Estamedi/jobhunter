@@ -43,6 +43,7 @@ import { Route as AuthenticatedInterviewsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedFollowUpsIndexRouteImport } from './routes/_authenticated/follow-ups/index'
 import { Route as AuthenticatedCvsIndexRouteImport } from './routes/_authenticated/cvs/index'
+import { Route as AuthenticatedCvScoreIndexRouteImport } from './routes/_authenticated/cv-score/index'
 import { Route as AuthenticatedCvBuilderIndexRouteImport } from './routes/_authenticated/cv-builder/index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies/index'
@@ -238,6 +239,12 @@ const AuthenticatedCvsIndexRoute = AuthenticatedCvsIndexRouteImport.update({
   path: '/cvs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCvScoreIndexRoute =
+  AuthenticatedCvScoreIndexRouteImport.update({
+    id: '/cv-score/',
+    path: '/cv-score/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCvBuilderIndexRoute =
   AuthenticatedCvBuilderIndexRouteImport.update({
     id: '/cv-builder/',
@@ -373,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/cv-builder/': typeof AuthenticatedCvBuilderIndexRoute
+  '/cv-score/': typeof AuthenticatedCvScoreIndexRoute
   '/cvs/': typeof AuthenticatedCvsIndexRoute
   '/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -422,6 +430,7 @@ export interface FileRoutesByTo {
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/cv-builder': typeof AuthenticatedCvBuilderIndexRoute
+  '/cv-score': typeof AuthenticatedCvScoreIndexRoute
   '/cvs': typeof AuthenticatedCvsIndexRoute
   '/follow-ups': typeof AuthenticatedFollowUpsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
@@ -476,6 +485,7 @@ export interface FileRoutesById {
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/cv-builder/': typeof AuthenticatedCvBuilderIndexRoute
+  '/_authenticated/cv-score/': typeof AuthenticatedCvScoreIndexRoute
   '/_authenticated/cvs/': typeof AuthenticatedCvsIndexRoute
   '/_authenticated/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -528,6 +538,7 @@ export interface FileRouteTypes {
     | '/companies/'
     | '/contacts/'
     | '/cv-builder/'
+    | '/cv-score/'
     | '/cvs/'
     | '/follow-ups/'
     | '/help-center/'
@@ -577,6 +588,7 @@ export interface FileRouteTypes {
     | '/companies'
     | '/contacts'
     | '/cv-builder'
+    | '/cv-score'
     | '/cvs'
     | '/follow-ups'
     | '/help-center'
@@ -630,6 +642,7 @@ export interface FileRouteTypes {
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
     | '/_authenticated/cv-builder/'
+    | '/_authenticated/cv-score/'
     | '/_authenticated/cvs/'
     | '/_authenticated/follow-ups/'
     | '/_authenticated/help-center/'
@@ -905,6 +918,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCvsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cv-score/': {
+      id: '/_authenticated/cv-score/'
+      path: '/cv-score'
+      fullPath: '/cv-score/'
+      preLoaderRoute: typeof AuthenticatedCvScoreIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cv-builder/': {
       id: '/_authenticated/cv-builder/'
       path: '/cv-builder'
@@ -1063,6 +1083,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCvBuilderIndexRoute: typeof AuthenticatedCvBuilderIndexRoute
+  AuthenticatedCvScoreIndexRoute: typeof AuthenticatedCvScoreIndexRoute
   AuthenticatedCvsIndexRoute: typeof AuthenticatedCvsIndexRoute
   AuthenticatedFollowUpsIndexRoute: typeof AuthenticatedFollowUpsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
@@ -1090,6 +1111,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCvBuilderIndexRoute: AuthenticatedCvBuilderIndexRoute,
+  AuthenticatedCvScoreIndexRoute: AuthenticatedCvScoreIndexRoute,
   AuthenticatedCvsIndexRoute: AuthenticatedCvsIndexRoute,
   AuthenticatedFollowUpsIndexRoute: AuthenticatedFollowUpsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,

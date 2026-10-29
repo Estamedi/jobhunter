@@ -18,6 +18,7 @@ import {
   StickyNote,
   Tag,
   Sparkles,
+  Gauge,
   UserRound,
 } from 'lucide-react'
 import { Logo } from '@/assets/logo'
@@ -62,6 +63,11 @@ const jobSeekerNavGroups: NavGroup[] = [
         title: 'CV Writer',
         url: '/cv-builder',
         icon: Sparkles,
+      },
+      {
+        title: 'CV Score',
+        url: '/cv-score',
+        icon: Gauge,
       },
       {
         title: 'My Profile',
@@ -150,6 +156,11 @@ const defaultNavGroups: NavGroup[] = [
         title: 'CV Writer',
         url: '/cv-builder',
         icon: Sparkles,
+      },
+      {
+        title: 'CV Score',
+        url: '/cv-score',
+        icon: Gauge,
       },
       {
         title: 'My Profile',
