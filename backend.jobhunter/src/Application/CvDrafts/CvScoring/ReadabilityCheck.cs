@@ -10,7 +10,7 @@ internal sealed class ReadabilityCheck : ICvScoreCheck
     private const int MaxSummaryWords = 90;
     private const int MaxHeadlineLength = 70;
 
-    public int Weight => 10;
+    public int Weight => 8;
 
     public CvScoreCheckDto Run(GeneratedCvDto cv)
     {

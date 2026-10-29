@@ -16,7 +16,11 @@ public static class CvScorer
         new ReadabilityCheck(),
         new BuzzwordsCheck(),
         new SkillsCheck(),
+        new TenseCheck(),
     ];
+
+    // Every check's share of the score; they must add up to 100 or the overall score is off.
+    public static int TotalWeight => Checks.Sum(c => c.Weight);
 
     public static CvScoreDto Score(GeneratedCvDto cv)
     {

@@ -132,4 +132,122 @@ public class CvScorerTests
 
         score.Overall.ShouldBeLessThan(60);
     }
+
+    private const string Fact = "to cut costs by 20% across 3 teams in a year";
+
+    [Test]
+    public void WeightsAddUpToOneHundred() => CvScorer.TotalWeight.ShouldBe(100);
+
+    [Test]
+    public void NewWeakOpenersAreFlaggedWithReplacements()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Used Docker {Fact}", $"Handled releases {Fact}", $"Worked on the billing platform {Fact}"));
+
+        var w = Check(CvScorer.Score(cv), "weak-roles");
+
+        w.Issues.Count(i => i.Message.Contains("Starts with")).ShouldBe(3);
+        w.Issues.ShouldContain(i => i.Message.Contains("\"used\"") && i.Message.Contains("applied"));
+    }
+
+    [Test]
+    public void LedAndManagedAreNotWeakOpeners()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Led a team of 6 {Fact}", $"Managed 4 vendors {Fact}", $"Supported 12 services {Fact}"));
+
+        Check(CvScorer.Score(cv), "weak-roles").Issues.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void PassiveOpenersAreFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Was developed by my team {Fact}", $"Reports were completed {Fact}", $"Cut costs by 20% across 3 teams in a year"));
+
+        Check(CvScorer.Score(cv), "weak-roles").Issues.Count(i => i.Message.StartsWith("Passive")).ShouldBe(1);
+    }
+
+    [Test]
+    public void NearSynonymVerbsCountAsOneFamily()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Built a service {Fact}", $"Developed a tool {Fact}", $"Created a module {Fact}", $"Engineered a pipeline {Fact}"));
+
+        var r = Check(CvScorer.Score(cv), "repetition");
+
+        r.Issues.Count.ShouldBe(1);
+        r.Issues.Single().Message.ShouldContain("near-synonyms");
+    }
+
+    [Test]
+    public void ExactVerbRepeatsAreNotAlsoCountedAsAFamily()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Built a service {Fact}", $"Built a tool {Fact}", $"Built a module {Fact}", $"Created a pipeline {Fact}"));
+
+        var r = Check(CvScorer.Score(cv), "repetition");
+
+        r.Issues.Count.ShouldBe(1);
+        r.Issues.Single().Message.ShouldContain("\"built\"");
+        r.Issues.Single().Message.ShouldContain("Try");
+    }
+
+    [Test]
+    public void ShortSynonymRunsAreFine()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Built a service {Fact}", $"Developed a tool {Fact}", $"Created a module {Fact}", $"Analyzed the data {Fact}"));
+
+        Check(CvScorer.Score(cv), "repetition").Issues.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void PastTenseUnderACurrentRoleIsNeverFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2025", "Present",
+            $"Spearheaded the platform {Fact}", $"Directed a team {Fact}", $"Automated releases {Fact}"));
+
+        Check(CvScorer.Score(cv), "tense").Issues.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void PresentTenseUnderAnEndedRoleIsFlaggedWhenRepeated()
+    {
+        var cv = Cv(Role("Dev", "Jan 2018", "Mar 2020",
+            $"Build services {Fact}", $"Develop tools {Fact}", $"Cut costs by 20% across 3 teams in a year"));
+
+        Check(CvScorer.Score(cv), "tense").Issues.Single().Locations.Count.ShouldBe(2);
+    }
+
+    [Test]
+    public void OnePresentTenseOpenerIsNotEnough()
+    {
+        var cv = Cv(Role("Dev", "Jan 2018", "Mar 2020",
+            $"Test automation framework {Fact}", $"Cut costs by 20% across 3 teams in a year", $"Built services {Fact}"));
+
+        Check(CvScorer.Score(cv), "tense").Issues.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void UnknownFirstWordsAreNeverPenalised()
+    {
+        var cv = Cv(Role("Dev", "Jan 2018", "Mar 2020",
+            $"Python-based tooling {Fact}", $"Kubernetes migration {Fact}", $"Zxqv pipeline {Fact}"));
+
+        var score = CvScorer.Score(cv);
+
+        Check(score, "tense").Issues.ShouldBeEmpty();
+        Check(score, "repetition").Issues.ShouldBeEmpty();
+        Check(score, "weak-roles").Issues.Count.ShouldBe(0);
+    }
+
+    [Test]
+    public void AmbiguousPastWordsAreNotTreatedAsPresentTense()
+    {
+        var cv = Cv(Role("Dev", "Jan 2018", "Mar 2020",
+            $"Found a bug {Fact}", $"Founded a guild {Fact}", $"Hit targets {Fact}"));
+
+        Check(CvScorer.Score(cv), "tense").Issues.ShouldBeEmpty();
+    }
 }

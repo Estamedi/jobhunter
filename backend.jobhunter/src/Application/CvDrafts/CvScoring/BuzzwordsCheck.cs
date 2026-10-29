@@ -13,7 +13,7 @@ internal sealed class BuzzwordsCheck : ICvScoreCheck
         "motivated", "people person", "fast learner", "strong work ethic",
     ];
 
-    public int Weight => 10;
+    public int Weight => 8;
 
     public CvScoreCheckDto Run(GeneratedCvDto cv)
     {

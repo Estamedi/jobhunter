@@ -9,7 +9,7 @@ internal sealed partial class QuantifyImpactCheck : ICvScoreCheck
 {
     private const double QuantifiedTarget = 0.6;
 
-    public int Weight => 25;
+    public int Weight => 22;
 
     public CvScoreCheckDto Run(GeneratedCvDto cv)
     {

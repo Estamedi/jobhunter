@@ -3,19 +3,13 @@ using static backend.jobhunter.Application.CvDrafts.CvScoreText;
 
 namespace backend.jobhunter.Application.CvDrafts;
 
-// Flags bullets that open with a weak phrase or are too short to show an achievement, and recent roles
+// Flags bullets that open with a weak phrase or in passive voice, bullets too short to show an achievement, and recent roles
 // with too few bullets. It matches words only; it cannot judge how good a bullet really is.
 internal sealed class WeakRolesCheck : ICvScoreCheck
 {
     private const int MinBulletWords = 6;
     private const int RecentRoles = 2;
     private const int MinBulletsInRecentRole = 3;
-
-    private static readonly string[] WeakOpeners =
-    [
-        "responsible for", "helped", "worked on", "assisted", "involved in", "duties included", "tasked with",
-        "participated in", "was part of",
-    ];
 
     public int Weight => 20;
 
@@ -26,10 +20,16 @@ internal sealed class WeakRolesCheck : ICvScoreCheck
         foreach (var b in Bullets(cv))
         {
             var lower = b.Text.ToLowerInvariant();
-            var opener = WeakOpeners.FirstOrDefault(w => lower.StartsWith(w));
-            if (opener is not null)
+            var weak = ActionVerbs.WeakOpeners.FirstOrDefault(w => lower == w.Phrase || lower.StartsWith(w.Phrase + " "));
+            if (weak.Phrase is not null)
             {
-                issues.Add(new($"Starts with \"{opener}\". Open with what you did and the result.", [At(b)]));
+                issues.Add(new(
+                    $"Starts with \"{weak.Phrase}\". Open with what you did and the result, for example {string.Join(", ", weak.Replacements)}.",
+                    [At(b)]));
+            }
+            else if (ActionVerbs.IsPassive(b.Text))
+            {
+                issues.Add(new("Passive: it says what happened, not what you did. Start with the verb.", [At(b)]));
             }
             else if (Words(b.Text) < MinBulletWords)
             {
