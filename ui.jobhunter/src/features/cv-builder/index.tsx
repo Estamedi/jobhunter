@@ -800,6 +800,7 @@ export function CvBuilder({
           onOpenChange={setHistoryOpen}
           draftId={draft.id}
           lastModified={draft.lastModified}
+          currentContent={draft.content}
           header={{
             fullName: candidate.fullName,
             email: candidate.email,

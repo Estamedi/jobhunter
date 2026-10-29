@@ -10,16 +10,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cvBuilderApi } from '../api'
+import { cvBuilderApi, type CvContent } from '../api'
+import { diffCv, summarizeChanges } from '../lib/cv-diff'
 import { CvPreview } from './cv-preview'
 
 // Earlier copies of a draft: the content as it was just before each hand edit, refine or restore. Shows
-// the whole earlier CV next to the list (not a word-by-word comparison) and can restore it.
+// what the change did (this version compared with the CV right after it) or the whole earlier CV, and can
+// restore it.
 export function VersionHistoryDialog({
   open,
   onOpenChange,
   draftId,
   lastModified,
+  currentContent,
   header,
   isRestoring,
   onRestore,
@@ -28,6 +31,7 @@ export function VersionHistoryDialog({
   onOpenChange: (open: boolean) => void
   draftId: number
   lastModified: string
+  currentContent: CvContent
   header: {
     fullName: string
     email?: string
@@ -38,6 +42,7 @@ export function VersionHistoryDialog({
   onRestore: (versionId: number) => void
 }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [view, setView] = useState<'changes' | 'full'>('changes')
 
   const { data: versions, isLoading } = useQuery({
     queryKey: ['cv-draft-versions', draftId, lastModified],
@@ -53,6 +58,22 @@ export function VersionHistoryDialog({
     queryFn: () => cvBuilderApi.version(draftId, activeId!),
     enabled: open && activeId !== null,
   })
+
+  // A version is the CV just before a change, so the change's result is the next newer version, or the
+  // current CV when this is the newest one.
+  const activeIndex = versions?.findIndex((v) => v.id === activeId) ?? -1
+  const afterId = activeIndex > 0 ? versions![activeIndex - 1].id : null
+
+  const { data: afterVersion } = useQuery({
+    queryKey: ['cv-draft-version', draftId, afterId],
+    queryFn: () => cvBuilderApi.version(draftId, afterId!),
+    enabled: open && afterId !== null,
+  })
+
+  const afterContent =
+    activeIndex === 0 ? currentContent : afterVersion?.content
+  const changes =
+    version && afterContent ? diffCv(version.content, afterContent) : null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,11 +128,60 @@ export function VersionHistoryDialog({
                   Restore this version
                 </Button>
               </div>
+              <div className='inline-flex rounded-md border p-0.5 text-sm'>
+                {(['changes', 'full'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type='button'
+                    onClick={() => setView(v)}
+                    className={`rounded px-3 py-1 ${
+                      view === v ? 'bg-primary text-primary-foreground' : ''
+                    }`}
+                  >
+                    {v === 'changes' ? 'What changed' : 'Full CV'}
+                  </button>
+                ))}
+              </div>
               <div className='max-h-[60vh] overflow-auto rounded-md bg-muted/40 p-3'>
                 {versionLoading || !version ? (
                   <Skeleton className='h-64 w-full' />
-                ) : (
+                ) : view === 'full' ? (
                   <CvPreview header={header} content={version.content} />
+                ) : !changes ? (
+                  <Skeleton className='h-64 w-full' />
+                ) : (
+                  <div className='space-y-3 text-sm'>
+                    <p className='font-medium'>{summarizeChanges(changes)}</p>
+                    {changes.map((c) => (
+                      <div
+                        key={c.label}
+                        className='space-y-1 rounded-md border bg-background p-3'
+                      >
+                        <p className='font-medium'>
+                          {c.label}{' '}
+                          <span className='font-normal text-muted-foreground'>
+                            – {c.summary}
+                          </span>
+                        </p>
+                        {c.removed.map((t) => (
+                          <p
+                            key={`r-${t}`}
+                            className='rounded bg-red-500/10 px-2 py-1 text-red-700 line-through dark:text-red-300'
+                          >
+                            {t}
+                          </p>
+                        ))}
+                        {c.added.map((t) => (
+                          <p
+                            key={`a-${t}`}
+                            className='rounded bg-green-500/10 px-2 py-1 text-green-700 dark:text-green-300'
+                          >
+                            {t}
+                          </p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
