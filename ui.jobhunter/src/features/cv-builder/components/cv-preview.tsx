@@ -209,7 +209,7 @@ export function CvPreview({
               {content.skills.map((g, i) => (
                 <li key={i}>
                   {g.category && <strong>{g.category}: </strong>}
-                  {g.items.join(', ')}
+                  {g.items.join(', ').replace(/\*\*/g, '')}
                 </li>
               ))}
             </ul>

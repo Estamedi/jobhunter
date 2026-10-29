@@ -46,7 +46,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                             s.Item().Element(b => Bullet(b, t =>
                             {
                                 if (!string.IsNullOrWhiteSpace(group.Category)) t.Span($"{group.Category}: ").Bold();
-                                t.Span(string.Join(", ", group.Items));
+                                t.Span(string.Join(", ", group.Items).Replace("**", ""));
                             }));
                         }
                     }));
