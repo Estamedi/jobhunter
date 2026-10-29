@@ -7,6 +7,7 @@ using backend.jobhunter.Application.CvDrafts.Commands.RegenerateCvDraftSection;
 using backend.jobhunter.Application.CvDrafts.Commands.RestoreCvDraftVersion;
 using backend.jobhunter.Application.CvDrafts.Commands.UpdateCvDraft;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraft;
+using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraftScore;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraftVersion;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraftVersions;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDrafts;
@@ -27,6 +28,7 @@ public class CvGeneration : IEndpointGroup
         group.MapPost(ExportCvDraft, "{id}/export");
         group.MapPost(RegenerateSection, "{id}/regenerate-section");
         group.MapPost(AnalyzeMatch, "{id}/match");
+        group.MapGet(GetScore, "{id}/score");
         group.MapGet(GetVersions, "{id}/versions");
         group.MapGet(GetVersion, "{id}/versions/{versionId}");
         group.MapPost(RestoreVersion, "{id}/versions/{versionId}/restore");
@@ -64,6 +66,11 @@ public class CvGeneration : IEndpointGroup
     [EndpointDescription("Lists the skills the draft's job description asks for and whether the CV or the candidate's profile covers each. The first call asks the AI to read the job description and caches the result on the draft.")]
     public static async Task<Ok<CvJobMatchDto>> AnalyzeMatch(ISender sender, int id, CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(new AnalyzeCvDraftMatchCommand(id), ct));
+
+    [EndpointSummary("Score a CV draft")]
+    [EndpointDescription("Scores the saved CV with fixed rules: an overall score out of 100 and a score out of 10 per check, each with the lines that cost points.")]
+    public static async Task<Ok<CvScoreDto>> GetScore(ISender sender, int id, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new GetCvDraftScoreQuery(id), ct));
 
     [EndpointSummary("List earlier versions of a CV draft")]
     [EndpointDescription("The last 20 saved copies of the draft's content, newest first. A copy is saved just before a hand edit, a section refine or a restore replaces the content.")]

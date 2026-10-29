@@ -48,6 +48,7 @@ import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
 import { GeneratingPanel } from './components/generating-panel'
 import { JobMatchPanel } from './components/job-match-panel'
+import { ScorePanel } from './components/score-panel'
 import { SectionEditor } from './components/section-editor'
 import { VersionHistoryDialog } from './components/version-history-dialog'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
@@ -740,6 +741,13 @@ export function CvBuilder({
                   onRefine={(section) => setRefining(section)}
                 />
               </div>
+            )}
+
+            {!editing && (
+              <ScorePanel
+                draftId={draft.id}
+                lastModified={draft.lastModified}
+              />
             )}
 
             {!editing && candidate && (

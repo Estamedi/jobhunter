@@ -112,6 +112,34 @@ export interface CvJobMatch {
   mustHaveTotal: number
 }
 
+export interface CvScoreLocation {
+  section: string
+  entryIndex?: number | null
+  bulletIndex?: number | null
+  text: string
+}
+
+export interface CvScoreIssue {
+  message: string
+  locations: CvScoreLocation[]
+}
+
+export interface CvScoreCheck {
+  id: string
+  title: string
+  description: string
+  // 0 to 10
+  score: number
+  detail?: string | null
+  issues: CvScoreIssue[]
+}
+
+export interface CvScore {
+  // 0 to 100
+  overall: number
+  checks: CvScoreCheck[]
+}
+
 export interface GenerateCvDraftDto {
   candidateId: number
   jobTitle: string
@@ -161,6 +189,10 @@ export const cvBuilderApi = {
   // Checks the draft against its job description. The first call reads the job description with the AI.
   match: (id: number) =>
     http.post<CvJobMatch>(`/api/CvGeneration/${id}/match`).then((r) => r.data),
+
+  // Scores the saved CV with fixed rules; ask again after any change.
+  score: (id: number) =>
+    http.get<CvScore>(`/api/CvGeneration/${id}/score`).then((r) => r.data),
 
   versions: (id: number) =>
     http
