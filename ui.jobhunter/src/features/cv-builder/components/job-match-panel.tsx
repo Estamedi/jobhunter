@@ -3,17 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Loader2, Plus, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { profileApi } from '@/features/profile/api'
-import {
-  cvBuilderApi,
-  type CvSection,
-  type RequirementMatch,
-  type RequirementStatus,
-} from '../api'
+import { cvBuilderApi, type CvSection, type RequirementStatus } from '../api'
 import { serverDetail } from '../lib/error-message'
+import { jobFit } from '../lib/job-fit'
 
 const GROUPS: { status: RequirementStatus; title: string; hint: string }[] = [
   {
@@ -73,7 +70,9 @@ export function JobMatchPanel({
     retry: false,
   })
 
+  // Skills ticked to add to the profile, and skills ticked to work into the CV.
   const [selected, setSelected] = useState<string[]>([])
+  const [toWorkIn, setToWorkIn] = useState<string[]>([])
 
   // Adds several skills in one go, then asks for a single CV rewrite covering all of them.
   const addSkills = useMutation({
@@ -137,109 +136,141 @@ export function JobMatchPanel({
     )
   }
 
-  const { requirements, otherRequirements, mustHaveCovered, mustHaveTotal } =
-    match.data
+  const { requirements, otherRequirements } = match.data
+  const fit = jobFit(requirements)
+  const busy = addSkills.isPending
 
-  const action = (r: RequirementMatch) => {
-    if (r.status === 'InProfile' || r.status === 'SkillsOnly') {
-      return (
-        <Button
-          variant='outline'
-          size='sm'
-          className='h-7 text-xs'
-          onClick={() =>
-            onRefine(
-              'experience',
-              `Work "${r.name}" into the most relevant experience bullets, only where my background supports it.`
-            )
-          }
-        >
-          <Sparkles className='mr-1 h-3 w-3' /> Refine to include
-        </Button>
+  const toggle =
+    (set: (fn: (prev: string[]) => string[]) => void, name: string) =>
+    (checked: boolean | 'indeterminate') =>
+      set((prev) =>
+        checked ? [...prev, name] : prev.filter((n) => n !== name)
       )
-    }
-    return null
+
+  const workIn = () => {
+    onRefine(
+      'experience',
+      `Work these skills into the most relevant experience bullets, only where my background supports it: ${toWorkIn.join(', ')}.`
+    )
+    setToWorkIn([])
   }
 
+  const notes = [
+    fit.skillsOnly > 0 && `${fit.skillsOnly} only in the Skills list`,
+    fit.inProfile > 0 && `${fit.inProfile} on your profile but not in this CV`,
+    fit.missing > 0 && `${fit.missing} not on your profile`,
+  ].filter(Boolean)
+
   return (
-    <div className='space-y-3 rounded-md border p-4'>
+    <div className='flex flex-col gap-3 rounded-md border p-4'>
       <div>
         <p className='text-sm font-medium'>Job match</p>
         <p className='text-sm'>
-          {mustHaveTotal > 0
-            ? `${mustHaveCovered} of ${mustHaveTotal} must-have skills are covered in this CV.`
+          {fit.total > 0
+            ? `${fit.inCv} of ${fit.total} must-have skills are in your summary or experience.`
             : 'The job description does not list specific must-have skills.'}
         </p>
+        {notes.length > 0 && (
+          <p className='text-xs text-muted-foreground'>{notes.join(' · ')}</p>
+        )}
       </div>
 
       {GROUPS.map((group) => {
         const items = requirements.filter((r) => r.status === group.status)
         if (items.length === 0) return null
+        const adds = group.status === 'Missing'
+        const works =
+          group.status === 'InProfile' || group.status === 'SkillsOnly'
+        const ticked = items.filter((r) =>
+          (adds ? selected : toWorkIn).includes(r.name)
+        )
+        const setTicked = adds ? setSelected : setToWorkIn
+
         return (
-          <div key={group.status} className='space-y-1'>
+          <div key={group.status} className='flex flex-col gap-1'>
             <p className='text-xs font-medium'>
               {group.title} ({items.length})
             </p>
             {group.hint && (
               <p className='text-xs text-muted-foreground'>{group.hint}</p>
             )}
-            {group.status === 'Missing' && (
+
+            {(adds || works) && (
               <div className='flex flex-wrap items-center gap-2 py-1'>
                 <Button
                   variant='outline'
                   size='sm'
                   className='h-7 text-xs'
-                  disabled={addSkills.isPending}
+                  disabled={busy}
                   onClick={() =>
-                    setSelected(
-                      selected.length === items.length
-                        ? []
-                        : items.map((i) => i.name)
-                    )
+                    setTicked((prev) => {
+                      const rest = prev.filter(
+                        (n) => !items.some((i) => i.name === n)
+                      )
+                      return ticked.length === items.length
+                        ? rest
+                        : [...rest, ...items.map((i) => i.name)]
+                    })
                   }
                 >
-                  {selected.length === items.length
+                  {ticked.length === items.length
                     ? 'Clear selection'
                     : 'Select all'}
                 </Button>
-                <Button
-                  size='sm'
-                  className='h-7 text-xs'
-                  disabled={addSkills.isPending || selected.length === 0}
-                  onClick={() => addSkills.mutate(selected)}
-                >
-                  {addSkills.isPending ? (
-                    <Loader2 className='mr-1 h-3 w-3 animate-spin' />
-                  ) : (
-                    <Plus className='mr-1 h-3 w-3' />
-                  )}
-                  {selected.length > 0
-                    ? `I have these ${selected.length} – add to my profile`
-                    : 'Tick the skills you have'}
-                </Button>
+                {adds ? (
+                  <Button
+                    size='sm'
+                    className='h-7 text-xs'
+                    disabled={busy || ticked.length === 0}
+                    onClick={() => addSkills.mutate(ticked.map((r) => r.name))}
+                  >
+                    {busy ? (
+                      <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                    ) : (
+                      <Plus className='mr-1 h-3 w-3' />
+                    )}
+                    Add {ticked.length > 0 ? `${ticked.length} ` : ''}to my
+                    profile
+                  </Button>
+                ) : (
+                  <Button
+                    size='sm'
+                    className='h-7 text-xs'
+                    disabled={ticked.length === 0}
+                    onClick={workIn}
+                  >
+                    <Sparkles className='mr-1 h-3 w-3' />
+                    Work {ticked.length > 0 ? `${ticked.length} ` : ''}into my
+                    CV
+                  </Button>
+                )}
+                {ticked.length === 0 && (
+                  <span className='text-xs text-muted-foreground'>
+                    {adds
+                      ? 'Tick the skills you really have.'
+                      : 'Tick the skills to add to your experience.'}
+                  </span>
+                )}
               </div>
             )}
-            <ul className='space-y-1'>
+
+            <ul className='flex flex-col gap-1'>
               {items.map((r) =>
-                r.status === 'Missing' ? (
+                adds || works ? (
                   <li key={r.name}>
                     <label
-                      className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50 ${
-                        selected.includes(r.name)
+                      className={cn(
+                        'flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50',
+                        ticked.includes(r)
                           ? 'border-primary bg-primary/5'
                           : 'border-transparent'
-                      }`}
+                      )}
                     >
                       <Checkbox
-                        checked={selected.includes(r.name)}
-                        disabled={addSkills.isPending}
-                        onCheckedChange={(c) =>
-                          setSelected((prev) =>
-                            c
-                              ? [...prev, r.name]
-                              : prev.filter((n) => n !== r.name)
-                          )
-                        }
+                        className='border-foreground/40'
+                        checked={(adds ? selected : toWorkIn).includes(r.name)}
+                        disabled={adds && busy}
+                        onCheckedChange={toggle(setTicked, r.name)}
                       />
                       <span className='flex items-center gap-2'>
                         {r.name} <Badge mustHave={r.mustHave} />
@@ -249,12 +280,9 @@ export function JobMatchPanel({
                 ) : (
                   <li
                     key={r.name}
-                    className='flex flex-wrap items-center justify-between gap-2 px-3 py-1 text-sm'
+                    className='flex items-center gap-2 px-3 py-1 text-sm'
                   >
-                    <span className='flex items-center gap-2'>
-                      {r.name} <Badge mustHave={r.mustHave} />
-                    </span>
-                    {action(r)}
+                    {r.name} <Badge mustHave={r.mustHave} />
                   </li>
                 )
               )}
@@ -264,7 +292,7 @@ export function JobMatchPanel({
       })}
 
       {otherRequirements.length > 0 && (
-        <div className='space-y-1'>
+        <div className='flex flex-col gap-1'>
           <p className='text-xs font-medium'>Also in the job description</p>
           <ul className='list-disc pl-5 text-sm text-muted-foreground'>
             {otherRequirements.map((o) => (

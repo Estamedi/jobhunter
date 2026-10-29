@@ -7,6 +7,7 @@ import {
   History,
   Loader2,
   Pencil,
+  Plus,
   Sparkles,
   Trash2,
 } from 'lucide-react'
@@ -42,13 +43,13 @@ import {
   type CvContent,
   type CvDraft,
   type CvDraftSummary,
+  type CvScoreLocation,
   type CvSection,
 } from './api'
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
 import { GeneratingPanel } from './components/generating-panel'
-import { JobMatchPanel } from './components/job-match-panel'
-import { ScorePanel } from './components/score-panel'
+import { ReviewPanel } from './components/review-panel'
 import { SectionEditor } from './components/section-editor'
 import { VersionHistoryDialog } from './components/version-history-dialog'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
@@ -322,6 +323,13 @@ export function CvBuilder({
   const [editingSection, setEditingSection] = useState<CvSection | null>(null)
   const [instruction, setInstruction] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
+  // Lines a score issue points at, tied to the draft version they were found in so they disappear on any change.
+  const [shown, setShown] = useState<{
+    key: string
+    locations: CvScoreLocation[]
+  } | null>(null)
+  // The New CV form is tucked away while a draft is open, until asked for.
+  const [showForm, setShowForm] = useState(false)
   const [progress, setProgress] = useState<BatchProgress | null>(null)
   const [deleting, setDeleting] = useState<CvDraftSummary | CvDraft | null>(
     null
@@ -420,6 +428,7 @@ export function CvBuilder({
       applyDraft(created)
       setSelectedId(created.id)
       setEditing(false)
+      setShowForm(false)
       toast.success('CV generated')
       showWarnings(created.warnings)
     },
@@ -594,9 +603,33 @@ export function CvBuilder({
 
   const drafts = draftsResult?.items ?? []
 
+  const shownKey = `${selectedId}:${draft?.lastModified}`
+  const highlights = shown?.key === shownKey ? shown.locations : undefined
+  const formOpen = showForm || selectedId === null
+
+  // Beside the CV on wide screens so the lines it points at stay in view; under the CV on narrow ones.
+  const review =
+    draft && candidate && !editing ? (
+      <ReviewPanel
+        draftId={draft.id}
+        lastModified={draft.lastModified}
+        hasJobDescription={!!draft.jobDescription?.trim()}
+        candidateId={candidate.id}
+        onRefine={(section, text) => {
+          setInstruction(text)
+          setRefining(section)
+        }}
+        onShowLines={(locations) =>
+          setShown({ key: shownKey, locations: [...locations] })
+        }
+      />
+    ) : null
+
   return (
     <div className='grid gap-6 lg:grid-cols-[360px_1fr]'>
-      <div className='space-y-6'>
+      <div className='flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pr-1'>
+        {review && <div className='hidden lg:block'>{review}</div>}
+
         <WishlistPanel
           applications={wishlist?.items ?? []}
           drafts={draftsResult?.items ?? []}
@@ -608,22 +641,6 @@ export function CvBuilder({
           }}
           onGenerateAll={() => generateAll.mutate()}
         />
-
-        <div className='rounded-md border p-4'>
-          <h2 className='mb-3 font-semibold'>New CV</h2>
-          {prefillLoading || profileLoading ? (
-            <Skeleton className='h-64 w-full' />
-          ) : (
-            <GenerateForm
-              key={`${applicationId}-${jobRoleId}`}
-              initial={prefill}
-              profileRoles={profile?.experiences.length ?? 0}
-              cvs={cvsResult?.items ?? []}
-              isPending={generate.isPending || !candidate}
-              onSubmit={(d) => generate.mutate(d)}
-            />
-          )}
-        </div>
 
         <div className='rounded-md border p-4'>
           <h2 className='mb-3 font-semibold'>Your drafts</h2>
@@ -653,6 +670,39 @@ export function CvBuilder({
             ))}
           </ul>
         </div>
+
+        {formOpen ? (
+          <div className='rounded-md border p-4'>
+            <div className='mb-3 flex items-center justify-between'>
+              <h2 className='font-semibold'>New CV</h2>
+              {draft && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => setShowForm(false)}
+                >
+                  Hide
+                </Button>
+              )}
+            </div>
+            {prefillLoading || profileLoading ? (
+              <Skeleton className='h-64 w-full' />
+            ) : (
+              <GenerateForm
+                key={`${applicationId}-${jobRoleId}`}
+                initial={prefill}
+                profileRoles={profile?.experiences.length ?? 0}
+                cvs={cvsResult?.items ?? []}
+                isPending={generate.isPending || !candidate}
+                onSubmit={(d) => generate.mutate(d)}
+              />
+            )}
+          </div>
+        ) : (
+          <Button variant='outline' onClick={() => setShowForm(true)}>
+            <Plus className='mr-1 h-4 w-4' /> New CV
+          </Button>
+        )}
       </div>
 
       <div className='min-w-0'>
@@ -739,29 +789,12 @@ export function CvBuilder({
                   content={draft.content}
                   onEdit={(section) => setEditingSection(section)}
                   onRefine={(section) => setRefining(section)}
+                  highlights={highlights}
                 />
               </div>
             )}
 
-            {!editing && (
-              <ScorePanel
-                draftId={draft.id}
-                lastModified={draft.lastModified}
-              />
-            )}
-
-            {!editing && candidate && (
-              <JobMatchPanel
-                draftId={draft.id}
-                lastModified={draft.lastModified}
-                hasJobDescription={!!draft.jobDescription?.trim()}
-                candidateId={candidate.id}
-                onRefine={(section, text) => {
-                  setInstruction(text)
-                  setRefining(section)
-                }}
-              />
-            )}
+            {review && <div className='lg:hidden'>{review}</div>}
           </div>
         )}
       </div>

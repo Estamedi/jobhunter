@@ -1,6 +1,6 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, type ReactNode } from 'react'
 import { Pencil, Plus, Sparkles } from 'lucide-react'
-import { type CvContent, type CvSection } from '../api'
+import { type CvContent, type CvScoreLocation, type CvSection } from '../api'
 
 // Mirrors the backend "classic" PDF template (same palette and section order).
 const HEADING = '#4285F4'
@@ -151,11 +151,15 @@ function Section({
   )
 }
 
+// Marks the lines a score issue points at.
+const HIT = 'rounded-sm bg-yellow-200'
+
 export function CvPreview({
   header,
   content,
   onEdit,
   onRefine,
+  highlights,
 }: {
   header: {
     fullName: string
@@ -166,7 +170,34 @@ export function CvPreview({
   content: CvContent
   onEdit?: (section: CvSection) => void
   onRefine?: (section: CvSection) => void
+  // Lines to mark and scroll to, from a score issue.
+  highlights?: CvScoreLocation[]
 }) {
+  const page = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!highlights?.length) return
+    page.current
+      ?.querySelector('[data-hit]')
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [highlights])
+
+  const hit = (section: string, entry?: number, bullet?: number) =>
+    !!highlights?.some(
+      (h) =>
+        h.section === section &&
+        (h.entryIndex ?? undefined) === entry &&
+        (h.bulletIndex ?? undefined) === bullet
+    )
+  const hitSkill = (items: string[]) =>
+    !!highlights?.some(
+      (h) =>
+        h.section === 'skills' &&
+        items.some(
+          (i) =>
+            i.replace(/\*\*/g, '').trim().toLowerCase() === h.text.toLowerCase()
+        )
+    )
   // Empty sections are not drawn (the PDF skips them too), so offer a button to add them.
   const missing = [
     !content.summary && { section: 'summary' as const, label: 'Summary' },
@@ -205,13 +236,20 @@ export function CvPreview({
 
   return (
     <>
-      <article className='mx-auto w-full max-w-[794px] bg-white px-12 py-10 text-[12px] leading-[1.35] text-[#202124] shadow-sm'>
+      <article
+        ref={page}
+        className='mx-auto w-full max-w-[794px] bg-white px-12 py-10 text-[12px] leading-[1.35] text-[#202124] shadow-sm'
+      >
         <header className='group relative text-center'>
           <div className='text-[22px]' style={{ color: NAME }}>
             {header.fullName}
           </div>
           {content.headline && (
-            <div className='text-[17px] font-bold' style={{ color: NAME }}>
+            <div
+              className={`text-[17px] font-bold ${hit('headline') ? HIT : ''}`}
+              data-hit={hit('headline') || undefined}
+              style={{ color: NAME }}
+            >
               {content.headline}
             </div>
           )}
@@ -240,7 +278,10 @@ export function CvPreview({
             onEdit={onEdit}
             onRefine={onRefine}
           >
-            <p className='text-justify'>
+            <p
+              className={`text-justify ${hit('summary') ? HIT : ''}`}
+              data-hit={hit('summary') || undefined}
+            >
               <Rich text={content.summary} />
             </p>
           </Section>
@@ -255,7 +296,11 @@ export function CvPreview({
           >
             <ul className='list-disc pl-5'>
               {content.skills.map((g, i) => (
-                <li key={i}>
+                <li
+                  key={i}
+                  className={hitSkill(g.items) ? HIT : undefined}
+                  data-hit={hitSkill(g.items) || undefined}
+                >
                   {g.category && <strong>{g.category}: </strong>}
                   {g.items.join(', ').replace(/\*\*/g, '')}
                 </li>
@@ -309,7 +354,10 @@ export function CvPreview({
             <div className='space-y-2'>
               {content.experience.map((job, i) => (
                 <div key={i}>
-                  <div className='flex items-baseline justify-between gap-4'>
+                  <div
+                    className={`flex items-baseline justify-between gap-4 ${hit('experience', i) ? HIT : ''}`}
+                    data-hit={hit('experience', i) || undefined}
+                  >
                     <div>
                       <strong style={{ color: COMPANY }}>
                         {job.location
@@ -330,7 +378,11 @@ export function CvPreview({
                   {job.bullets.length > 0 && (
                     <ul className='list-disc pl-5 text-justify'>
                       {job.bullets.map((b, j) => (
-                        <li key={j}>
+                        <li
+                          key={j}
+                          className={hit('experience', i, j) ? HIT : undefined}
+                          data-hit={hit('experience', i, j) || undefined}
+                        >
                           <Rich text={b} />
                         </li>
                       ))}

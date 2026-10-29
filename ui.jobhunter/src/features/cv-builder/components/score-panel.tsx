@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Check, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cvBuilderApi, type CvScoreCheck } from '../api'
+import { cvBuilderApi, type CvScoreCheck, type CvScoreLocation } from '../api'
 
 const tone = (score: number, max: number) => {
   const r = score / max
@@ -14,7 +14,16 @@ const tone = (score: number, max: number) => {
       : 'text-red-600 dark:text-red-400'
 }
 
-function ScoreRing({ score }: { score: number }) {
+// A check below 10 is something to fix, so only a full score is green; this keeps the colour in step with
+// the "To fix" and "Passed" groups.
+const checkTone = (score: number) =>
+  score >= 10
+    ? 'text-green-600 dark:text-green-400'
+    : score >= 7
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-red-600 dark:text-red-400'
+
+export function ScoreRing({ score }: { score: number }) {
   const radius = 36
   const circumference = 2 * Math.PI * radius
   return (
@@ -50,7 +59,13 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function CheckDetail({ check }: { check: CvScoreCheck }) {
+function CheckDetail({
+  check,
+  onShowLines,
+}: {
+  check: CvScoreCheck
+  onShowLines?: (locations: CvScoreLocation[]) => void
+}) {
   return (
     <div className='space-y-2 rounded-md border bg-background p-3 text-sm'>
       <div>
@@ -71,6 +86,16 @@ function CheckDetail({ check }: { check: CvScoreCheck }) {
                 <TriangleAlert className='mt-0.5 h-4 w-4 shrink-0 text-amber-600' />
                 {issue.message}
               </p>
+              {onShowLines && issue.locations.length > 0 && (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='ml-6 h-7 text-xs'
+                  onClick={() => onShowLines(issue.locations)}
+                >
+                  Show in CV
+                </Button>
+              )}
               {issue.locations.length > 0 && (
                 <ul className='ml-6 space-y-1'>
                   {issue.locations.slice(0, 6).map((l, j) => (
@@ -101,9 +126,15 @@ function CheckDetail({ check }: { check: CvScoreCheck }) {
 export function ScorePanel({
   draftId,
   lastModified,
+  onShowLines,
+  showSummary = true,
 }: {
   draftId: number
   lastModified: string
+  // When given, each issue gets a "Show in CV" button that marks its lines in the preview.
+  onShowLines?: (locations: CvScoreLocation[]) => void
+  // The ring and headline; a parent that shows the score itself turns this off.
+  showSummary?: boolean
 }) {
   const [openId, setOpenId] = useState<string | null>(null)
 
@@ -142,25 +173,29 @@ export function ScorePanel({
         }`}
       >
         <span>{c.title}</span>
-        <span className={`font-semibold ${tone(c.score, 10)}`}>{c.score}</span>
+        <span className={`font-semibold ${checkTone(c.score)}`}>{c.score}</span>
       </button>
-      {openId === c.id && <CheckDetail check={c} />}
+      {openId === c.id && <CheckDetail check={c} onShowLines={onShowLines} />}
     </li>
   )
 
   return (
-    <div className='space-y-4 rounded-md border p-4'>
-      <div className='flex items-center gap-4'>
-        <ScoreRing score={overall} />
-        <div>
-          <p className='font-semibold'>CV score</p>
-          <p className='text-sm text-muted-foreground'>
-            {toFix.length === 0
-              ? 'Every check passes.'
-              : `${toFix.length} ${toFix.length === 1 ? 'thing' : 'things'} to fix. Pick one to see the lines.`}
-          </p>
+    <div
+      className={showSummary ? 'space-y-4 rounded-md border p-4' : 'space-y-4'}
+    >
+      {showSummary && (
+        <div className='flex items-center gap-4'>
+          <ScoreRing score={overall} />
+          <div>
+            <p className='font-semibold'>CV score</p>
+            <p className='text-sm text-muted-foreground'>
+              {toFix.length === 0
+                ? 'Every check passes.'
+                : `${toFix.length} ${toFix.length === 1 ? 'thing' : 'things'} to fix. Pick one to see the lines.`}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {toFix.length > 0 && (
         <div className='space-y-1'>
