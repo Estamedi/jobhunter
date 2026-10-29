@@ -16,6 +16,10 @@ services:
       - ConnectionStrings__backend-jobhunterDb=Host=${POSTGRES_HOST:-shared_postgres};Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-put link};Password=${POSTGRES_PASSWORD}
       - Authentication__Google__ClientId=${AUTHENTICATION__GOOGLE__CLIENTID}
       - AiExtraction__OpenAiApiKey=${AIEXTRACTION__OPENAIAPIKEY}
+      - Langfuse__Host=${LANGFUSE__HOST:-https://cloud.langfuse.com}
+      - Langfuse__PublicKey=${LANGFUSE__PUBLICKEY:-}
+      - Langfuse__SecretKey=${LANGFUSE__SECRETKEY:-}
+      - Langfuse__LogContent=${LANGFUSE__LOGCONTENT:-false}
       - FileStorage__RootPath=/app/uploads/cvs
       - DataProtection__KeysPath=/app/keys
     ports:

@@ -33,7 +33,8 @@ public class AiJsonClientTests
         return new AiJsonClient(
             factory.Object,
             Options.Create(options ?? new AiExtractionOptions { PreferredProvider = "OpenAI", OpenAiApiKey = "k" }),
-            NullLogger<AiJsonClient>.Instance);
+            NullLogger<AiJsonClient>.Instance,
+            new LangfuseTelemetry(Options.Create(new LangfuseOptions())));
     }
 
     private static Task<object> Call(AiJsonClient client)

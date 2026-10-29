@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Loader2, Plus, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { profileApi } from '@/features/profile/api'
 import {
@@ -71,18 +73,32 @@ export function JobMatchPanel({
     retry: false,
   })
 
-  const addSkill = useMutation({
-    mutationFn: (name: string) => profileApi.addSkill(candidateId, name),
-    onSuccess: (_, name) => {
+  const [selected, setSelected] = useState<string[]>([])
+
+  // Adds several skills in one go, then asks for a single CV rewrite covering all of them.
+  const addSkills = useMutation({
+    mutationFn: async (names: string[]) => {
+      const results = await Promise.allSettled(
+        names.map((n) => profileApi.addSkill(candidateId, n))
+      )
+      const added = names.filter((_, i) => results[i].status === 'fulfilled')
+      if (added.length === 0) throw new Error('none added')
+      return { added, failed: names.length - added.length }
+    },
+    onSuccess: ({ added, failed }) => {
       qc.invalidateQueries({ queryKey: ['profile', candidateId] })
       qc.invalidateQueries({ queryKey: ['cv-draft-match', draftId] })
-      toast.success(`Added "${name}" to your profile`)
+      setSelected([])
+      toast.success(
+        `Added ${added.length} skill${added.length === 1 ? '' : 's'} to your profile`
+      )
+      if (failed > 0) toast.error(`${failed} could not be added`)
       onRefine(
         'skills',
-        `Include the skill "${name}", which I have added to my profile, where it is relevant to the job.`
+        `Include these skills, which I have added to my profile, where they are relevant to the job: ${added.join(', ')}.`
       )
     },
-    onError: () => toast.error('Failed to add the skill to your profile'),
+    onError: () => toast.error('Failed to add the skills to your profile'),
   })
 
   if (!hasJobDescription) {
@@ -127,20 +143,16 @@ export function JobMatchPanel({
   const action = (r: RequirementMatch) => {
     if (r.status === 'Missing') {
       return (
-        <Button
-          variant='outline'
-          size='sm'
-          className='h-7 text-xs'
-          disabled={addSkill.isPending}
-          onClick={() => addSkill.mutate(r.name)}
-        >
-          {addSkill.isPending && addSkill.variables === r.name ? (
-            <Loader2 className='mr-1 h-3 w-3 animate-spin' />
-          ) : (
-            <Plus className='mr-1 h-3 w-3' />
-          )}
-          I have this – add to my profile
-        </Button>
+        <Checkbox
+          aria-label={`I have ${r.name}`}
+          checked={selected.includes(r.name)}
+          disabled={addSkills.isPending}
+          onCheckedChange={(c) =>
+            setSelected((prev) =>
+              c ? [...prev, r.name] : prev.filter((n) => n !== r.name)
+            )
+          }
+        />
       )
     }
     if (r.status === 'InProfile' || r.status === 'SkillsOnly') {
@@ -184,6 +196,40 @@ export function JobMatchPanel({
             </p>
             {group.hint && (
               <p className='text-xs text-muted-foreground'>{group.hint}</p>
+            )}
+            {group.status === 'Missing' && (
+              <div className='flex flex-wrap items-center gap-2 py-1'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='h-7 text-xs'
+                  disabled={addSkills.isPending}
+                  onClick={() =>
+                    setSelected(
+                      selected.length === items.length
+                        ? []
+                        : items.map((i) => i.name)
+                    )
+                  }
+                >
+                  {selected.length === items.length
+                    ? 'Clear selection'
+                    : 'Select all'}
+                </Button>
+                <Button
+                  size='sm'
+                  className='h-7 text-xs'
+                  disabled={addSkills.isPending || selected.length === 0}
+                  onClick={() => addSkills.mutate(selected)}
+                >
+                  {addSkills.isPending ? (
+                    <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                  ) : (
+                    <Plus className='mr-1 h-3 w-3' />
+                  )}
+                  I have these – add {selected.length || ''} to my profile
+                </Button>
+              </div>
             )}
             <ul className='space-y-1'>
               {items.map((r) => (

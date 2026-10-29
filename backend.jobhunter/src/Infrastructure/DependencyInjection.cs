@@ -72,6 +72,9 @@ public static class DependencyInjection
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();
+        builder.Services.Configure<LangfuseOptions>(builder.Configuration.GetSection("Langfuse"));
+        builder.Services.PostConfigure<LangfuseOptions>(o => o.Environment = builder.Environment.EnvironmentName.ToLowerInvariant());
+        builder.Services.AddSingleton<LangfuseTelemetry>();
         builder.Services.AddTransient<AiJsonClient>();
         builder.Services.AddTransient<ICvGenerationAiService, AiCvGenerationService>();
         builder.Services.AddTransient<IProfileImportAiService, AiProfileImportService>();

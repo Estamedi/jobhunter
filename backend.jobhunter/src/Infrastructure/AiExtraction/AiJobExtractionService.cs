@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Infrastructure.AiCommon;
 using Microsoft.Extensions.Options;
 
 namespace backend.jobhunter.Infrastructure.AiExtraction;
@@ -9,23 +10,41 @@ namespace backend.jobhunter.Infrastructure.AiExtraction;
 // Calls whichever AI provider is configured (preferring AiExtractionOptions.PreferredProvider,
 // falling back to whichever provider actually has a key set) to turn raw page content into
 // structured job fields. Keys live only in server config — never sent to or stored by the client.
-public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptions<AiExtractionOptions> options)
+public class AiJobExtractionService(
+    IHttpClientFactory httpClientFactory, IOptions<AiExtractionOptions> options, LangfuseTelemetry telemetry, IUser? user = null)
     : IJobExtractionAiService
 {
     private static readonly JsonSerializerOptions DeserializeOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly AiExtractionOptions _options = options.Value;
 
-    public Task<ExtractedJobDto> ExtractAsync(JobPageContent page, CancellationToken cancellationToken)
+    public async Task<ExtractedJobDto> ExtractAsync(JobPageContent page, CancellationToken cancellationToken)
     {
-        var provider = PickProvider();
-        return provider switch
+        var provider = PickProvider() ?? throw new InvalidOperationException(
+            "No AI provider is configured for job extraction. Set an Anthropic or OpenAI API key.");
+
+        var model = provider == "OpenAI" ? _options.OpenAiModel : _options.AnthropicModel;
+        var prompt = JobExtractionPrompt.BuildPrompt(page);
+        var call = new AiCallInfo();
+        using var activity = telemetry.StartGeneration("extract-job-posting", provider, model, 4096, user?.Id);
+        try
         {
-            "OpenAI" => ExtractWithOpenAiAsync(page, cancellationToken),
-            "Anthropic" => ExtractWithClaudeAsync(page, cancellationToken),
-            _ => throw new InvalidOperationException(
-                "No AI provider is configured for job extraction. Set an Anthropic or OpenAI API key."),
-        };
+            return provider == "OpenAI"
+                ? await ExtractWithOpenAiAsync(prompt, call, cancellationToken)
+                : await ExtractWithClaudeAsync(prompt, call, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            if (activity is not null) LangfuseTelemetry.Fail(activity, ex);
+            throw;
+        }
+        finally
+        {
+            if (activity is not null)
+            {
+                telemetry.Complete(activity, null, prompt, call.Output, call.InputTokens, call.OutputTokens);
+            }
+        }
     }
 
     private string? PickProvider()
@@ -42,7 +61,7 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
         return null;
     }
 
-    private async Task<ExtractedJobDto> ExtractWithClaudeAsync(JobPageContent page, CancellationToken cancellationToken)
+    private async Task<ExtractedJobDto> ExtractWithClaudeAsync(string prompt, AiCallInfo call, CancellationToken cancellationToken)
     {
         var schema = JsonNode.Parse(JobExtractionPrompt.JobSchemaJson);
         var body = new JsonObject
@@ -56,7 +75,7 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
             },
             ["messages"] = new JsonArray
             {
-                new JsonObject { ["role"] = "user", ["content"] = JobExtractionPrompt.BuildPrompt(page) },
+                new JsonObject { ["role"] = "user", ["content"] = prompt },
             },
         };
 
@@ -76,6 +95,8 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
         }
 
         var message = JsonNode.Parse(responseBody);
+        call.InputTokens = message?["usage"]?["input_tokens"]?.GetValue<int>();
+        call.OutputTokens = message?["usage"]?["output_tokens"]?.GetValue<int>();
         if (message?["stop_reason"]?.GetValue<string>() == "refusal")
         {
             throw new InvalidOperationException("The AI declined to process this page.");
@@ -83,6 +104,7 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
 
         var text = message?["content"]?.AsArray()
             .FirstOrDefault(b => b?["type"]?.GetValue<string>() == "text")?["text"]?.GetValue<string>();
+        call.Output = text;
         if (string.IsNullOrEmpty(text))
         {
             throw new InvalidOperationException("Empty AI response.");
@@ -92,7 +114,7 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
             ?? throw new InvalidOperationException("Could not parse AI response.");
     }
 
-    private async Task<ExtractedJobDto> ExtractWithOpenAiAsync(JobPageContent page, CancellationToken cancellationToken)
+    private async Task<ExtractedJobDto> ExtractWithOpenAiAsync(string prompt, AiCallInfo call, CancellationToken cancellationToken)
     {
         var schema = JsonNode.Parse(JobExtractionPrompt.JobSchemaJson);
         var body = new JsonObject
@@ -105,7 +127,7 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
             },
             ["messages"] = new JsonArray
             {
-                new JsonObject { ["role"] = "user", ["content"] = JobExtractionPrompt.BuildPrompt(page) },
+                new JsonObject { ["role"] = "user", ["content"] = prompt },
             },
         };
 
@@ -124,6 +146,8 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
         }
 
         var message = JsonNode.Parse(responseBody);
+        call.InputTokens = message?["usage"]?["prompt_tokens"]?.GetValue<int>();
+        call.OutputTokens = message?["usage"]?["completion_tokens"]?.GetValue<int>();
         var choice = message?["choices"]?.AsArray().FirstOrDefault()?["message"];
         if (choice?["refusal"] is JsonNode refusal && !string.IsNullOrEmpty(refusal.GetValue<string>()))
         {
@@ -131,6 +155,7 @@ public class AiJobExtractionService(IHttpClientFactory httpClientFactory, IOptio
         }
 
         var text = choice?["content"]?.GetValue<string>();
+        call.Output = text;
         if (string.IsNullOrEmpty(text))
         {
             throw new InvalidOperationException("Empty AI response.");

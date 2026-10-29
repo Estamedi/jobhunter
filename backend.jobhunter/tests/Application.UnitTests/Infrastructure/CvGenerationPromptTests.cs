@@ -184,7 +184,9 @@ public class CvGenerationPromptTests
         };
         var ai = new backend.jobhunter.Infrastructure.AiCommon.AiJsonClient(
             factory.Object, Microsoft.Extensions.Options.Options.Create(options),
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<backend.jobhunter.Infrastructure.AiCommon.AiJsonClient>.Instance);
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<backend.jobhunter.Infrastructure.AiCommon.AiJsonClient>.Instance,
+            new backend.jobhunter.Infrastructure.AiCommon.LangfuseTelemetry(
+                Microsoft.Extensions.Options.Options.Create(new backend.jobhunter.Infrastructure.AiCommon.LangfuseOptions())));
 
         var result = await new AiCvGenerationService(ai).ExtractRequirementsAsync("Needs Kubernetes", default);
 

@@ -1,7 +1,9 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Diagnostics;
 using backend.jobhunter.Application.Common.Exceptions;
+using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Infrastructure.AiExtraction;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,7 +14,8 @@ namespace backend.jobhunter.Infrastructure.AiCommon;
 // AiExtractionOptions.PreferredProvider, falling back to whichever has a key) and returns the
 // response parsed from the provider's JSON-schema structured output. Keys live only in server config.
 public class AiJsonClient(
-    IHttpClientFactory httpClientFactory, IOptions<AiExtractionOptions> options, ILogger<AiJsonClient> logger)
+    IHttpClientFactory httpClientFactory, IOptions<AiExtractionOptions> options, ILogger<AiJsonClient> logger,
+    LangfuseTelemetry telemetry, IUser? user = null)
 {
     private static readonly JsonSerializerOptions DeserializeOptions = new()
     {
@@ -30,16 +33,39 @@ public class AiJsonClient(
         => CompleteAsync<T>(null, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel, cancellationToken);
 
     // systemPrompt carries the fixed rules; prompt carries the untrusted, user-supplied content.
-    public Task<T> CompleteAsync<T>(
+    public async Task<T> CompleteAsync<T>(
         string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
     {
-        return PickProvider() switch
+        var provider = PickProvider();
+        var call = new AiCallInfo();
+        using var activity = provider is null
+            ? null
+            : telemetry.StartGeneration(
+                LangfuseTelemetry.OperationName(schemaName), provider,
+                provider == "OpenAI" ? openAiModel ?? _options.OpenAiModel : anthropicModel ?? _options.AnthropicModel,
+                maxTokens, user?.Id);
+        try
         {
-            "OpenAI" => WithOpenAiAsync<T>(systemPrompt, prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, cancellationToken),
-            "Anthropic" => WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, anthropicModel ?? _options.AnthropicModel, cancellationToken),
-            _ => throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key."),
-        };
+            return provider switch
+            {
+                "OpenAI" => await WithOpenAiAsync<T>(systemPrompt, prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, call, cancellationToken),
+                "Anthropic" => await WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, anthropicModel ?? _options.AnthropicModel, call, cancellationToken),
+                _ => throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key."),
+            };
+        }
+        catch (Exception ex)
+        {
+            if (activity is not null) LangfuseTelemetry.Fail(activity, ex);
+            throw;
+        }
+        finally
+        {
+            if (activity is not null)
+            {
+                telemetry.Complete(activity, systemPrompt, prompt, call.Output, call.InputTokens, call.OutputTokens);
+            }
+        }
     }
 
     private string? PickProvider()
@@ -56,8 +82,9 @@ public class AiJsonClient(
     }
 
     private async Task<T> WithClaudeAsync<T>(
-        string? systemPrompt, string prompt, string schemaJson, int maxTokens, string model, CancellationToken cancellationToken)
+        string? systemPrompt, string prompt, string schemaJson, int maxTokens, string model, AiCallInfo call, CancellationToken cancellationToken)
     {
+        call.Model = model;
         var body = new JsonObject
         {
             ["model"] = model,
@@ -81,18 +108,22 @@ public class AiJsonClient(
         var responseBody = await SendAsync(client, request, "Claude", cancellationToken);
 
         var message = JsonNode.Parse(responseBody);
+        call.InputTokens = message?["usage"]?["input_tokens"]?.GetValue<int>();
+        call.OutputTokens = message?["usage"]?["output_tokens"]?.GetValue<int>();
         var stopReason = message?["stop_reason"]?.GetValue<string>();
         if (stopReason == "refusal") throw new AiServiceException(AiFailure.Rejected, RefusedMessage);
         if (stopReason == "max_tokens") throw new AiServiceException(AiFailure.Rejected, TooLongMessage);
 
         var text = message?["content"]?.AsArray()
             .FirstOrDefault(b => b?["type"]?.GetValue<string>() == "text")?["text"]?.GetValue<string>();
+        call.Output = text;
         return Parse<T>(text);
     }
 
     private async Task<T> WithOpenAiAsync<T>(
-        string? systemPrompt, string prompt, string schemaJson, string schemaName, string model, CancellationToken cancellationToken)
+        string? systemPrompt, string prompt, string schemaJson, string schemaName, string model, AiCallInfo call, CancellationToken cancellationToken)
     {
+        call.Model = model;
         var messages = new JsonArray();
         if (!string.IsNullOrWhiteSpace(systemPrompt))
         {
@@ -125,7 +156,10 @@ public class AiJsonClient(
 
         var responseBody = await SendAsync(client, request, "OpenAI", cancellationToken);
 
-        var choice = JsonNode.Parse(responseBody)?["choices"]?.AsArray().FirstOrDefault();
+        var completion = JsonNode.Parse(responseBody);
+        call.InputTokens = completion?["usage"]?["prompt_tokens"]?.GetValue<int>();
+        call.OutputTokens = completion?["usage"]?["completion_tokens"]?.GetValue<int>();
+        var choice = completion?["choices"]?.AsArray().FirstOrDefault();
         if (choice?["message"]?["refusal"] is JsonNode refusal && !string.IsNullOrEmpty(refusal.GetValue<string>()))
         {
             throw new AiServiceException(AiFailure.Rejected, RefusedMessage);
@@ -135,7 +169,8 @@ public class AiJsonClient(
             throw new AiServiceException(AiFailure.Rejected, TooLongMessage);
         }
 
-        return Parse<T>(choice?["message"]?["content"]?.GetValue<string>());
+        call.Output = choice?["message"]?["content"]?.GetValue<string>();
+        return Parse<T>(call.Output);
     }
 
     private const string RefusedMessage = "The AI declined to process this request.";
