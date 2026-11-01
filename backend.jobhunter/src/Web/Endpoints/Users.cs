@@ -5,6 +5,7 @@ using backend.jobhunter.Application.Users.Commands.Logout;
 using backend.jobhunter.Application.Users.Commands.SetPassword;
 using backend.jobhunter.Application.Users.Commands.UpdateOnboardingStatus;
 using backend.jobhunter.Application.Users.Queries.GetCurrentUser;
+using backend.jobhunter.Application.Users.Queries.GetUsers;
 using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -17,12 +18,24 @@ public class Users : IEndpointGroup
     {
         groupBuilder.MapIdentityApi<ApplicationUser>();
 
+        groupBuilder.MapGet(GetUsers, string.Empty).RequireAuthorization();
         groupBuilder.MapPost(GoogleLogin, "google-login");
         groupBuilder.MapPost(Logout, "logout").RequireAuthorization();
         groupBuilder.MapGet(GetCurrentUser, "me").RequireAuthorization();
         groupBuilder.MapPut(UpdateOnboardingStatus, "onboarding-status").RequireAuthorization();
         groupBuilder.MapPost(SetPassword, "password").RequireAuthorization();
     }
+
+    [EndpointSummary("List registered users")]
+    [EndpointDescription("Administrator only. Returns a paged, searchable list of registered accounts with summary counts.")]
+    public static async Task<Ok<RegisteredUsersResult>> GetUsers(
+        ISender sender,
+        CancellationToken cancellationToken,
+        string? search = null,
+        string? role = null,
+        int page = 1,
+        int pageSize = 20)
+        => TypedResults.Ok(await sender.Send(new GetUsersQuery(search, role, page, pageSize), cancellationToken));
 
     [EndpointSummary("Get the current user")]
     [EndpointDescription("Returns the authenticated user's id, email, roles, onboarding status, and whether a password is set.")]

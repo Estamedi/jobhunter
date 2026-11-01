@@ -24,4 +24,6 @@ public interface IIdentityService
     Task GoogleLoginAsync(string idToken);
 
     Task LogoutAsync();
+
+    Task<RegisteredUsersResult> GetUsersAsync(string? search, string? role, int page, int pageSize, CancellationToken cancellationToken);
 }

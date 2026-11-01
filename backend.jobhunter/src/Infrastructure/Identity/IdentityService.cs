@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Models;
 using backend.jobhunter.Domain.Enums;
+using backend.jobhunter.Infrastructure.Data;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -112,6 +113,70 @@ public class IdentityService : IIdentityService
             [.. roles],
             user.OnboardingStatus.ToString(),
             hasPassword);
+    }
+
+    public async Task<RegisteredUsersResult> GetUsersAsync(
+        string? search, string? role, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        var users = _userManager.Users.AsNoTracking();
+        var db = (ApplicationDbContext)_dbContext;
+
+        var totalUsers = await users.CountAsync(cancellationToken);
+        var weekAgo = DateTimeOffset.UtcNow.AddDays(-7);
+        var newThisWeek = await users.CountAsync(u => u.Created >= weekAgo, cancellationToken);
+
+        var filtered = users;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            filtered = filtered.Where(u => (u.Email ?? u.UserName ?? string.Empty).ToLower().Contains(term));
+        }
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            var roleName = role.Trim();
+            filtered = filtered.Where(u => db.UserRoles.Any(ur =>
+                ur.UserId == u.Id &&
+                db.Roles.Any(r => r.Id == ur.RoleId && r.Name == roleName)));
+        }
+
+        var total = await filtered.CountAsync(cancellationToken);
+
+        var pageUsers = await filtered
+            .OrderByDescending(u => u.Created)
+            .ThenBy(u => u.Email)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var ids = pageUsers.Select(u => u.Id).ToList();
+
+        var roleRows = await (
+            from ur in db.UserRoles
+            join r in db.Roles on ur.RoleId equals r.Id
+            where ids.Contains(ur.UserId)
+            select new { ur.UserId, RoleName = r.Name })
+            .ToListAsync(cancellationToken);
+        var rolesByUser = roleRows.ToLookup(x => x.UserId, x => x.RoleName ?? string.Empty);
+
+        var googleIds = await db.UserLogins
+            .Where(l => l.LoginProvider == "Google" && ids.Contains(l.UserId))
+            .Select(l => l.UserId)
+            .ToListAsync(cancellationToken);
+        var googleSet = googleIds.ToHashSet();
+
+        var items = pageUsers.Select(u => new RegisteredUserDto(
+            u.Id,
+            u.Email ?? u.UserName ?? string.Empty,
+            [.. rolesByUser[u.Id]],
+            u.OnboardingStatus.ToString(),
+            !string.IsNullOrEmpty(u.PasswordHash),
+            googleSet.Contains(u.Id),
+            u.EmailConfirmed,
+            u.Created)).ToList();
+
+        return new RegisteredUsersResult(items, total, totalUsers, newThisWeek);
     }
 
     public async Task UpdateOnboardingStatusAsync(string userId, OnboardingStatus status)
