@@ -1,3 +1,5 @@
+using backend.jobhunter.Infrastructure.AiCommon;
+
 namespace backend.jobhunter.Infrastructure.AiProfileImport;
 
 public static class ProfileImportPrompt
@@ -136,9 +138,8 @@ public static class ProfileImportPrompt
 
     public static string BuildPrompt(string cvText)
     {
-        var text = cvText.Length <= MaxTextLength ? cvText : cvText[..MaxTextLength];
-
-        return "Extract the candidate's professional profile from this CV text.\n\n" +
+        return "Extract the candidate's professional profile from this CV text.\n" +
+               UntrustedText.DataNotice + "\n\n" +
                "Rules:\n" +
                "- Copy facts exactly as written; never invent employers, titles, dates or achievements.\n" +
                "- One experience entry per role. If a company lists several roles, create one entry per role.\n" +
@@ -153,6 +154,6 @@ public static class ProfileImportPrompt
                "- Certifications: one entry per certificate or license.\n" +
                "- Languages: spoken languages with the closest proficiency level; null when the level is not stated.\n" +
                "- Links: profile and portfolio URLs (LinkedIn, GitHub, website) with a short label.\n\n" +
-               $"CV text:\n{text}";
+               UntrustedText.Block("cv_text", cvText, MaxTextLength);
     }
 }

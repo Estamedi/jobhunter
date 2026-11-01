@@ -1,4 +1,5 @@
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Infrastructure.AiCommon;
 
 namespace backend.jobhunter.Infrastructure.AiExtraction;
 
@@ -50,15 +51,18 @@ public static class JobExtractionPrompt
     {
         var jsonLdSection = string.IsNullOrEmpty(page.JsonLd)
             ? ""
-            : $"Structured data found on the page:\n{Truncate(page.JsonLd, 8000)}\n\n";
+            : UntrustedText.Block("page_structured_data", page.JsonLd, MaxJsonLdLength) + "\n\n";
 
         return "Extract the job posting details from this web page. " +
-               "If the page is not a job posting, set every field to null.\n\n" +
-               $"Page URL: {page.Url}\nPage title: {page.Title}\n\n" +
+               "If the page is not a job posting, set every field to null.\n" +
+               UntrustedText.DataNotice + "\n\n" +
+               $"Page URL: {UntrustedText.Line(page.Url, MaxUrlLength)}\nPage title: {UntrustedText.Line(page.Title, MaxTitleLength)}\n\n" +
                jsonLdSection +
-               $"Page text:\n{page.Text}";
+               UntrustedText.Block("page_text", page.Text, MaxTextLength);
     }
 
-    private static string Truncate(string value, int maxLength)
-        => value.Length <= maxLength ? value : value[..maxLength];
+    private const int MaxTextLength = 60000;
+    private const int MaxJsonLdLength = 8000;
+    private const int MaxUrlLength = 2048;
+    private const int MaxTitleLength = 500;
 }
