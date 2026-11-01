@@ -20,6 +20,7 @@ services:
       - Langfuse__PublicKey=${LANGFUSE__PUBLICKEY:-}
       - Langfuse__SecretKey=${LANGFUSE__SECRETKEY:-}
       - Langfuse__LogContent=${LANGFUSE__LOGCONTENT:-false}
+      - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGIN:-}
       - Seed__AdminEmail=${SEED__ADMINEMAIL:-}
       - Seed__AdminPassword=${SEED__ADMINPASSWORD:-}
       - FileStorage__RootPath=/app/uploads/cvs

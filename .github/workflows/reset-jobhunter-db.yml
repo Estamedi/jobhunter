@@ -16,6 +16,8 @@ jobs:
     name: Reset jobhunterdb on VPS
     runs-on: ubuntu-latest
     if: ${{ inputs.confirm == 'RESET' }}
+    # Configure required reviewers on this environment (Settings > Environments) so a reset needs approval.
+    environment: production-reset
 
     steps:
       - name: Drop and recreate database

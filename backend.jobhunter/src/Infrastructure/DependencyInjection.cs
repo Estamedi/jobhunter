@@ -58,6 +58,12 @@ public static class DependencyInjection
                 // Password sign-in must prove ownership of the address; otherwise an unconfirmed
                 // account could be used to squat an email before its real owner signs up.
                 options.SignIn.RequireConfirmedEmail = true;
+
+                options.Password.RequiredLength = 10;
+
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             })
             .AddRoles<IdentityRole>()
             .AddUserManager<ApplicationUserManager>()

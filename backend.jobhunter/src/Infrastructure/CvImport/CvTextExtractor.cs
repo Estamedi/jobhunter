@@ -9,6 +9,8 @@ namespace backend.jobhunter.Infrastructure.CvImport;
 
 public class CvTextExtractor : ICvTextExtractor
 {
+    private const long MaxDocumentXmlBytes = 20 * 1024 * 1024;
+
     private static readonly XNamespace W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
     public async Task<string> ExtractTextAsync(Stream content, string fileName, CancellationToken cancellationToken)
@@ -46,6 +48,12 @@ public class CvTextExtractor : ICvTextExtractor
         using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
         var entry = zip.GetEntry("word/document.xml")
             ?? throw new InvalidOperationException("This DOCX file could not be read.");
+
+        // A small DOCX can inflate to gigabytes; refuse before reading it.
+        if (entry.Length > MaxDocumentXmlBytes)
+        {
+            throw new InvalidOperationException("This DOCX file is too large to import.");
+        }
 
         using var entryStream = entry.Open();
         var document = XDocument.Load(entryStream);

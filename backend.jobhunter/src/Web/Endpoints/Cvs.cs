@@ -15,7 +15,7 @@ public class Cvs : IEndpointGroup
         group.RequireAuthorization();
 
         group.MapGet(GetCvs);
-        group.MapPost(UploadCv).DisableAntiforgery();
+        group.MapPost(UploadCv).DisableAntiforgery().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(12 * 1024 * 1024));
         group.MapGet(DownloadCv, "{id}/download");
         group.MapDelete(DeleteCv, "{id}");
     }

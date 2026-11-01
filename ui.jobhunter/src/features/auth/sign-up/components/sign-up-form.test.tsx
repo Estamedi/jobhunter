@@ -106,8 +106,8 @@ describe('SignUpForm', () => {
 
   it('shows a mismatch error when passwords do not match', async () => {
     await userEvent.fill(emailInput, 'a@b.com')
-    await userEvent.fill(passwordInput, '1234567')
-    await userEvent.fill(confirmPasswordInput, '7654321')
+    await userEvent.fill(passwordInput, '1234567890')
+    await userEvent.fill(confirmPasswordInput, '0987654321')
 
     await userEvent.click(submitButton)
     await expect
@@ -119,15 +119,15 @@ describe('SignUpForm', () => {
     axiosPostMock.mockResolvedValueOnce({ data: {} })
 
     await userEvent.fill(emailInput, 'a@b.com')
-    await userEvent.fill(passwordInput, '1234567')
-    await userEvent.fill(confirmPasswordInput, '1234567')
+    await userEvent.fill(passwordInput, '1234567890')
+    await userEvent.fill(confirmPasswordInput, '1234567890')
 
     await userEvent.click(submitButton)
 
     await vi.waitFor(() => expect(axios.post).toHaveBeenCalledOnce())
     expect(axios.post).toHaveBeenCalledWith(
       'http://localhost:5124/api/Users/register',
-      { email: 'a@b.com', password: '1234567' },
+      { email: 'a@b.com', password: '1234567890' },
       { headers: { 'Content-Type': 'application/json' } }
     )
     expect(toastSuccessMock).toHaveBeenCalledWith(
@@ -153,8 +153,8 @@ describe('SignUpForm', () => {
     axiosPostMock.mockReturnValueOnce(registerPromise)
 
     await userEvent.fill(emailInput, 'a@b.com')
-    await userEvent.fill(passwordInput, '1234567')
-    await userEvent.fill(confirmPasswordInput, '1234567')
+    await userEvent.fill(passwordInput, '1234567890')
+    await userEvent.fill(confirmPasswordInput, '1234567890')
 
     await userEvent.click(submitButton)
     await expect.element(submitButton).toBeDisabled()
@@ -177,8 +177,8 @@ describe('SignUpForm', () => {
     })
 
     await userEvent.fill(emailInput, 'a@b.com')
-    await userEvent.fill(passwordInput, '1234567')
-    await userEvent.fill(confirmPasswordInput, '1234567')
+    await userEvent.fill(passwordInput, '1234567890')
+    await userEvent.fill(confirmPasswordInput, '1234567890')
 
     await userEvent.click(submitButton)
 

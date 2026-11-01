@@ -44,7 +44,7 @@ function getPasswordErrorMessage(err: unknown, fallback: string) {
 const newPasswordSchema = z
   .string()
   .min(1, 'Please enter a password.')
-  .min(7, 'Password must be at least 7 characters long.')
+  .min(10, 'Password must be at least 10 characters long.')
 
 function buildFormSchema(hasPassword: boolean) {
   return z
