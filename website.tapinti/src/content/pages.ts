@@ -339,6 +339,87 @@ export const contentPages: ContentPage[] = [
     ],
     related: ["job-application-tracker", "job-search-crm", "interview-tracker"],
   },
+  {
+    slug: "job-saver-chrome-extension",
+    updated: "2026-11-01",
+    label: "Chrome extension",
+    title: "ApplyLadder Job Saver: Save Jobs to Your Tracker from Chrome",
+    description:
+      "ApplyLadder Job Saver is a free Chrome extension that saves the job posting you are viewing to your ApplyLadder tracker in one click. Learn what it does and how to use it.",
+    h1: "ApplyLadder Job Saver: save any job posting to your tracker in one click",
+    intro:
+      "ApplyLadder Job Saver is a Chrome extension, published on the Chrome Web Store, that copies the job posting you are looking at into your ApplyLadder job tracker. Instead of pasting the title, company, salary and description by hand, you click the extension, check the details and save.",
+    sections: [
+      {
+        heading: "What it is",
+        body: [
+          "The extension has a single purpose: save the job posting you are viewing to your ApplyLadder account. It works on LinkedIn, Indeed and other job pages, and it needs a free ApplyLadder account.",
+          "When you click it, the extension reads the text of the page and any structured job data on it. The ApplyLadder backend uses AI to turn that into clean fields, so you don't need an AI key or any setup.",
+        ],
+        bullets: [
+          "Pre-fills job title, company, location, work type, salary, description and requirements",
+          "Reuses the company if it already exists in your tracker, otherwise creates it",
+          "Adds the role as a new application in your pipeline, starting at Wishlist",
+          "Nothing is saved until you press Save",
+        ],
+      },
+      {
+        heading: "Why use it",
+        body: [
+          "Copying job details into a tracker is the part of a job search people skip first. Once it takes one click, every interesting role ends up in the same place, with the company, description and requirements attached, so you can decide later which ones to apply to.",
+        ],
+      },
+      {
+        heading: "How to install it",
+        body: [
+          "Open the ApplyLadder Job Saver page on the Chrome Web Store and click Add to Chrome. Then click the puzzle-piece icon in the Chrome toolbar and pin the extension so it is always one click away.",
+        ],
+        bullets: [
+          "Chrome Web Store: https://chromewebstore.google.com/detail/applyladder-job-saver/cgcbolcpejagpjpdkdmgppkcohclhcen",
+        ],
+      },
+      {
+        heading: "How to use it",
+        body: ["Saving a job takes four steps."],
+        bullets: [
+          "Click the extension icon and sign in with your email and password, or with Google. You only do this once.",
+          "Open a job posting on LinkedIn, Indeed or a company careers page.",
+          "Click the extension. The details are extracted and shown in an editable form. Fix anything that looks wrong.",
+          "Press Save job to ApplyLadder. The job appears in your Applications pipeline.",
+        ],
+      },
+      {
+        heading: "Privacy and permissions",
+        body: [
+          "The extension only reads a page after you click it. There is no background tracking and no reading of pages you haven't asked it to read. By default it only reads known job sites or pages that publish job data, and you can change this in the extension settings.",
+          "The page text is sent to ApplyLadder to extract the details and save the job to your account. It is not sold and it is not used for anything other than saving the job. See the privacy policy at https://app.applyladder.com/privacy.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Is the extension free?",
+        a: "Yes. The extension is free, and it works with a free ApplyLadder account.",
+      },
+      {
+        q: "Does it work on LinkedIn and Indeed?",
+        a: "Yes. It works on LinkedIn, Indeed and other job pages. It is not affiliated with LinkedIn or Indeed.",
+      },
+      {
+        q: "Does it apply to jobs for me?",
+        a: "No. It only saves the posting to your tracker. You still apply on the employer's site yourself.",
+      },
+      {
+        q: "Do I need an AI key?",
+        a: "No. The AI extraction runs on the ApplyLadder backend, so there is nothing to configure.",
+      },
+      {
+        q: "Does it work in other browsers?",
+        a: "It is published on the Chrome Web Store. It may work in other Chromium-based browsers that can install Chrome extensions, but Chrome is the supported browser.",
+      },
+    ],
+    related: ["job-application-tracker", "job-search-crm", "resume-tracker"],
+  },
 ];
 
 export function getContentPage(slug: string): ContentPage | undefined {

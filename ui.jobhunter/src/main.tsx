@@ -9,6 +9,7 @@ import {
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
+import { initAnalytics, trackPageView } from '@/lib/analytics'
 import { handleServerError } from '@/lib/handle-server-error'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
@@ -78,6 +79,11 @@ const router = createRouter({
   context: { queryClient },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
+})
+
+initAnalytics()
+router.subscribe('onResolved', ({ toLocation }) => {
+  trackPageView(toLocation.pathname)
 })
 
 // Register the router instance for type safety

@@ -7,6 +7,7 @@ import { Problem } from "@/components/sections/problem";
 import { Disconnected } from "@/components/sections/disconnected";
 import { ConnectedFlow } from "@/components/sections/connected-flow";
 import { Features } from "@/components/sections/features";
+import { Extension } from "@/components/sections/extension";
 import { Mindset } from "@/components/sections/mindset";
 import { Team } from "@/components/sections/team";
 import { Pricing } from "@/components/sections/pricing";
@@ -31,6 +32,7 @@ export default async function Home({
         <Disconnected />
         <ConnectedFlow />
         <Features />
+        <Extension />
         <Mindset />
         <Team />
         <Pricing />

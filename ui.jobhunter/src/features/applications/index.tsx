@@ -15,6 +15,7 @@ import { Plus, MoreHorizontal, Trash2, Pencil, Download, FileText, Settings2, La
 import { format } from 'date-fns'
 import { ApplicationDetailDialog } from './components/application-detail-dialog'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
+import { ExtensionBanner } from './components/extension-banner'
 import { ApplicationsBoard } from './components/applications-board'
 import { ApplicationsFilterBar } from './components/applications-filter-bar'
 import { CustomizeStagesDialog } from './components/customize-stages-dialog'
@@ -93,6 +94,7 @@ export function Applications() {
 
   return (
     <div className='space-y-4'>
+      <ExtensionBanner />
       <Tabs defaultValue='board'>
         <div className='flex flex-wrap items-center justify-between gap-2'>
           <TabsList>

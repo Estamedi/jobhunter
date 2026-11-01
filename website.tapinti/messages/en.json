@@ -290,6 +290,25 @@
       }
     }
   },
+  "extension": {
+    "eyebrow": "Chrome extension",
+    "title": "Save any job in one click.",
+    "subtitle": "Install the ApplyLadder Job Saver extension to capture job postings from LinkedIn, Indeed and any career page — straight into your tracker.",
+    "p1": {
+      "title": "One-click capture",
+      "desc": "Open a job posting, click the extension and save it. No copy-pasting titles, links and descriptions."
+    },
+    "p2": {
+      "title": "AI fills in the details",
+      "desc": "Title, company, location, salary and requirements are extracted for you. Review them before saving."
+    },
+    "p3": {
+      "title": "Private by design",
+      "desc": "It reads a page only when you click it — no background tracking. Published by Google on the Chrome Web Store."
+    },
+    "cta": "Add to Chrome — it's free",
+    "note": "Requires a free ApplyLadder account."
+  },
   "finalCta": {
     "title": "Ready to organize your career?",
     "subtitle": "Stop tracking jobs. Start managing your career.",
