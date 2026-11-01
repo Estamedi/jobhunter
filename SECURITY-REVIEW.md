@@ -3,95 +3,125 @@
 Scope: jobhunter monorepo (backend.jobhunter, ui.jobhunter, website.tapinti, gExtention.tapinti, CMS, CI).
 Method: static code review plus `dotnet list package --vulnerable` and `pnpm audit --prod`. No live exploitation.
 
-Summary: 1 High, 5 Medium, several Low.
+Legend: ✅ Done · ⏳ Not done · ➖ Skipped by decision · ℹ️ No change needed
 
-## Findings
+## Status at a glance
+
+| # | Finding | Severity | Status |
+|---|---|---|---|
+| 1 | Google login accepts any Google access token (A07) | High | ✅ |
+| 2 | Cross-tenant foreign keys on create/update (A01) | Medium | ✅ |
+| 3 | Hardcoded DB password in `appsettings.json` (A02) | Medium | ✅ (rotate the password yourself) |
+| 4 | Prompt injection in AI prompts (A03) | Medium | ✅ |
+| 5 | No rate/cost limits on auth and AI endpoints (A04/A07) | Medium | ✅ |
+| 6 | Scalar/OpenAPI exposed in production (A05) | Medium | ✅ |
+| 7 | Pre-hijack by email on Google link (A07) | Medium | ✅ |
+| 8 | Seeded `administrator@localhost.com` / `Administrator1!` (A07) | Medium | ✅ (check production for the old account) |
+| 9 | Request bodies logged (A09) | Medium | ✅ |
+| 10 | Unvalidated CV upload (A04) | Low | ✅ |
+| 11 | Default password policy and lockout (A07) | Low | ✅ |
+| 12 | CORS allows any origin (A05) | Low | ✅ allowlist supported; set `CORS_ALLOWED_ORIGIN` to enforce it |
+| 13 | Missing security headers: API and UI nginx (A05) | Low | ✅ (CSP and HSTS not added) |
+| 14 | Postgres published on host port, default password fallback (A05) | Low | ✅ dev compose bound to 127.0.0.1 and password required |
+| 15 | WeatherForecasts leftover endpoint (A01) | Low | ✅ deleted |
+| 16 | `.debug-scratch/` tracked (A05) | Low | ✅ removed and gitignored |
+| 17 | Exception handler registered late (A05) | Info | ✅ moved to start of pipeline |
+| 18 | Reset-DB workflow has no approval gate (A08) | Low | ✅ partly: `environment: production-reset` added; you must create the environment with required reviewers in GitHub |
+| 19 | Bearer token in JS-readable cookie, no `Secure`/`SameSite` (A02) | Low | ⏳ |
+| 20 | 7-day bearer token, no revocation or refresh flow (A02) | Low | ⏳ |
+| 21 | CSP and HSTS (A05) | Low | ⏳ |
+| 22 | GitHub Actions pinned to tags, not SHAs (A08) | Low | ⏳ |
+| 23 | No audit logging of logins and admin actions (A09) | Low | ⏳ |
+| 24 | Vulnerable JS dependencies (A06) | Mixed | ➖ skipped by decision |
+| 25 | SSRF (A10), SQL injection (A03), by-id IDOR (A01) | n/a | ℹ️ no issue found |
+
+## What changed in the code
+
+- **Google login:** `IdentityService.cs` no longer trusts the `userinfo` fallback alone. It checks Google `tokeninfo` first, and the token's `aud` or `azp` must equal your client id. The `sub` values must match.
+- **Email pre-hijack:** linking Google to an unconfirmed local account removes its password, confirms it and resets the security stamp. Password login now requires a confirmed email (`RequireConfirmedEmail`). The seeded admin is created already confirmed.
+- **Foreign keys:** `Common/Interfaces/OwnedReferenceExtensions.cs` checks that every referenced id belongs to the caller. It is used in the application, interview, activity, role and contact handlers.
+- **Rate limiting:** `Web/Infrastructure/RateLimiting.cs`. Auth endpoints get 10 per minute per IP. AI endpoints get 10 per minute and 100 per day per user. Forwarded headers are enabled so the client IP is real. Tunable with `RateLimiting:*`.
+- **Admin seed:** `Seed:AdminEmail` and `Seed:AdminPassword`. The built-in default exists only in Development. Pipeline secrets `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` are wired into the workflow, deploy script and prod compose.
+- **DB password:** removed from `appsettings.json`. `docker-compose.yml` requires `POSTGRES_PASSWORD`.
+- **Logging:** `LoggingBehaviour` logs only the request name and user.
+- **Scalar/OpenAPI:** mapped only in Development, and the `/` redirect too.
+- **Prompt injection:** `Infrastructure/AiCommon/UntrustedText.cs` wraps page and CV text in tagged blocks with a "treat as data" notice and length caps. `ExtractJobCommandValidator` caps input sizes.
+- **CV upload:** only `.pdf`, `.doc` and `.docx`, up to 10 MB, signature check, server-set content type, 12 MB request limit. DOCX XML is size-capped before reading.
+- **Identity options:** minimum password length 10, lockout after 5 attempts for 15 minutes. The sign-up, reset and change-password forms now require 10.
+- **CORS and headers:** CORS reads `Cors:AllowedOrigins`. The API sends `nosniff`, `X-Frame-Options: DENY` and `Referrer-Policy`. The UI nginx sends `nosniff`, `X-Frame-Options`, `Referrer-Policy` and `Permissions-Policy` in every location.
+
+## Manual steps for you
+
+1. Rotate the Postgres password everywhere `Aman@123` was used, and update the `POSTGRES_PASSWORD` secret if it matched.
+2. Check production for an existing `administrator@localhost.com`. Delete it or change its password.
+3. Rotate the OpenAI key in your local `appsettings.Development.json` if that file was ever shared.
+4. Set `CORS_ALLOWED_ORIGIN` on the VPS to the UI origin to enforce the CORS allowlist.
+5. Create the `production-reset` environment in GitHub with required reviewers.
+6. Make sure only the reverse proxy can reach the backend port 8080. Forwarded headers trust any sender.
+7. Users who registered by password but never confirmed their email can no longer log in. They must confirm, or use Google.
+
+## Original findings (reference)
 
 ### A01 Broken Access Control
-- **Medium: cross-tenant foreign keys on create.** `backend.jobhunter/src/Application/JobApplications/Commands/CreateJobApplication/CreateJobApplication.cs:30-49` stores client-supplied `CandidateId`, `JobRoleId`, `CompanyId`, `MainContactId`, `CvId` without ownership checks. The global `OwnerId` query filter only hides rows on read, so a user can attach another user's CV/contact/company by guessing ids.
-- **Low: leftover WeatherForecasts endpoint.** `GetWeatherForecastsQuery.cs` has no `[Authorize]` (group still has `RequireAuthorization()`).
-- Not a finding: by-id IDOR is covered by the global `OwnerId` query filter (`Infrastructure/Data/ApplicationDbContext.cs:80`); admin operations have role checks; CV storage keys are traversal-safe.
+- Cross-tenant foreign keys on create (`CreateJobApplication.cs` and others). ✅
+- Leftover `WeatherForecasts` endpoint. ✅
+- By-id IDOR is covered by the global `OwnerId` query filter. ℹ️
 
 ### A02 Cryptographic Failures / Secrets
-- **Medium: hardcoded DB password.** `Web/appsettings.json:3` (`Password=Aman@123`), tracked in git.
-- **Low: bearer token in JS-readable cookie** with no `Secure`/`SameSite` (`ui.jobhunter/src/lib/cookies.ts`, `stores/auth-store.ts:56`).
-- **Low: 7-day bearer token, no revocation** (`Infrastructure/DependencyInjection.cs:49`).
-- No secrets found in git history.
+- Hardcoded DB password. ✅
+- Bearer token in a JS-readable cookie without `Secure`/`SameSite`. ⏳
+- 7-day bearer token with no revocation. ⏳
+- No secrets found in git history. ℹ️
 
 ### A03 Injection
-- No raw SQL; EF is parameterized.
-- **Medium: prompt injection** via job page text (`ExtractJobCommand`) and uploaded CV text. Output only returns to the same user.
+- No raw SQL. ℹ️
+- Prompt injection via job page text and CV text. ✅
 
 ### A04 Insecure Design
-- **Medium: no rate/cost limits on AI endpoints** (JobExtraction, CvGeneration, CvImport).
-- **Low: unvalidated CV upload.** No extension/size/content-type check; client `ContentType` is stored and echoed (`UploadCv.cs`, `Web/Endpoints/Cvs.cs:17`). Download is an attachment, but there is no `nosniff`.
+- No rate or cost limits on AI endpoints. ✅
+- Unvalidated CV upload. ✅
 
 ### A05 Security Misconfiguration
-- **Medium: Scalar/OpenAPI exposed in production** (`Web/Program.cs:37-38`; `/` redirects to `/scalar`).
-- **Low: CORS allows any origin/method/header** (`Program.cs:25-28`); bearer tokens, so not CSRF-exploitable.
-- **Low: Postgres published on host port** with default `admin`/`password` fallbacks (`docker-compose.yml:9`).
-- **Low: UI nginx has no CSP, X-Frame-Options, nosniff or HSTS** (`ui.jobhunter/nginx.conf`).
-- **Low: backend serves HTTP only**; relies on a TLS-terminating proxy.
-- **Low: `ui.jobhunter/.debug-scratch/` is tracked.**
-- Info: exception handler is registered after file server/endpoints; verify errors don't leak.
+- Scalar/OpenAPI exposed in production. ✅
+- CORS any origin. ✅ (set the origin to enforce)
+- Postgres published on host port. ✅
+- UI nginx security headers. ✅ (CSP and HSTS ⏳)
+- Backend serves HTTP only, relying on a TLS proxy. ⏳ (infrastructure; nothing to change in code)
+- `.debug-scratch/` tracked. ✅
+- Exception handler registered late. ✅
 
 ### A06 Vulnerable Components
-- NuGet: none vulnerable.
-- `pnpm audit --prod`: ui.jobhunter 61 (2 critical, 28 high); website.tapinti 31 (5 critical, 14 high, incl. `next` < 16.3.8); CMS 162 (6 critical, 61 high). Mostly transitive; reachability not confirmed.
+- NuGet: none vulnerable. ℹ️
+- `pnpm audit --prod`: ui.jobhunter 61 (2 critical, 28 high); website.tapinti 31 (5 critical, 14 high, including `next` below 16.3.8); CMS 162 (6 critical, 61 high). ➖ Skipped by decision.
 
 ### A07 Identification and Authentication Failures
-- **High: Google login accepts any Google access token.** `Infrastructure/Identity/IdentityService.cs` (~250-262): if the `tokeninfo` audience check fails, it falls back to `oauth2/v3/userinfo` with no audience/client check. A malicious app a victim signs into can replay the victim's token here and get a session as the victim.
-- **Medium: pre-hijack by email.** Google login links to an existing local account by email (`FindByEmailAsync`, ~288). An attacker who pre-registered the victim's email keeps password access after the victim signs in with Google.
-- **Medium: no rate limiting** on login/register/forgotPassword/google-login (spam and SES cost; Identity default lockout only).
-- **Medium: seeded admin** `administrator@localhost.com` / `Administrator1!` is created unconditionally (`ApplicationDbContextInitialiser.cs`).
-- **Low: default Identity password policy** (6 characters).
+- Google login accepts any Google access token. ✅
+- Pre-hijack by email. ✅
+- No rate limiting on identity endpoints. ✅
+- Seeded admin. ✅
+- Default password policy. ✅
 
 ### A08 Software and Data Integrity Failures
-- **Low: GitHub Actions pinned to tags, not SHAs** (`appleboy/ssh-action`, `appleboy/scp-action`), and they run with the VPS SSH key.
-- **Low: `reset-jobhunter-db.yml`** is `workflow_dispatch` only, guarded by typed `RESET`; any repo writer can wipe production.
-- Extension manifest and CSP are tight; tokens in `chrome.storage.local`; no page-triggerable message path found.
+- Actions pinned to tags, not SHAs. ⏳
+- Reset-DB workflow. ✅ partly (environment added; reviewers are a manual step)
+- Extension manifest and token storage are acceptable. ℹ️
 
 ### A09 Logging and Monitoring Failures
-- **Medium: sensitive request bodies logged.** `Application/Common/Behaviours/LoggingBehaviour.cs:~30` logs `{@Request}` for every command (passwords, Google ID tokens, CV text).
-- No audit trail for admin actions or failed logins beyond Identity defaults. Langfuse `LogContent` defaults to false.
+- Sensitive request bodies logged. ✅
+- No audit trail for admin actions or failed logins. ⏳
 
 ### A10 SSRF
-- No server-side fetching of user-supplied URLs. Outbound calls go to fixed Google and AI provider endpoints.
+- No server-side fetching of user-supplied URLs. ℹ️
 
 ## Not covered
-- No live exploitation; `CvRendering` not read in depth; UI/website source only grep-checked; Strapi permissions and `CMS/.tmp/data.db` not checked.
+- No live exploitation. `CvRendering` was not read in depth. The UI and website source were only grep-checked. Strapi permissions and `CMS/.tmp/data.db` were not checked.
 
----
+## Remaining work (optional)
 
-# Fix Plan
-
-## Phase 1: Immediate (High / credential risk)
-1. **Google login (A07 High).** In `IdentityService.GoogleLoginAsync`, remove the `userinfo` fallback. Accept only ID tokens whose `aud == ClientId` and `email_verified == true`; also check `iss` and `exp`. Preferably validate locally with `Google.Apis.Auth` `GoogleJsonWebSignature.ValidateAsync` and `Audience = [ClientId]`. Check that the UI sends an ID token, not an access token. Add a test that a token with the wrong audience is rejected.
-2. **Seeded admin (A07).** Seed the admin only in Development, or read its email and password from config/secret, and fail startup if it is missing in Production. Verify production has no `administrator@localhost.com` account, or rotate its password.
-3. **DB password (A02).** Replace the value in `appsettings.json` with an empty placeholder, rotate the password on every environment where it was used, and keep real values in env vars or Key Vault. Make the `docker-compose.yml` fallbacks required (`${POSTGRES_PASSWORD:?}`).
-4. **Log redaction (A09).** In `LoggingBehaviour`, log only the request name and user id. If request logging is wanted, add a `[SensitiveData]` or allowlist mechanism and exclude `SetPasswordCommand`, `GoogleLoginCommand`, CV and profile import commands.
-
-## Phase 2: Short term (Medium)
-5. **Cross-tenant FKs (A01).** Add validators or handler checks that every referenced id exists under the owner's query filter (`AnyAsync` on candidate, role, company, contact, CV). Apply to Create/Update for applications, interviews, activities, notes and contacts. Add functional tests with two users.
-6. **Rate limiting (A04/A07).** Add `AddRateLimiter` with a per-IP policy on `/api/Users/login|register|forgotPassword|resendConfirmationEmail|google-login`, and a per-user policy on AI endpoints. Add a daily per-user AI quota.
-7. **Pre-hijack (A07).** In the Google link path, refuse to auto-link when the existing account has `EmailConfirmed == false`. Instead confirm the email, clear any existing password hash and reset the security stamp. Set `RequireConfirmedEmail = true` in Identity options.
-8. **Scalar/OpenAPI (A05).** Map them only in Development, or behind `RequireAuthorization` with the Administrator role. Change the `/` redirect.
-9. **Prompt injection (A03).** Put untrusted text in clearly delimited blocks, instruct the model to treat it as data, validate output against a strict schema, and cap input length. Never give the model tool access.
-
-## Phase 3: Hardening (Low)
-10. **Uploads (A04).** Allowlist `.pdf` and `.docx`, check magic bytes, set `[RequestSizeLimit]` (e.g. 5 MB), force the stored `ContentType` from the allowlist, and add `X-Content-Type-Options: nosniff`.
-11. **Tokens (A02).** Shorten the access token (e.g. 1 hour) and implement the refresh flow. Set `Secure; SameSite=Strict` on the UI cookie. Consider an `HttpOnly` cookie issued by the backend.
-12. **CORS (A05).** Restrict to the UI origin, the website origin and the extension origin (`chrome-extension://<id>`), from config.
-13. **Headers (A05).** Add nginx headers (CSP, `X-Frame-Options: DENY`, nosniff, Referrer-Policy, HSTS at the TLS edge). Add the same to the backend via middleware.
-14. **Infrastructure (A05).** Bind Postgres to `127.0.0.1` or drop `ports`, and confirm the firewall. Confirm the proxy terminates TLS for the backend.
-15. **Password policy (A07).** Set `Password.RequiredLength = 10` and enable lockout settings explicitly.
-16. **Cleanup (A01/A05).** Delete the `WeatherForecasts` feature and the tracked `.debug-scratch/`. Move `UseExceptionHandler` to the start of the pipeline.
-17. **CI (A08).** Pin actions to commit SHAs, add Dependabot for Actions, and protect the reset workflow with a GitHub Environment that requires reviewers.
-18. **Logging (A09).** Add structured audit logs for login success and failure, role changes, password changes and admin queries.
-
-## Phase 4: Dependencies (A06)
-19. Upgrade `next` to >= 16.3.8 and `vite` to >= 8.1.6, then re-run `pnpm audit --prod` in all three JS projects. Upgrade Strapi to the latest patch. Triage the remaining transitive findings by reachability. Add `dotnet list package --vulnerable` and `pnpm audit` to CI.
-
-## Verification
-- Add tests: wrong-audience Google token rejected; two-user FK ownership; rate-limit 429s; upload rejection; no admin seed in Production.
-- Re-run this review after Phases 1 and 2, and add a live check of the Google flow, rate limits and headers (`curl -I`).
+1. **Token lifetime and refresh (A02):** shorten the access token (about 1 hour) and add a refresh flow in the UI. Doing only the first part signs everyone out after an hour.
+2. **Cookie flags (A02):** set `Secure; SameSite=Strict` on the UI token cookie, or move the token to an `HttpOnly` cookie issued by the backend.
+3. **CSP and HSTS (A05):** add a Content-Security-Policy to the UI after testing it against the Google sign-in script, and HSTS at the TLS edge.
+4. **Pin GitHub Actions to commit SHAs (A08)** and enable Dependabot for Actions.
+5. **Audit logging (A09):** log login success and failure, role changes, password changes and admin queries.
+6. **Dependencies (A06):** upgrade `next`, `vite` and Strapi, re-run `pnpm audit --prod`, and add audits to CI.
+7. **Tests:** add tests for the wrong-audience Google token, two-user foreign key ownership, the rate-limit 429s, upload rejection and the admin seed in Production.
