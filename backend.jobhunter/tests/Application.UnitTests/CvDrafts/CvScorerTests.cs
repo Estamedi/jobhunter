@@ -172,7 +172,7 @@ public class CvScorerTests
     public void NearSynonymVerbsCountAsOneFamily()
     {
         var cv = Cv(Role("Lead", "Jan 2024", "Present",
-            $"Built a service {Fact}", $"Developed a tool {Fact}", $"Created a module {Fact}", $"Engineered a pipeline {Fact}"));
+            $"Built a service {Fact}", $"Developed a tool {Fact}", $"Created a module {Fact}", $"Constructed a pipeline {Fact}"));
 
         var r = Check(CvScorer.Score(cv), "repetition");
 
@@ -206,7 +206,7 @@ public class CvScorerTests
     public void PastTenseUnderACurrentRoleIsNeverFlagged()
     {
         var cv = Cv(Role("Lead", "Jan 2025", "Present",
-            $"Spearheaded the platform {Fact}", $"Directed a team {Fact}", $"Automated releases {Fact}"));
+            $"Launched the platform {Fact}", $"Directed a team {Fact}", $"Automated releases {Fact}"));
 
         Check(CvScorer.Score(cv), "tense").Issues.ShouldBeEmpty();
     }

@@ -85,7 +85,7 @@ public class QuestPdfCvRendererTests
         }
 
         // Standard headings appear, in reading order.
-        var headings = new[] { "Summary", "Skills", "Projects", "Experience", "Education", "Certifications", "Additional Information" };
+        var headings = new[] { "Summary", "Technical Skills", "Professional Experience", "Projects", "Education", "Certifications", "Additional Information" };
         var positions = headings.Select(h => text.IndexOf(h, StringComparison.Ordinal)).ToList();
         positions.ShouldAllBe(p => p >= 0);
         positions.ShouldBe(positions.OrderBy(p => p).ToList());

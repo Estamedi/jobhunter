@@ -32,7 +32,7 @@ internal static partial class ActionVerbs
 
     private static readonly string[] BuildFamily =
     [
-        "built", "developed", "created", "engineered", "constructed", "coded", "programmed", "architected", "crafted",
+        "built", "developed", "created", "constructed", "coded", "programmed", "architected",
     ];
 
     // Words that are the past tense of one verb and also the base form of another, so tense cannot be told.
