@@ -11,10 +11,11 @@ namespace backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
 public record ExportCvDraftResult(int CvId, int? AttachedApplicationId, bool ExistingCvKept);
 
 [Authorize]
-public record ExportCvDraftCommand(int Id) : IRequest<ExportCvDraftResult>;
+// Format is "pdf" (default) or "docx".
+public record ExportCvDraftCommand(int Id, string Format = "pdf") : IRequest<ExportCvDraftResult>;
 
 public class ExportCvDraftCommandHandler(
-    IApplicationDbContext context, ICvPdfRenderer renderer, IFileStorage fileStorage)
+    IApplicationDbContext context, ICvPdfRenderer renderer, ICvDocxRenderer docxRenderer, IFileStorage fileStorage)
     : IRequestHandler<ExportCvDraftCommand, ExportCvDraftResult>
 {
     public async Task<ExportCvDraftResult> Handle(ExportCvDraftCommand request, CancellationToken cancellationToken)
@@ -24,12 +25,12 @@ public class ExportCvDraftCommandHandler(
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
         var candidate = draft.Candidate;
-        var pdf = renderer.Render(
-            draft.TemplateId,
-            new CvHeaderDto(candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation),
-            CvDraftContent.Deserialize(draft.ContentJson));
+        var header = new CvHeaderDto(candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation);
+        var content = CvDraftContent.Deserialize(draft.ContentJson);
+        var isDocx = string.Equals(request.Format, "docx", StringComparison.OrdinalIgnoreCase);
+        var pdf = isDocx ? docxRenderer.Render(header, content) : renderer.Render(draft.TemplateId, header, content);
 
-        var fileName = BuildFileName(candidate.FullName, string.IsNullOrWhiteSpace(draft.JobTitle) ? draft.Title : draft.JobTitle);
+        var fileName = BuildFileName(candidate.FullName, string.IsNullOrWhiteSpace(draft.JobTitle) ? draft.Title : draft.JobTitle, isDocx ? "docx" : "pdf");
         await using var stream = new MemoryStream(pdf);
         var storageKey = await fileStorage.SaveAsync(stream, fileName, cancellationToken);
 
@@ -37,7 +38,9 @@ public class ExportCvDraftCommandHandler(
         {
             CandidateId = draft.CandidateId,
             FileName = fileName,
-            ContentType = "application/pdf",
+            ContentType = isDocx
+                ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                : "application/pdf",
             FileSizeBytes = pdf.LongLength,
             StorageKey = storageKey,
         };
@@ -68,12 +71,12 @@ public class ExportCvDraftCommandHandler(
         return new ExportCvDraftResult(cv.Id, attachedTo, existingKept);
     }
 
-    // Standard CV file name: First-Last-Role-CV.pdf (hyphen separated, no spaces or special characters).
-    private static string BuildFileName(string fullName, string jobTitle)
+    // Standard CV file name: First-Last-Role-CV.pdf or .docx (hyphen separated, no spaces or special characters).
+    private static string BuildFileName(string fullName, string jobTitle, string extension)
     {
         var words = Regex.Split($"{fullName} {jobTitle}", @"[^\p{L}\p{N}]+")
             .Where(w => w.Length > 0)
             .Select(w => w.Length > 1 && w.Any(char.IsUpper) ? w : char.ToUpperInvariant(w[0]) + w[1..]);
-        return $"{string.Join('-', words)}-CV.pdf";
+        return $"{string.Join('-', words)}-CV.{extension}";
     }
 }

@@ -539,8 +539,8 @@ export function CvBuilder({
   })
 
   const exportPdf = useMutation({
-    mutationFn: async () => {
-      const result = await cvBuilderApi.exportPdf(draft!.id)
+    mutationFn: async (format: 'pdf' | 'docx') => {
+      const result = await cvBuilderApi.exportPdf(draft!.id, format)
       const list = await cvsApi.list({
         candidateId: draft!.candidateId,
         pageSize: 1,
@@ -548,20 +548,21 @@ export function CvBuilder({
       const cv = list.items.find((c) => c.id === result.cvId)
       await downloadCvFile({
         id: result.cvId,
-        fileName: cv?.fileName ?? `${draft!.title}.pdf`,
+        fileName: cv?.fileName ?? `${draft!.title}.${format}`,
       })
       return result
     },
-    onSuccess: (result) => {
+    onSuccess: (result, format) => {
+      const label = format === 'docx' ? 'DOCX' : 'PDF'
       qc.invalidateQueries({ queryKey: ['cvs'] })
       qc.invalidateQueries({ queryKey: ['applications'] })
 
       if (result.attachedApplicationId) {
-        toast.success('PDF saved and attached to the application')
+        toast.success(`${label} saved and attached to the application`)
       } else if (result.existingCvKept && draft?.jobApplicationId) {
         // The application already has a CV; replacing it is the user's call.
         const applicationId = draft.jobApplicationId
-        toast('PDF saved to your CVs', {
+        toast(`${label} saved to your CVs`, {
           description: 'The application already has a CV attached.',
           action: {
             label: 'Use this one instead',
@@ -576,10 +577,11 @@ export function CvBuilder({
           },
         })
       } else {
-        toast.success('PDF saved to your CVs')
+        toast.success(`${label} saved to your CVs`)
       }
     },
-    onError: () => toast.error('Failed to export PDF'),
+    onError: (_, format) =>
+      toast.error(`Failed to export ${format === 'docx' ? 'DOCX' : 'PDF'}`),
   })
 
   const remove = useMutation({
@@ -742,7 +744,7 @@ export function CvBuilder({
                 </Button>
                 <Button
                   size='sm'
-                  onClick={() => exportPdf.mutate()}
+                  onClick={() => exportPdf.mutate('pdf')}
                   disabled={exportPdf.isPending}
                   title='Exports as an A4 PDF (210 × 297 mm)'
                 >
@@ -752,6 +754,16 @@ export function CvBuilder({
                     <FileDown className='mr-1 h-4 w-4' />
                   )}
                   Export PDF
+                </Button>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => exportPdf.mutate('docx')}
+                  disabled={exportPdf.isPending}
+                  title='Exports as an editable A4 Word document'
+                >
+                  <FileDown className='mr-1 h-4 w-4' />
+                  Export DOCX
                 </Button>
                 <Button
                   variant='ghost'

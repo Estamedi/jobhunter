@@ -92,5 +92,6 @@ public static class DependencyInjection
         builder.Services.AddTransient<IProfileImportAiService, AiProfileImportService>();
         builder.Services.AddSingleton<ICvTextExtractor, CvTextExtractor>();
         builder.Services.AddSingleton<ICvPdfRenderer, QuestPdfCvRenderer>();
+        builder.Services.AddSingleton<ICvDocxRenderer, DocxCvRenderer>();
     }
 }

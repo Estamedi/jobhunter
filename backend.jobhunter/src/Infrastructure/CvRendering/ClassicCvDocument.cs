@@ -9,12 +9,12 @@ namespace backend.jobhunter.Infrastructure.CvRendering;
 // dates right-aligned. Layout and palette follow the owner's reference CV (A4, Carlito (Calibri-metric) 10.5pt, 0.75in margins, single column per resume-builder-skill).
 public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocument
 {
-    private const string HeadingColor = "#4285F4";
-    private const string CompanyColor = "#1155CC";
-    private const string NameColor = "#353744";
-    private const string MutedColor = "#404040";
-    private const string BodyColor = "#000000";
-    private const float BodySize = 10.5f;
+    internal const string HeadingColor = "#4285F4";
+    internal const string CompanyColor = "#1155CC";
+    internal const string NameColor = "#353744";
+    internal const string MutedColor = "#404040";
+    internal const string BodyColor = "#000000";
+    internal const float BodySize = 10.5f;
 
     public DocumentMetadata GetMetadata() => new() { Title = $"{header.FullName} - CV" };
 
@@ -201,7 +201,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         });
     }
 
-    private static string DateRange(string? start, string? end)
+    internal static string DateRange(string? start, string? end)
     {
         var from = start?.Trim();
         var to = string.IsNullOrWhiteSpace(end) ? (string.IsNullOrWhiteSpace(from) ? null : "Present") : end.Trim();
@@ -209,7 +209,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
     }
 
     // Inclusive of both months, like LinkedIn: "Jul 2023 - Jan 2025" is "1 yr 7 mos".
-    private static string ExperienceRange(string? start, string? end)
+    internal static string ExperienceRange(string? start, string? end)
     {
         var range = DateRange(start, end);
         var from = MonthIndex(start);

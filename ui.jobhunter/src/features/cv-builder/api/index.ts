@@ -218,9 +218,11 @@ export const cvBuilderApi = {
       })
       .then((r) => r.data),
 
-  exportPdf: (id: number) =>
+  exportPdf: (id: number, format: 'pdf' | 'docx' = 'pdf') =>
     http
-      .post<ExportCvResult>(`/api/CvGeneration/${id}/export`)
+      .post<ExportCvResult>(`/api/CvGeneration/${id}/export`, null, {
+        params: { format },
+      })
       .then((r) => r.data),
 
   delete: (id: number) => http.delete(`/api/CvGeneration/${id}`),
