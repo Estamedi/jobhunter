@@ -41,3 +41,15 @@ Source: dabydat/resume-builder-skill (MIT): `bullet-writing-guide.md`, `common-m
 - leverage / leveraged
 - enhance
 - utilize
+
+## Added from claude-resume-kit
+
+Source: ARPeeketi/claude-resume-kit (MIT), `ai_fingerprint_rules.md`.
+
+- delve
+- embark
+- harness
+- facilitate
+- showcase
+- underscore
+- bolster
