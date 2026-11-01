@@ -10,7 +10,7 @@ internal sealed class RepetitionCheck : ICvScoreCheck
     private const int RepeatLimit = 2;
     private const int FamilyLimit = 4;
 
-    public int Weight => 12;
+    public int Weight => 11;
 
     public CvScoreCheckDto Run(GeneratedCvDto cv)
     {

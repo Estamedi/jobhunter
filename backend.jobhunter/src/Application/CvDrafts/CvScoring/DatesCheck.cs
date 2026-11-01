@@ -12,7 +12,7 @@ internal sealed partial class DatesCheck : ICvScoreCheck
 {
     private const int MaxGapMonths = 6;
 
-    public int Weight => 15;
+    public int Weight => 13;
 
     public CvScoreCheckDto Run(GeneratedCvDto cv)
     {
@@ -49,6 +49,19 @@ internal sealed partial class DatesCheck : ICvScoreCheck
                 var next = cv.Experience[ordered[i].Index];
                 issues.Add(new($"A gap of about {gapMonths} months before {next.Role} at {next.Company}.",
                     [new("experience", ordered[i].Index, null, $"{next.Role}, {next.Company}")]));
+            }
+        }
+
+        for (var i = 0; i < cv.Experience.Count; i++)
+        {
+            var end = cv.Experience[i].EndDate?.Trim();
+            if (end is not null && (end.Equals("current", StringComparison.OrdinalIgnoreCase)
+                || end.Equals("now", StringComparison.OrdinalIgnoreCase)
+                || end.Equals("ongoing", StringComparison.OrdinalIgnoreCase)))
+            {
+                var e = cv.Experience[i];
+                issues.Add(new($"{e.Role} at {e.Company} ends \"{end}\". Write \"Present\" for a current role.",
+                    [new("experience", i, null, $"{e.Role}, {e.Company}")]));
             }
         }
 

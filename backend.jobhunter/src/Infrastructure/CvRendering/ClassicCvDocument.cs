@@ -205,7 +205,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
     {
         var from = start?.Trim();
         var to = string.IsNullOrWhiteSpace(end) ? (string.IsNullOrWhiteSpace(from) ? null : "Present") : end.Trim();
-        return string.Join(" - ", new[] { from, to }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        return string.Join(" \u2013 ", new[] { from, to }.Where(v => !string.IsNullOrWhiteSpace(v)));
     }
 
     // Inclusive of both months, like LinkedIn: "Jul 2023 - Jan 2025" is "1 yr 7 mos".

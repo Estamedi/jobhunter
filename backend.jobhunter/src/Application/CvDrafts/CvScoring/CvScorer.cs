@@ -15,6 +15,8 @@ public static class CvScorer
         new RepetitionCheck(),
         new ReadabilityCheck(),
         new BuzzwordsCheck(),
+        new AiPatternsCheck(),
+        new StyleRulesCheck(),
         new SkillsCheck(),
         new TenseCheck(),
     ];

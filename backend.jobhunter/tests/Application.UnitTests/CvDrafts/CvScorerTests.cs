@@ -250,4 +250,55 @@ public class CvScorerTests
 
         Check(CvScorer.Score(cv), "tense").Issues.ShouldBeEmpty();
     }
+
+    [Test]
+    public void BulletEndingOnAVagueIngPhraseIsFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present", "Built the billing API for the team, improving overall reliability"));
+
+        Check(CvScorer.Score(cv), "ai-patterns").Issues.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public void IngPhraseEndingOnANumberOrMethodIsFine()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            "Built the API, reducing deployments to 10 minutes", "Built the API for 3 teams, using Azure"));
+
+        Check(CvScorer.Score(cv), "ai-patterns").Issues.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void MoreThanTwoEmDashesAreFlaggedOnce()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            "Built a tool \u2014 fast \u2014 for 3 teams", "Cut costs \u2014 by 20% in a year"));
+
+        Check(CvScorer.Score(cv), "ai-patterns").Issues.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public void SpelledOutNumbersAreFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present", "Led a team of five engineers and cut costs by thirty percent"));
+
+        Check(CvScorer.Score(cv), "style-rules").Issues.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public void ObviousAndRatedSkillsAreFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present", "Built a tool to cut costs by 20%"));
+        cv = cv with { Skills = [new CvSkillGroupDto { Category = "Tools", Items = ["Microsoft Office", "C# (expert)", "SQL"] }] };
+
+        Check(CvScorer.Score(cv), "style-rules").Issues.Count.ShouldBe(2);
+    }
+
+    [Test]
+    public void CurrentAsEndDateIsFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Current", "Built a tool to cut costs by 20%"));
+
+        Check(CvScorer.Score(cv), "dates").Issues.Count.ShouldBe(1);
+    }
 }

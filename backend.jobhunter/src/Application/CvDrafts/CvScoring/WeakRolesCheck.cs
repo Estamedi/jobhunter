@@ -11,7 +11,7 @@ internal sealed class WeakRolesCheck : ICvScoreCheck
     private const int RecentRoles = 2;
     private const int MinBulletsInRecentRole = 3;
 
-    public int Weight => 20;
+    public int Weight => 15;
 
     public CvScoreCheckDto Run(GeneratedCvDto cv)
     {
