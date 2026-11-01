@@ -23,6 +23,8 @@ public class CreateContactCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateContactCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken, companyId: request.CompanyId);
+
         var entity = new JobContact
         {
             FullName = request.FullName,

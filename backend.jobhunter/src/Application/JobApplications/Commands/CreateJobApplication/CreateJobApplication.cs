@@ -29,6 +29,10 @@ public class CreateJobApplicationCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateJobApplicationCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken,
+            candidateId: request.CandidateId, companyId: request.CompanyId, jobRoleId: request.JobRoleId,
+            contactId: request.MainContactId, cvId: request.CvId);
+
         var existingId = await context.Applications
             .Where(a => a.CandidateId == request.CandidateId && a.JobRoleId == request.JobRoleId)
             .Select(a => a.Id)

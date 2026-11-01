@@ -25,6 +25,9 @@ public class CreateInterviewCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateInterviewCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken,
+            candidateId: request.CandidateId, companyId: request.CompanyId, applicationId: request.ApplicationId);
+
         var entity = new JobInterview
         {
             ApplicationId = request.ApplicationId,

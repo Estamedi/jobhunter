@@ -22,6 +22,10 @@ public class CreateActivityCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateActivityCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken,
+            candidateId: request.CandidateId, applicationId: request.ApplicationId,
+            companyId: request.CompanyId, contactId: request.ContactId);
+
         var entity = new JobActivity
         {
             CandidateId = request.CandidateId,

@@ -30,6 +30,8 @@ public class UpdateJobRoleCommandHandler(IApplicationDbContext context)
 {
     public async Task Handle(UpdateJobRoleCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken, companyId: request.CompanyId);
+
         var entity = await context.JobRoles.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException("JobRole", request.Id);
 

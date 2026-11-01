@@ -20,6 +20,8 @@ public class UpdateActivityCommandHandler(IApplicationDbContext context)
 {
     public async Task Handle(UpdateActivityCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken, contactId: request.ContactId);
+
         var entity = await context.Activities.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException("Activity", request.Id);
 

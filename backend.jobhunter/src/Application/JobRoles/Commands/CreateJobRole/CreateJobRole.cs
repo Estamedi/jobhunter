@@ -29,6 +29,8 @@ public class CreateJobRoleCommandHandler(IApplicationDbContext context)
 {
     public async Task<int> Handle(CreateJobRoleCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken, companyId: request.CompanyId);
+
         // Same posting saved before (same company + link)? Reuse that role instead
         // of creating a duplicate row.
         if (!string.IsNullOrWhiteSpace(request.JobLink))

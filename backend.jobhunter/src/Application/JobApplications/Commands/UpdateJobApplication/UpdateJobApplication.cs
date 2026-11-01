@@ -28,6 +28,8 @@ public class UpdateJobApplicationCommandHandler(IApplicationDbContext context)
 {
     public async Task Handle(UpdateJobApplicationCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken, contactId: request.MainContactId, cvId: request.CvId);
+
         var entity = await context.Applications.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException("JobApplication", request.Id);
 

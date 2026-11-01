@@ -24,6 +24,8 @@ public class UpdateContactCommandHandler(IApplicationDbContext context)
 {
     public async Task Handle(UpdateContactCommand request, CancellationToken cancellationToken)
     {
+        await context.EnsureOwnedReferencesAsync(cancellationToken, companyId: request.CompanyId);
+
         var entity = await context.Contacts.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException("Contact", request.Id);
 
