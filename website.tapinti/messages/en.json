@@ -14,6 +14,9 @@
   "nav": {
     "features": "Features",
     "howItWorks": "How it works",
+    "blog": "Blog",
+    "extension": "Chrome extension",
+    "addToChrome": "Add to Chrome",
     "pricing": "Pricing",
     "testimonials": "Stories",
     "faq": "FAQ",

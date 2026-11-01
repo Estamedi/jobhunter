@@ -35,6 +35,17 @@ export function ContentPageView({ page }: { page: ContentPage }) {
         <ButtonLink href={SIGN_UP_URL} size="lg">
           Start Free
         </ButtonLink>
+        {page.externalCta && (
+          <ButtonLink
+            href={page.externalCta.href}
+            variant="secondary"
+            size="lg"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {page.externalCta.label}
+          </ButtonLink>
+        )}
         {page.download && (
           <ButtonLink href={page.download.href} variant="secondary" size="lg" download>
             {page.download.label}

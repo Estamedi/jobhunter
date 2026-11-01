@@ -21,6 +21,8 @@ export type ContentPage = {
   updated: string;
   /** Optional file shown as a download button */
   download?: { href: string; label: string };
+  /** Optional external call-to-action button (opens in a new tab) */
+  externalCta?: { href: string; label: string };
   /** Short label for navigation and link lists */
   label: string;
 };
@@ -342,6 +344,10 @@ export const contentPages: ContentPage[] = [
   {
     slug: "job-saver-chrome-extension",
     updated: "2026-11-01",
+    externalCta: {
+      href: "https://chromewebstore.google.com/detail/applyladder-job-saver/cgcbolcpejagpjpdkdmgppkcohclhcen",
+      label: "Add to Chrome — it's free",
+    },
     label: "Chrome extension",
     title: "ApplyLadder Job Saver: Save Jobs to Your Tracker from Chrome",
     description:

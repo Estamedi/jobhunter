@@ -1,0 +1,54 @@
+import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Link } from "@/i18n/navigation";
+import { CONTENT_LOCALE, contentPages } from "@/content/pages";
+
+export const metadata: Metadata = {
+  title: "Blog: Job Search Guides and Tools",
+  description:
+    "Guides on tracking job applications, organising your job search and getting the most out of ApplyLadder, including the Chrome extension.",
+  alternates: { canonical: `/${CONTENT_LOCALE}/blog` },
+};
+
+export default async function BlogIndex({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        <div className="mx-auto max-w-3xl px-4 pb-24 pt-32 sm:px-6 sm:pt-40">
+          <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+            Blog
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Guides and tools for running a calmer, better-organised job search.
+          </p>
+          <ul className="mt-12 space-y-4">
+            {contentPages.map((p) => (
+              <li key={p.slug}>
+                <Link
+                  href={`/${p.slug}`}
+                  className="block rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
+                >
+                  <h2 className="text-xl font-semibold">{p.h1}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {p.description}
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </main>
+      <SiteFooter />
+    </>
+  );
+}

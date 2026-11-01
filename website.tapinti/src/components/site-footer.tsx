@@ -22,6 +22,7 @@ const columns = [
 const internalHrefs: Record<string, string> = {
   features: "/#features",
   pricing: "/#pricing",
+  blog: "/blog",
 };
 
 const linkHrefs: Record<string, string> = {

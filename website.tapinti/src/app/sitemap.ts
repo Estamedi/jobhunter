@@ -23,5 +23,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: page.updated,
   }));
 
-  return [...home, ...content];
+  const blog: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/${CONTENT_LOCALE}/blog`, lastModified: HOME_UPDATED },
+  ];
+
+  return [...home, ...blog, ...content];
 }

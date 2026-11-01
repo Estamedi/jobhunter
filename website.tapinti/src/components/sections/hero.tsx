@@ -3,9 +3,9 @@
 import { motion, type Variants } from "motion/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { ArrowRight, Play, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Play, Puzzle, ShieldCheck, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { SIGN_UP_URL } from "@/lib/links";
+import { CHROME_EXTENSION_URL, SIGN_UP_URL } from "@/lib/links";
 
 const container: Variants = {
   hidden: {},
@@ -23,6 +23,7 @@ const item: Variants = {
 
 export function Hero() {
   const t = useTranslations("hero");
+  const n = useTranslations("nav");
 
   return (
     <section
@@ -86,6 +87,17 @@ export function Hero() {
             >
               <Play className="size-4" />
               {t("secondaryCta")}
+            </ButtonLink>
+            <ButtonLink
+              href={CHROME_EXTENSION_URL}
+              variant="secondary"
+              size="lg"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+            >
+              <Puzzle className="size-4" />
+              {n("addToChrome")}
             </ButtonLink>
           </motion.div>
 

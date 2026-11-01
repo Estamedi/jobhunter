@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Menu, X } from "lucide-react";
+import { Menu, Puzzle, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button";
-import { SIGN_IN_URL, SIGN_UP_URL } from "@/lib/links";
+import { CHROME_EXTENSION_URL, SIGN_IN_URL, SIGN_UP_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
@@ -17,6 +17,8 @@ const SECTIONS = [
   { id: "pricing", key: "pricing" },
   { id: "faq", key: "faq" },
 ] as const;
+
+const PAGE_LINKS = [{ href: "/blog", key: "blog" }] as const;
 
 export function SiteHeader() {
   const t = useTranslations("nav");
@@ -56,6 +58,16 @@ export function SiteHeader() {
               </Link>
             </li>
           ))}
+          {PAGE_LINKS.map((l) => (
+            <li key={l.href}>
+              <Link
+                href={l.href}
+                className="rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
+              >
+                {t(l.key)}
+              </Link>
+            </li>
+          ))}
         </ul>
 
         <div className="flex items-center gap-2">
@@ -69,6 +81,17 @@ export function SiteHeader() {
           >
             {t("signIn")}
           </a>
+          <ButtonLink
+            href={CHROME_EXTENSION_URL}
+            variant="secondary"
+            size="sm"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden xl:inline-flex"
+          >
+            <Puzzle className="size-4" />
+            {t("addToChrome")}
+          </ButtonLink>
           <ButtonLink
             href={SIGN_UP_URL}
             size="sm"
@@ -103,6 +126,28 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            {PAGE_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-foreground/80 hover:bg-muted"
+                >
+                  {t(l.key)}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <a
+                href={CHROME_EXTENSION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 font-medium text-brand hover:bg-muted"
+              >
+                <Puzzle className="size-4" />
+                {t("addToChrome")}
+              </a>
+            </li>
             <li className="mt-2 flex items-center justify-between gap-2">
               <LanguageSwitcher />
               <ButtonLink href={SIGN_UP_URL} size="sm" className="flex-1">
