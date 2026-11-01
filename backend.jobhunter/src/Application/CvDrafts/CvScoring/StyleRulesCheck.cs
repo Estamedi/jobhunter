@@ -32,6 +32,12 @@ internal sealed partial class StyleRulesCheck : ICvScoreCheck
         var texts = new List<(CvScoreLocationDto Where, string Text)> { (new("summary", null, null, summary), summary) };
         texts.AddRange(Bullets(cv).Select(b => (At(b), b.Text)));
 
+        if (texts.Count == 1 && summary.Length == 0 && cv.Skills.Count == 0)
+        {
+            return new("style-rules", "Style rules", "Digits for numbers, no obvious skills, no skill ratings.",
+                0, "Nothing to check yet", issues);
+        }
+
         foreach (var (where, text) in texts)
         {
             var match = SpelledNumber().Match(text);

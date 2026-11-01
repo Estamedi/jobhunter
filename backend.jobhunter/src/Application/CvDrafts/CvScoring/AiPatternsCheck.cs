@@ -33,6 +33,13 @@ internal sealed partial class AiPatternsCheck : ICvScoreCheck
         var summary = Clean(cv.Summary);
         var bullets = Bullets(cv);
 
+        // Nothing written yet means nothing to clear, so an empty CV must not score full marks here.
+        if (bullets.Count == 0 && summary.Length == 0)
+        {
+            return new("ai-patterns", "AI-sounding patterns", "Avoid structures that read as machine-written.",
+                0, "Nothing to check yet", issues);
+        }
+
         foreach (var b in bullets)
         {
             var match = TrailingIng().Match(b.Text);
