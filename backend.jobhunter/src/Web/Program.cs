@@ -16,6 +16,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 await app.InitialiseDatabaseAsync();
 
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
@@ -31,6 +33,7 @@ app.UseCors(static builder =>
 // Explicit so auth runs after CORS; otherwise 401s lack CORS headers and
 // browser clients (the extension) can't see them to refresh their token.
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.UseFileServer();

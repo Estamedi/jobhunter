@@ -36,6 +36,8 @@ public static class DependencyInjection
 
         builder.Services.AddCors();
 
+        builder.AddAppRateLimiting();
+
         // Bearer tokens are protected with Data Protection keys. Without persisted keys every new
         // container generates a fresh key ring on deploy, which invalidates all issued tokens and
         // signs everyone out. DataProtection:KeysPath points at a volume that survives redeploys.

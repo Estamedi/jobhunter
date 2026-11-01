@@ -16,21 +16,6 @@ const sidebarNavItems = [
     href: '/settings/password',
     icon: <KeyRound size={18} />,
   },
-  // {
-  //   title: 'Appearance',
-  //   href: '/settings/appearance',
-  //   icon: <Palette size={18} />,
-  // },
-  // {
-  //   title: 'Notifications',
-  //   href: '/settings/notifications',
-  //   icon: <Bell size={18} />,
-  // },
-  // {
-  //   title: 'Display',
-  //   href: '/settings/display',
-  //   icon: <Monitor size={18} />,
-  // },
 ]
 
 export function Settings() {
