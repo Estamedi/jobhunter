@@ -5,13 +5,13 @@ using QuestPDF.Infrastructure;
 
 namespace backend.jobhunter.Infrastructure.CvRendering;
 
-// Single-column CV: centred header, plain section headings, bulleted skills and experience with
-// dates right-aligned. Layout and palette follow the owner's reference CV (A4, Carlito (Calibri-metric) 10.5pt, 0.75in margins, single column, plain black text per resume-builder-skill).
+// Single-column CV: centred header, blue section headings, bulleted skills and experience with
+// dates right-aligned. Layout and palette follow the owner's reference CV (A4, Carlito (Calibri-metric) 10.5pt, 0.75in margins, single column per resume-builder-skill).
 public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocument
 {
-    private const string HeadingColor = "#000000";
-    private const string CompanyColor = "#000000";
-    private const string NameColor = "#000000";
+    private const string HeadingColor = "#4285F4";
+    private const string CompanyColor = "#1155CC";
+    private const string NameColor = "#353744";
     private const string MutedColor = "#404040";
     private const string BodyColor = "#000000";
     private const float BodySize = 10.5f;
@@ -164,7 +164,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         container.Column(col =>
         {
             col.Spacing(2);
-            col.Item().PaddingTop(2).Text(title.ToUpperInvariant()).FontSize(11.5f).Bold().FontColor(HeadingColor);
+            col.Item().PaddingTop(2).Text(title).FontSize(11.5f).Bold().FontColor(HeadingColor);
             col.Item().Column(body);
         });
     }
