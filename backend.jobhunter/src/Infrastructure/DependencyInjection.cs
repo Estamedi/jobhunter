@@ -53,7 +53,12 @@ public static class DependencyInjection
         builder.Services.AddAuthorizationBuilder();
 
         builder.Services
-            .AddIdentityCore<ApplicationUser>()
+            .AddIdentityCore<ApplicationUser>(options =>
+            {
+                // Password sign-in must prove ownership of the address; otherwise an unconfirmed
+                // account could be used to squat an email before its real owner signs up.
+                options.SignIn.RequireConfirmedEmail = true;
+            })
             .AddRoles<IdentityRole>()
             .AddUserManager<ApplicationUserManager>()
             .AddEntityFrameworkStores<ApplicationDbContext>()

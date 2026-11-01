@@ -38,12 +38,19 @@ app.UseAuthorization();
 
 app.UseFileServer();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
+// API docs list every route and schema; keep them out of production.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 app.UseExceptionHandler(options => { });
 
-app.Map("/", () => Results.Redirect("/scalar"));
+if (app.Environment.IsDevelopment())
+{
+    app.Map("/", () => Results.Redirect("/scalar"));
+}
 
 app.MapDefaultEndpoints();
 app.MapEndpoints(typeof(Program).Assembly);

@@ -301,6 +301,31 @@ public class IdentityService : IIdentityService
         {
             user = await _userManager.FindByEmailAsync(googleUser.Email);
 
+            if (user is not null && !user.EmailConfirmed)
+            {
+                // Someone may have pre-registered this address with a password they chose. Google has
+                // just proven the real owner, so drop that password and confirm the account before linking.
+                if (await _userManager.HasPasswordAsync(user))
+                {
+                    var removeResult = await _userManager.RemovePasswordAsync(user);
+
+                    if (!removeResult.Succeeded)
+                    {
+                        throw ToValidationException(removeResult);
+                    }
+                }
+
+                var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmResult = await _userManager.ConfirmEmailAsync(user, confirmationToken);
+
+                if (!confirmResult.Succeeded)
+                {
+                    throw ToValidationException(confirmResult);
+                }
+
+                await _userManager.UpdateSecurityStampAsync(user);
+            }
+
             if (user is null)
             {
                 user = new ApplicationUser

@@ -99,13 +99,20 @@ public class ApplicationDbContextInitialiser
 
         if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
         {
-            var administrator = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
+            // Confirmed up front: password sign-in requires a confirmed email and an admin has no inbox flow.
+            var administrator = new ApplicationUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+            var existing = _userManager.Users.FirstOrDefault(u => u.UserName == administrator.UserName);
 
-            if (_userManager.Users.All(u => u.UserName != administrator.UserName))
+            if (existing is null)
             {
                 await _userManager.CreateAsync(administrator, adminPassword);
                 await _userManager.AddToRolesAsync(administrator, [Roles.Administrator]);
                 await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
+            }
+            else if (!existing.EmailConfirmed)
+            {
+                existing.EmailConfirmed = true;
+                await _userManager.UpdateAsync(existing);
             }
         }
         else
