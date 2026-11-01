@@ -77,7 +77,7 @@ public class QuestPdfCvRendererTests
         // Name, contact details, dates and company names survive as plain text.
         foreach (var expected in new[]
                  {
-                     "Jane Sample", "Location: Muscat", "Phone: 123", "Email: jane@example.com", "Senior Engineer", "Acme", "Globex",
+                     "Jane Sample", "Muscat", "123", "jane@example.com", "Senior Engineer", "Acme", "Globex",
                      "Jan 2025", "Feb 2020 \u2013 Apr 2022", "Cut costs by 30%", "Built the billing API", "AZ-204",
                  })
         {

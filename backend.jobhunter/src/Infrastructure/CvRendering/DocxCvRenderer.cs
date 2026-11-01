@@ -163,7 +163,6 @@ public class DocxCvRenderer : ICvDocxRenderer
             for (var i = 0; i < contact.Count; i++)
             {
                 if (i > 0) line.Append(Run(" |  ", color: ClassicCvDocument.MutedColor));
-                line.Append(Run($"{contact[i].Item1}: ", color: ClassicCvDocument.MutedColor));
                 var value = contact[i].Item2!.Trim();
                 // Email is a real mailto link so ATS parsers and recruiters can click it.
                 line.Append(contact[i].Item1 == "Email"

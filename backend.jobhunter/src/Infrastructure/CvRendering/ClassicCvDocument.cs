@@ -139,7 +139,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                 col.Item().AlignCenter().Text(cv.Headline).FontSize(11.5f).Bold().FontColor(NameColor);
             }
 
-            // "Location: Muscat, Oman | Phone: (+968) ... | Email: ..." with bold values.
+            // "Muscat, Oman | (+968) ... | email" with bold values and no labels (ATS friendly).
             var contact = new[] { ("Location", header.Location), ("Phone", header.Phone), ("Email", header.Email) }
                 .Where(c => !string.IsNullOrWhiteSpace(c.Item2))
                 .ToList();
@@ -151,7 +151,6 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                     for (var i = 0; i < contact.Count; i++)
                     {
                         if (i > 0) t.Span(" |  ");
-                        t.Span($"{contact[i].Item1}: ");
                         t.Span(contact[i].Item2!.Trim()).Bold();
                     }
                 });
