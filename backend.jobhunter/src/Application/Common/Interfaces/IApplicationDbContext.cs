@@ -25,6 +25,7 @@ public interface IApplicationDbContext
     DbSet<ProfileCertification> ProfileCertifications { get; }
     DbSet<ProfileLanguage> ProfileLanguages { get; }
     DbSet<Note> Notes { get; }
+    DbSet<AppSetting> AppSettings { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

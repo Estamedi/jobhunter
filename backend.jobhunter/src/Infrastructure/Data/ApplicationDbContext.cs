@@ -39,6 +39,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<ProfileCertification> ProfileCertifications => Set<ProfileCertification>();
     public DbSet<ProfileLanguage> ProfileLanguages => Set<ProfileLanguage>();
     public DbSet<Note> Notes => Set<Note>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     private Guid? CurrentOwnerId => Guid.TryParse(_user.Id, out var id) ? id : null;
 

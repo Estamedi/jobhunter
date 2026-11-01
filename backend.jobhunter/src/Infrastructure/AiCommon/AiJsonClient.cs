@@ -4,18 +4,20 @@ using System.Text.Json.Nodes;
 using System.Diagnostics;
 using backend.jobhunter.Application.Common.Exceptions;
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Domain.Constants;
 using backend.jobhunter.Infrastructure.AiExtraction;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace backend.jobhunter.Infrastructure.AiCommon;
 
-// Sends one prompt to whichever AI provider is configured (preferring
-// AiExtractionOptions.PreferredProvider, falling back to whichever has a key) and returns the
+// Sends one prompt to the AI provider the administrator picked (OpenRouter, Anthropic or OpenAI; see
+// AiSettingKeys.Provider), falling back to config and then to whichever provider has a key, and returns the
 // response parsed from the provider's JSON-schema structured output. Keys live only in server config.
 public class AiJsonClient(
     IHttpClientFactory httpClientFactory, IOptions<AiExtractionOptions> options, ILogger<AiJsonClient> logger,
-    LangfuseTelemetry telemetry, IUser? user = null)
+    LangfuseTelemetry telemetry, IUser? user = null, IApplicationDbContext? db = null)
 {
     private static readonly JsonSerializerOptions DeserializeOptions = new()
     {
@@ -37,19 +39,27 @@ public class AiJsonClient(
         string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
     {
-        var provider = PickProvider();
+        var provider = await PickProviderAsync(cancellationToken);
         var call = new AiCallInfo();
         using var activity = provider is null
             ? null
             : telemetry.StartGeneration(
                 LangfuseTelemetry.OperationName(schemaName), provider,
-                provider == "OpenAI" ? openAiModel ?? _options.OpenAiModel : anthropicModel ?? _options.AnthropicModel,
+                provider switch
+                {
+                    "OpenAI" => openAiModel ?? _options.OpenAiModel,
+                    "OpenRouter" => OpenRouterModel(openAiModel),
+                    _ => anthropicModel ?? _options.AnthropicModel,
+                },
                 maxTokens, user?.Id);
         try
         {
             return provider switch
             {
-                "OpenAI" => await WithOpenAiAsync<T>(systemPrompt, prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, call, cancellationToken),
+                "OpenAI" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, call,
+                    "https://api.openai.com/v1/chat/completions", _options.OpenAiApiKey, "OpenAI", cancellationToken),
+                "OpenRouter" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, OpenRouterModel(openAiModel), call,
+                    "https://openrouter.ai/api/v1/chat/completions", _options.OpenRouterApiKey, "OpenRouter", cancellationToken),
                 "Anthropic" => await WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, anthropicModel ?? _options.AnthropicModel, call, cancellationToken),
                 _ => throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key."),
             };
@@ -68,15 +78,30 @@ public class AiJsonClient(
         }
     }
 
-    private string? PickProvider()
-    {
-        var providers = string.Equals(_options.PreferredProvider, "OpenAI", StringComparison.OrdinalIgnoreCase)
-            ? new[] { ("OpenAI", _options.OpenAiApiKey), ("Anthropic", _options.AnthropicApiKey) }
-            : new[] { ("Anthropic", _options.AnthropicApiKey), ("OpenAI", _options.OpenAiApiKey) };
+    // A caller passing an OpenAI model name means "use the heavier CV model"; mirror that tier on OpenRouter.
+    private string OpenRouterModel(string? openAiModel)
+        => openAiModel is null ? _options.OpenRouterModel : _options.OpenRouterCvModel ?? _options.OpenRouterModel;
 
-        foreach (var (name, key) in providers)
+    // The administrator's choice (saved in AppSettings) wins over config; if that provider has no key,
+    // fall back to the next one that does so the app keeps working.
+    private async Task<string?> PickProviderAsync(CancellationToken cancellationToken)
+    {
+        var preferred = _options.PreferredProvider;
+        if (db is not null)
         {
-            if (!string.IsNullOrWhiteSpace(key)) return name;
+            var saved = await db.AppSettings.AsNoTracking()
+                .Where(s => s.Key == AiSettingKeys.Provider)
+                .Select(s => s.Value)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(saved)) preferred = saved;
+        }
+
+        var ordered = AiExtractionOptions.Providers
+            .OrderBy(p => string.Equals(p, preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1);
+
+        foreach (var name in ordered)
+        {
+            if (_options.IsConfigured(name)) return name;
         }
         return null;
     }
@@ -120,8 +145,9 @@ public class AiJsonClient(
         return Parse<T>(text);
     }
 
-    private async Task<T> WithOpenAiAsync<T>(
-        string? systemPrompt, string prompt, string schemaJson, string schemaName, string model, AiCallInfo call, CancellationToken cancellationToken)
+    private async Task<T> WithOpenAiCompatibleAsync<T>(
+        string? systemPrompt, string prompt, string schemaJson, string schemaName, string model, AiCallInfo call,
+        string endpoint, string? apiKey, string providerName, CancellationToken cancellationToken)
     {
         call.Model = model;
         var messages = new JsonArray();
@@ -148,13 +174,13 @@ public class AiJsonClient(
         };
 
         using var client = httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = JsonContent.Create(body),
         };
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.OpenAiApiKey);
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
 
-        var responseBody = await SendAsync(client, request, "OpenAI", cancellationToken);
+        var responseBody = await SendAsync(client, request, providerName, cancellationToken);
 
         var completion = JsonNode.Parse(responseBody);
         call.InputTokens = completion?["usage"]?["prompt_tokens"]?.GetValue<int>();

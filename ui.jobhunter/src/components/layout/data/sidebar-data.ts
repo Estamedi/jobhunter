@@ -21,6 +21,7 @@ import {
   Gauge,
   UserRound,
   Users,
+  Bot,
 } from 'lucide-react'
 import { Logo } from '@/assets/logo'
 import { type NavGroup, type SidebarData } from '../types'
@@ -230,7 +231,19 @@ const administratorNavGroups: NavGroup[] = [
     .filter((g) => g.title === 'Setup')
     .map((g) => ({
       ...g,
-      items: g.items.filter((i) => i.title !== 'Onboarding'),
+      items: g.items
+        .filter((i) => i.title !== 'Onboarding')
+        .map((i) =>
+          i.title === 'Settings' && i.items
+            ? {
+                ...i,
+                items: [
+                  ...i.items,
+                  { title: 'AI provider', url: '/settings/ai-provider', icon: Bot },
+                ],
+              }
+            : i
+        ),
     })),
 ]
 

@@ -59,6 +59,7 @@ import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/_aut
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
+import { Route as AuthenticatedSettingsAiProviderRouteImport } from './routes/_authenticated/settings/ai-provider'
 import { Route as AuthenticatedOnboardingQuestionsRouteImport } from './routes/_authenticated/onboarding/questions'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 
@@ -331,6 +332,12 @@ const AuthenticatedSettingsAppearanceRoute =
     path: '/appearance',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsAiProviderRoute =
+  AuthenticatedSettingsAiProviderRouteImport.update({
+    id: '/ai-provider',
+    path: '/ai-provider',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedOnboardingQuestionsRoute =
   AuthenticatedOnboardingQuestionsRouteImport.update({
     id: '/onboarding/questions',
@@ -365,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
+  '/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
@@ -415,6 +423,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
+  '/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
@@ -470,6 +479,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
+  '/_authenticated/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/errors/$error'
     | '/onboarding/questions'
+    | '/settings/ai-provider'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
@@ -573,6 +584,7 @@ export interface FileRouteTypes {
     | '/'
     | '/errors/$error'
     | '/onboarding/questions'
+    | '/settings/ai-provider'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
@@ -627,6 +639,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/onboarding/questions'
+    | '/_authenticated/settings/ai-provider'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
@@ -1030,6 +1043,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/ai-provider': {
+      id: '/_authenticated/settings/ai-provider'
+      path: '/ai-provider'
+      fullPath: '/settings/ai-provider'
+      preLoaderRoute: typeof AuthenticatedSettingsAiProviderRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/onboarding/questions': {
       id: '/_authenticated/onboarding/questions'
       path: '/onboarding/questions'
@@ -1048,6 +1068,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedSettingsRouteRouteChildren {
+  AuthenticatedSettingsAiProviderRoute: typeof AuthenticatedSettingsAiProviderRoute
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
@@ -1057,6 +1078,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
+    AuthenticatedSettingsAiProviderRoute: AuthenticatedSettingsAiProviderRoute,
     AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
     AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
     AuthenticatedSettingsNotificationsRoute:
