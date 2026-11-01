@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-jobhunterdb}
     ports:
       - "${POSTGRES_PORT:-5434}:5432"
@@ -22,7 +22,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__backend-jobhunterDb=Server=postgres;Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:-password}
+      - ConnectionStrings__backend-jobhunterDb=Server=postgres;Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
       - FileStorage__RootPath=/app/uploads/cvs
     ports:
       - "${BACKEND_PORT:-5290}:8080"

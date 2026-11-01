@@ -29,7 +29,8 @@ public class LoggingBehaviour<TRequest> : IRequestPreProcessor<TRequest>
             userName = await _identityService.GetUserNameAsync(userId);
         }
 
-        _logger.LogInformation("backend.jobhunter Request: {Name} {@UserId} {@UserName} {@Request}",
-            requestName, userId, userName, request);
+        // The request body is deliberately not logged: commands carry passwords, Google tokens and CV text.
+        _logger.LogInformation("backend.jobhunter Request: {Name} {@UserId} {@UserName}",
+            requestName, userId, userName);
     }
 }

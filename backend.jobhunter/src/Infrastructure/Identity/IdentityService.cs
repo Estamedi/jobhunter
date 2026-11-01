@@ -253,14 +253,37 @@ public class IdentityService : IIdentityService
 
         if (googleUser is null)
         {
-            var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v3/userinfo");
-            userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+            // The web app and extension send an OAuth access token, not an ID token. Any Google app can
+            // mint one for the same person, so it is only trusted when it was issued to our client id.
+            GoogleAccessTokenInfo? accessTokenInfo;
 
-            var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
-
-            if (userInfoResponse.IsSuccessStatusCode)
+            try
             {
-                googleUser = await userInfoResponse.Content.ReadFromJsonAsync<GoogleUserInfo>();
+                accessTokenInfo = await httpClient.GetFromJsonAsync<GoogleAccessTokenInfo>(
+                    $"https://oauth2.googleapis.com/tokeninfo?access_token={Uri.EscapeDataString(idToken)}");
+            }
+            catch (HttpRequestException)
+            {
+                accessTokenInfo = null;
+            }
+
+            if (accessTokenInfo is not null
+                && (accessTokenInfo.Audience == googleClientId || accessTokenInfo.AuthorizedParty == googleClientId))
+            {
+                var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v3/userinfo");
+                userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+
+                var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
+
+                if (userInfoResponse.IsSuccessStatusCode)
+                {
+                    googleUser = await userInfoResponse.Content.ReadFromJsonAsync<GoogleUserInfo>();
+
+                    if (googleUser is not null && googleUser.Subject != accessTokenInfo.Subject)
+                    {
+                        googleUser = null;
+                    }
+                }
             }
         }
 
@@ -342,6 +365,11 @@ public class IdentityService : IIdentityService
         [property: JsonPropertyName("email")] string Email,
         [property: JsonPropertyName("email_verified")] string EmailVerified,
         [property: JsonPropertyName("name")] string? Name = null);
+
+    private sealed record GoogleAccessTokenInfo(
+        [property: JsonPropertyName("aud")] string? Audience,
+        [property: JsonPropertyName("azp")] string? AuthorizedParty,
+        [property: JsonPropertyName("sub")] string? Subject);
 
     private sealed record GoogleUserInfo(
         [property: JsonPropertyName("sub")] string Subject,

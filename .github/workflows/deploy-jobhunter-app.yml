@@ -128,6 +128,8 @@ jobs:
             LANGFUSE__HOST='${{ secrets.LANGFUSE_BASE_URL }}' \
             LANGFUSE__PUBLICKEY='${{ secrets.LANGFUSE_PUBLIC_KEY }}' \
             LANGFUSE__SECRETKEY='${{ secrets.LANGFUSE_SECRET_KEY }}' \
+            SEED__ADMINEMAIL='${{ secrets.SEED_ADMIN_EMAIL }}' \
+            SEED__ADMINPASSWORD='${{ secrets.SEED_ADMIN_PASSWORD }}' \
             /opt/jobhunter/deploy-jobhunter-app.sh
 
             rm -f /tmp/jobhunter-app.tar.gz

@@ -54,6 +54,8 @@ upsert_env AIEXTRACTION__OPENAIAPIKEY "${AIEXTRACTION__OPENAIAPIKEY:-}"
 upsert_env LANGFUSE__HOST "${LANGFUSE__HOST:-}"
 upsert_env LANGFUSE__PUBLICKEY "${LANGFUSE__PUBLICKEY:-}"
 upsert_env LANGFUSE__SECRETKEY "${LANGFUSE__SECRETKEY:-}"
+upsert_env SEED__ADMINEMAIL "${SEED__ADMINEMAIL:-}"
+upsert_env SEED__ADMINPASSWORD "${SEED__ADMINPASSWORD:-}"
 
 bootstrap_shared_postgres() {
   local postgres_container="${POSTGRES_HOST:-shared_postgres}"

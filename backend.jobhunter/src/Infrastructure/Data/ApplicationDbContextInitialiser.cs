@@ -4,6 +4,8 @@ using backend.jobhunter.Domain.Entities;
 using backend.jobhunter.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -29,13 +31,17 @@ public class ApplicationDbContextInitialiser
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment _environment;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, IHostEnvironment environment)
     {
         _logger = logger;
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
+        _configuration = configuration;
+        _environment = environment;
     }
 
     public async Task InitialiseAsync()
@@ -80,14 +86,31 @@ public class ApplicationDbContextInitialiser
             }
         }
 
-        // Default users
-        var administrator = new ApplicationUser { UserName = "administrator@localhost.com", Email = "administrator@localhost.com" };
+        // Default administrator. Credentials come from configuration (Seed:AdminEmail / Seed:AdminPassword).
+        // Outside Development there is no built-in fallback: without a configured password no admin is seeded.
+        var adminEmail = _configuration["Seed:AdminEmail"];
+        var adminPassword = _configuration["Seed:AdminPassword"];
 
-        if (_userManager.Users.All(u => u.UserName != administrator.UserName))
+        if (_environment.IsDevelopment())
         {
-            await _userManager.CreateAsync(administrator, "Administrator1!");
-            await _userManager.AddToRolesAsync(administrator, [Roles.Administrator]);
-            await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
+            adminEmail = string.IsNullOrWhiteSpace(adminEmail) ? "administrator@localhost.com" : adminEmail;
+            adminPassword = string.IsNullOrWhiteSpace(adminPassword) ? "Administrator1!" : adminPassword;
+        }
+
+        if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
+        {
+            var administrator = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
+
+            if (_userManager.Users.All(u => u.UserName != administrator.UserName))
+            {
+                await _userManager.CreateAsync(administrator, adminPassword);
+                await _userManager.AddToRolesAsync(administrator, [Roles.Administrator]);
+                await _userManager.RemoveFromRoleAsync(administrator, Roles.JobSeeker);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("No Seed:AdminEmail / Seed:AdminPassword configured; skipping administrator seed.");
         }
 
         // No per-user CRM data is seeded here. Each job seeker gets their own Candidate row created by
