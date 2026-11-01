@@ -5,16 +5,16 @@ using QuestPDF.Infrastructure;
 
 namespace backend.jobhunter.Infrastructure.CvRendering;
 
-// Single-column CV: centred header, blue section headings, bulleted skills and experience with
-// dates right-aligned. Layout and palette follow the owner's reference CV (A4, Lato).
+// Single-column CV: centred header, plain section headings, bulleted skills and experience with
+// dates right-aligned. Layout and palette follow the owner's reference CV (A4, Carlito (Calibri-metric) 10.5pt, 0.75in margins, single column, plain black text per resume-builder-skill).
 public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocument
 {
-    private const string HeadingColor = "#4285F4";
-    private const string CompanyColor = "#1155CC";
-    private const string NameColor = "#353744";
-    private const string MutedColor = "#666666";
-    private const string BodyColor = "#202124";
-    private const float BodySize = 10f;
+    private const string HeadingColor = "#000000";
+    private const string CompanyColor = "#000000";
+    private const string NameColor = "#000000";
+    private const string MutedColor = "#404040";
+    private const string BodyColor = "#000000";
+    private const float BodySize = 10.5f;
 
     public DocumentMetadata GetMetadata() => new() { Title = $"{header.FullName} - CV" };
 
@@ -23,8 +23,8 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         container.Page(page =>
         {
             page.Size(PageSizes.A4);
-            page.Margin(0.6f, Unit.Inch);
-            page.DefaultTextStyle(t => t.FontFamily("Lato").FontSize(BodySize).FontColor(BodyColor).LineHeight(1.25f));
+            page.Margin(0.75f, Unit.Inch);
+            page.DefaultTextStyle(t => t.FontFamily("Carlito").FontSize(BodySize).FontColor(BodyColor).LineHeight(1.24f));
 
             page.Content().Column(col =>
             {
@@ -39,7 +39,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
 
                 if (cv.Skills.Count > 0)
                 {
-                    col.Item().Element(c => Section(c, "Skills", s =>
+                    col.Item().Element(c => Section(c, "Technical Skills", s =>
                     {
                         foreach (var group in cv.Skills)
                         {
@@ -49,6 +49,15 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                                 t.Span(string.Join(", ", group.Items).Replace("**", ""));
                             }));
                         }
+                    }));
+                }
+
+                if (cv.Experience.Count > 0)
+                {
+                    col.Item().Element(c => Section(c, "Professional Experience", s =>
+                    {
+                        s.Spacing(8);
+                        foreach (var job in cv.Experience) s.Item().Element(e => Experience(e, job));
                     }));
                 }
 
@@ -65,15 +74,6 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                                 if (!string.IsNullOrWhiteSpace(project.Url)) t.Hyperlink($" {project.Url}", project.Url).FontColor(CompanyColor).Underline();
                             });
                         }
-                    }));
-                }
-
-                if (cv.Experience.Count > 0)
-                {
-                    col.Item().Element(c => Section(c, "Experience", s =>
-                    {
-                        s.Spacing(8);
-                        foreach (var job in cv.Experience) s.Item().Element(e => Experience(e, job));
                     }));
                 }
 
@@ -136,7 +136,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
             col.Item().AlignCenter().Text(header.FullName).FontSize(16).FontColor(NameColor);
             if (!string.IsNullOrWhiteSpace(cv.Headline))
             {
-                col.Item().AlignCenter().Text(cv.Headline).FontSize(14).Bold().FontColor(NameColor);
+                col.Item().AlignCenter().Text(cv.Headline).FontSize(11.5f).Bold().FontColor(NameColor);
             }
 
             // "Location: Muscat, Oman | Phone: (+968) ... | Email: ..." with bold values.
@@ -147,7 +147,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
             {
                 col.Item().PaddingTop(2).AlignCenter().Text(t =>
                 {
-                    t.DefaultTextStyle(x => x.FontSize(10).FontColor(MutedColor));
+                    t.DefaultTextStyle(x => x.FontSize(BodySize).FontColor(MutedColor));
                     for (var i = 0; i < contact.Count; i++)
                     {
                         if (i > 0) t.Span(" |  ");
@@ -164,7 +164,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         container.Column(col =>
         {
             col.Spacing(2);
-            col.Item().PaddingTop(2).Text(title).FontSize(11).Bold().FontColor(HeadingColor);
+            col.Item().PaddingTop(2).Text(title.ToUpperInvariant()).FontSize(11.5f).Bold().FontColor(HeadingColor);
             col.Item().Column(body);
         });
     }

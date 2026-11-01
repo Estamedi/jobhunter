@@ -1,4 +1,5 @@
 using backend.jobhunter.Application.Common.Interfaces;
+using QuestPDF.Drawing;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 
@@ -10,6 +11,13 @@ public class QuestPdfCvRenderer : ICvPdfRenderer
     {
         // QuestPDF Community licence (free below its revenue threshold); review if that changes.
         QuestPDF.Settings.License = LicenseType.Community;
+
+        // Carlito (OFL, metric-compatible with Calibri) is embedded so output never depends on system fonts.
+        var assembly = typeof(QuestPdfCvRenderer).Assembly;
+        foreach (var name in assembly.GetManifestResourceNames().Where(n => n.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)))
+        {
+            FontManager.RegisterFontFromEmbeddedResource(name);
+        }
     }
 
     public byte[] Render(string templateId, CvHeaderDto header, GeneratedCvDto content)

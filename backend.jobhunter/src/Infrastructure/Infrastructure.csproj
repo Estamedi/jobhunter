@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Data\Seed\job_titles.csv" />
+    <EmbeddedResource Include="CvRendering\Fonts\*.ttf" />
   </ItemGroup>
 
 </Project>
