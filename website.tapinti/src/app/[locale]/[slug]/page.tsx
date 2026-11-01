@@ -11,6 +11,7 @@ import {
   getContentPage,
 } from "@/content/pages";
 import { SITE_URL } from "@/lib/content";
+import { getBlogImage } from "@/lib/blog-image";
 
 // Content pages exist in English only; any other locale/slug is a 404.
 export const dynamicParams = false;
@@ -27,11 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page) return {};
 
   const url = `${SITE_URL}/${CONTENT_LOCALE}/${page.slug}`;
+  const cover = getBlogImage(page.slug);
   const image = {
-    url: `${SITE_URL}/${CONTENT_LOCALE}/opengraph-image`,
+    url: cover
+      ? `${SITE_URL}${cover}`
+      : `${SITE_URL}/${CONTENT_LOCALE}/opengraph-image`,
     width: 1200,
     height: 630,
-    alt: "ApplyLadder — the Personal Career CRM",
+    alt: cover ? page.h1 : "ApplyLadder — the Personal Career CRM",
   };
   return {
     title: page.title,

@@ -3,6 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Link } from "@/i18n/navigation";
+import { getBlogImage } from "@/lib/blog-image";
 import { CONTENT_LOCALE, contentPages } from "@/content/pages";
 
 export const metadata: Metadata = {
@@ -32,19 +33,34 @@ export default async function BlogIndex({
             Guides and tools for running a calmer, better-organised job search.
           </p>
           <ul className="mt-12 space-y-4">
-            {contentPages.map((p) => (
+            {contentPages.map((p) => {
+              const image = getBlogImage(p.slug);
+              return (
               <li key={p.slug}>
                 <Link
                   href={`/${p.slug}`}
-                  className="block rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
+                  className="block overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
                 >
+                  {image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={image}
+                      alt=""
+                      width={1200}
+                      height={630}
+                      className="aspect-[1200/630] w-full object-cover"
+                    />
+                  )}
+                  <div className="p-6">
                   <h2 className="text-xl font-semibold">{p.h1}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     {p.description}
                   </p>
+                  </div>
                 </Link>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       </main>

@@ -2,12 +2,15 @@ import { Link } from "@/i18n/navigation";
 import { Plus } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { SIGN_UP_URL } from "@/lib/links";
+import { getBlogImage } from "@/lib/blog-image";
 import { getContentPage, type ContentPage } from "@/content/pages";
 
 export function ContentPageView({ page }: { page: ContentPage }) {
   const related = page.related
     .map((slug) => getContentPage(slug))
     .filter((p): p is ContentPage => Boolean(p));
+
+  const image = getBlogImage(page.slug);
 
   return (
     <article className="mx-auto max-w-3xl px-4 pb-24 pt-32 sm:px-6 sm:pt-40">
@@ -31,6 +34,16 @@ export function ContentPageView({ page }: { page: ContentPage }) {
       <p className="mt-6 text-pretty text-lg leading-relaxed text-muted-foreground">
         {page.intro}
       </p>
+      {image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={image}
+          alt={page.h1}
+          width={1200}
+          height={630}
+          className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-border object-cover"
+        />
+      )}
       <div className="mt-8 flex flex-wrap gap-3">
         <ButtonLink href={SIGN_UP_URL} size="lg">
           Start Free
