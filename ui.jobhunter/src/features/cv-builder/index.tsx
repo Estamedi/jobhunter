@@ -77,6 +77,8 @@ function showWarnings(warnings?: string[] | null) {
   })
 }
 
+const FIX_TOAST = 'fix-issues'
+
 function loadBackground() {
   try {
     return localStorage.getItem(BACKGROUND_KEY) ?? ''
@@ -328,6 +330,7 @@ export function CvBuilder({
   const [refining, setRefining] = useState<CvSection | null>(null)
   const [editingSection, setEditingSection] = useState<CvSection | null>(null)
   const [instruction, setInstruction] = useState('')
+  const [fixStep, setFixStep] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
   // Lines a score issue points at, tied to the draft version they were found in so they disappear on any change.
   const [shown, setShown] = useState<{
@@ -558,7 +561,11 @@ export function CvBuilder({
       const groups = groupBySection(issues)
       let last: CvDraft | null = null
       let fixed = 0
+      let done = 0
       for (const [section, list] of groups) {
+        setFixStep(
+          `Fixing the ${SECTION_LABELS[section].toLowerCase()} (${done + 1} of ${groups.size})`
+        )
         last = await cvBuilderApi.regenerateSection(draft!.id, {
           section,
           instruction: buildFixInstruction(list),
@@ -566,21 +573,25 @@ export function CvBuilder({
         })
         applyDraft(last)
         fixed += list.length
+        done += 1
       }
       if (!last) throw new Error('nothing to fix')
       return { last, fixed }
     },
+    onMutate: () => setFixStep('Starting'),
     onSuccess: ({ last, fixed }) => {
       qc.invalidateQueries({ queryKey: ['cv-draft-score'] })
       setRefining(null)
       toast.success(
-        `Fixed ${fixed} ${fixed === 1 ? 'issue' : 'issues'}. Recalculating the score.`,
-        { action: undoAction(last.previousVersionId) }
+        `Fixed ${fixed} ${fixed === 1 ? 'issue' : 'issues'}. The score is updating.`,
+        { id: FIX_TOAST, action: undoAction(last.previousVersionId) }
       )
       showWarnings(last.warnings)
     },
     onError: (error) =>
-      toast.error(serverDetail(error, 'Could not fix the issues')),
+      toast.error(serverDetail(error, 'Could not fix the issues'), {
+        id: FIX_TOAST,
+      }),
   })
 
   const exportPdf = useMutation({
@@ -865,6 +876,33 @@ export function CvBuilder({
           </div>
         )}
       </div>
+
+      {/* Locks the page while the AI fixes the CV, so nothing can be edited or exported half way. */}
+      <Dialog open={fix.isPending}>
+        <DialogContent
+          showCloseButton={false}
+          className='max-w-sm text-center'
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Fixing your CV</DialogTitle>
+          </DialogHeader>
+          <div
+            className='flex flex-col items-center gap-3 py-2'
+            role='status'
+            aria-live='polite'
+          >
+            <Loader2 className='h-8 w-8 animate-spin text-primary' />
+            <p className='text-sm'>{fixStep}</p>
+            <p className='text-xs text-muted-foreground'>
+              Please wait and do not close or leave this page. This can take a
+              few seconds.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={refining !== null}

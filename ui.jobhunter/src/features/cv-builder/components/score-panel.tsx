@@ -117,8 +117,12 @@ function CheckDetail({
                       ])
                     }
                   >
-                    <Wand2 className='mr-1 h-3 w-3' />
-                    Fix this
+                    {fixing ? (
+                      <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                    ) : (
+                      <Wand2 className='mr-1 h-3 w-3' />
+                    )}
+                    {fixing ? 'Fixing…' : 'Fix this'}
                   </Button>
                 )}
               </div>
@@ -223,7 +227,7 @@ export function ScorePanel({
       ) : (
         <Wand2 className='mr-1 h-4 w-4' />
       )}
-      Fix all ({fixable.length})
+      {fixing ? 'Fixing…' : `Fix all (${fixable.length})`}
     </Button>
   )
   const toFix = checks.filter((c) => c.score < 10)
