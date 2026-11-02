@@ -54,6 +54,12 @@ import { SectionEditor } from './components/section-editor'
 import { VersionHistoryDialog } from './components/version-history-dialog'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
 import { serverDetail } from './lib/error-message'
+import {
+  buildFixInstruction,
+  collectFixable,
+  groupBySection,
+  type FixIssue,
+} from './lib/fix-issues'
 import { jobPostingText } from './lib/job-text'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
@@ -538,6 +544,45 @@ export function CvBuilder({
       toast.error(serverDetail(error, 'Failed to refine section')),
   })
 
+  // Shares its request with the score panel, so it costs nothing extra.
+  const scoreData = useQuery({
+    queryKey: ['cv-draft-score', draft?.id, draft?.lastModified],
+    queryFn: () => cvBuilderApi.score(draft!.id),
+    enabled: !!draft,
+    retry: false,
+  })
+
+  // Rewrites each section that has issues, one section at a time, fixing only the listed problems.
+  const fix = useMutation({
+    mutationFn: async (issues: FixIssue[]) => {
+      const groups = groupBySection(issues)
+      let last: CvDraft | null = null
+      let fixed = 0
+      for (const [section, list] of groups) {
+        last = await cvBuilderApi.regenerateSection(draft!.id, {
+          section,
+          instruction: buildFixInstruction(list),
+          backgroundText: loadBackground() || undefined,
+        })
+        applyDraft(last)
+        fixed += list.length
+      }
+      if (!last) throw new Error('nothing to fix')
+      return { last, fixed }
+    },
+    onSuccess: ({ last, fixed }) => {
+      qc.invalidateQueries({ queryKey: ['cv-draft-score'] })
+      setRefining(null)
+      toast.success(
+        `Fixed ${fixed} ${fixed === 1 ? 'issue' : 'issues'}. Recalculating the score.`,
+        { action: undoAction(last.previousVersionId) }
+      )
+      showWarnings(last.warnings)
+    },
+    onError: (error) =>
+      toast.error(serverDetail(error, 'Could not fix the issues')),
+  })
+
   const exportPdf = useMutation({
     mutationFn: async (format: 'pdf' | 'docx') => {
       const result = await cvBuilderApi.exportPdf(draft!.id, format)
@@ -609,6 +654,14 @@ export function CvBuilder({
   const highlights = shown?.key === shownKey ? shown.locations : undefined
   const formOpen = showForm || selectedId === null
 
+  // Issues from the writing score that sit in the section being refined, for the "Fix issues" button.
+  const fixable =
+    refining && scoreData.data
+      ? collectFixable(scoreData.data.checks).filter(
+          (i) => i.locations[0]?.section === refining
+        )
+      : []
+
   // Beside the CV on wide screens so the lines it points at stay in view; under the CV on narrow ones.
   const review =
     draft && candidate && !editing ? (
@@ -621,6 +674,8 @@ export function CvBuilder({
           setInstruction(text)
           setRefining(section)
         }}
+        onFix={(issues) => fix.mutate(issues)}
+        fixing={fix.isPending}
         onShowLines={(locations) =>
           setShown({ key: shownKey, locations: [...locations] })
         }
@@ -835,6 +890,17 @@ export function CvBuilder({
           <DialogFooter>
             <Button variant='outline' onClick={() => setRefining(null)}>
               Cancel
+            </Button>
+            <Button
+              variant='secondary'
+              disabled={fixable.length === 0 || fix.isPending}
+              title='Rewrites this section to fix the issues in the writing score'
+              onClick={() => fix.mutate(fixable)}
+            >
+              {fix.isPending && (
+                <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+              )}
+              Fix issues ({fixable.length})
             </Button>
             <Button
               disabled={!instruction.trim() || refine.isPending}

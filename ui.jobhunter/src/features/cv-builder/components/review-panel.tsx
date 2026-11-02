@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cvBuilderApi, type CvScoreLocation, type CvSection } from '../api'
+import { type FixIssue } from '../lib/fix-issues'
 import { jobFit } from '../lib/job-fit'
 import { JobMatchPanel } from './job-match-panel'
 import { ScorePanel } from './score-panel'
@@ -44,6 +45,8 @@ export function ReviewPanel({
   candidateId,
   onRefine,
   onShowLines,
+  onFix,
+  fixing,
 }: {
   draftId: number
   lastModified: string
@@ -51,6 +54,8 @@ export function ReviewPanel({
   candidateId: number
   onRefine: (section: CvSection, instruction: string) => void
   onShowLines: (locations: CvScoreLocation[]) => void
+  onFix: (issues: FixIssue[]) => void
+  fixing: boolean
 }) {
   // Same keys as the two tabs below, so these share their requests instead of repeating them.
   const score = useQuery({
@@ -109,6 +114,8 @@ export function ReviewPanel({
             draftId={draftId}
             lastModified={lastModified}
             onShowLines={onShowLines}
+            onFix={onFix}
+            fixing={fixing}
             showSummary={false}
           />
         </TabsContent>

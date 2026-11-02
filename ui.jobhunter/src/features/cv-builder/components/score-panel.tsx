@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Check, RefreshCw, TriangleAlert } from 'lucide-react'
+import { Check, Loader2, RefreshCw, TriangleAlert, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cvBuilderApi, type CvScoreCheck, type CvScoreLocation } from '../api'
+import { collectFixable, isFixable, type FixIssue } from '../lib/fix-issues'
 
 const tone = (score: number, max: number) => {
   const r = score / max
@@ -62,9 +63,13 @@ export function ScoreRing({ score }: { score: number }) {
 function CheckDetail({
   check,
   onShowLines,
+  onFix,
+  fixing,
 }: {
   check: CvScoreCheck
   onShowLines?: (locations: CvScoreLocation[]) => void
+  onFix?: (issues: FixIssue[]) => void
+  fixing?: boolean
 }) {
   return (
     <div className='space-y-2 rounded-md border bg-background p-3 text-sm'>
@@ -86,16 +91,37 @@ function CheckDetail({
                 <TriangleAlert className='mt-0.5 h-4 w-4 shrink-0 text-amber-600' />
                 {issue.message}
               </p>
-              {onShowLines && issue.locations.length > 0 && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='ml-6 h-7 text-xs'
-                  onClick={() => onShowLines(issue.locations)}
-                >
-                  Show in CV
-                </Button>
-              )}
+              <div className='ml-6 flex flex-wrap gap-2'>
+                {onShowLines && issue.locations.length > 0 && (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='h-7 text-xs'
+                    onClick={() => onShowLines(issue.locations)}
+                  >
+                    Show in CV
+                  </Button>
+                )}
+                {onFix && isFixable(check.id) && issue.locations.length > 0 && (
+                  <Button
+                    size='sm'
+                    className='h-7 text-xs'
+                    disabled={fixing}
+                    onClick={() =>
+                      onFix([
+                        {
+                          checkId: check.id,
+                          message: issue.message,
+                          locations: issue.locations,
+                        },
+                      ])
+                    }
+                  >
+                    <Wand2 className='mr-1 h-3 w-3' />
+                    Fix this
+                  </Button>
+                )}
+              </div>
               {issue.locations.length > 0 && (
                 <ul className='ml-6 space-y-1'>
                   {issue.locations.slice(0, 6).map((l, j) => (
@@ -127,12 +153,18 @@ export function ScorePanel({
   draftId,
   lastModified,
   onShowLines,
+  onFix,
+  fixing = false,
   showSummary = true,
 }: {
   draftId: number
   lastModified: string
   // When given, each issue gets a "Show in CV" button that marks its lines in the preview.
   onShowLines?: (locations: CvScoreLocation[]) => void
+  // When given, each fixable issue gets a "Fix this" button and the panel gets "Fix all": the AI rewrites
+  // just those lines, keeping the facts.
+  onFix?: (issues: FixIssue[]) => void
+  fixing?: boolean
   // The ring and headline; a parent that shows the score itself turns this off.
   showSummary?: boolean
 }) {
@@ -161,6 +193,8 @@ export function ScorePanel({
 
   const { overall, checks } = score.data
 
+  const fixable = collectFixable(checks)
+
   // Scores the saved CV again with the current rules, e.g. after the rules change.
   const recalculate = (
     <Button
@@ -174,6 +208,22 @@ export function ScorePanel({
         className={`mr-1 h-4 w-4 ${score.isFetching ? 'animate-spin' : ''}`}
       />
       Recalculate
+    </Button>
+  )
+
+  const fixAll = onFix && fixable.length > 0 && (
+    <Button
+      size='sm'
+      disabled={fixing}
+      onClick={() => onFix(fixable)}
+      title='Rewrite every line the score flags, keeping your facts'
+    >
+      {fixing ? (
+        <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+      ) : (
+        <Wand2 className='mr-1 h-4 w-4' />
+      )}
+      Fix all ({fixable.length})
     </Button>
   )
   const toFix = checks.filter((c) => c.score < 10)
@@ -191,7 +241,14 @@ export function ScorePanel({
         <span>{c.title}</span>
         <span className={`font-semibold ${checkTone(c.score)}`}>{c.score}</span>
       </button>
-      {openId === c.id && <CheckDetail check={c} onShowLines={onShowLines} />}
+      {openId === c.id && (
+        <CheckDetail
+          check={c}
+          onShowLines={onShowLines}
+          onFix={onFix}
+          fixing={fixing}
+        />
+      )}
     </li>
   )
 
@@ -210,10 +267,18 @@ export function ScorePanel({
                 : `${toFix.length} ${toFix.length === 1 ? 'thing' : 'things'} to fix. Pick one to see the lines.`}
             </p>
           </div>
-          <div className='ml-auto'>{recalculate}</div>
+          <div className='ml-auto flex gap-2'>
+            {fixAll}
+            {recalculate}
+          </div>
         </div>
       )}
-      {!showSummary && <div className='flex justify-end'>{recalculate}</div>}
+      {!showSummary && (
+        <div className='flex justify-end gap-2'>
+          {fixAll}
+          {recalculate}
+        </div>
+      )}
 
       {toFix.length > 0 && (
         <div className='space-y-1'>
