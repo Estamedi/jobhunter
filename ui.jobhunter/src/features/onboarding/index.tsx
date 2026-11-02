@@ -25,6 +25,7 @@ import { candidatesApi, type Candidate } from '@/features/candidates/api'
 import { cvsApi } from '@/features/cvs/api'
 import { profileApi, type ParsedProfile } from '@/features/profile/api'
 import { ImportProgress } from '@/features/profile/components/import-progress'
+import { LinkedinPdfGuide } from '@/features/profile/components/linkedin-pdf-guide'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
@@ -612,6 +613,7 @@ export function Onboarding() {
               </>
             )}
           </label>
+          <LinkedinPdfGuide />
 
           {error && (
             <p className='-mt-3 text-center text-sm font-medium text-destructive'>

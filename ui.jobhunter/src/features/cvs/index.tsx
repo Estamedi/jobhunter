@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { Plus, MoreHorizontal, Download, Trash2, FileText, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cvsApi, type Cv } from './api'
 import { downloadCvFile, viewCvFile } from './lib/cv-file'
+import { LinkedinPdfGuide } from '@/features/profile/components/linkedin-pdf-guide'
 import { candidatesApi } from '@/features/candidates/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,6 +53,7 @@ function UploadCvForm({ onSubmit }: { onSubmit: (data: { file: File }) => void }
         onSubmit({ file })
       }}
     >
+      <LinkedinPdfGuide />
       <div className='space-y-1'>
         <Label>File *</Label>
         <Input

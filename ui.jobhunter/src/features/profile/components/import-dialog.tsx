@@ -24,6 +24,7 @@ import {
 } from '../api'
 import { educationRange, formatMonthYear } from '../lib/experience'
 import { ImportProgress } from './import-progress'
+import { LinkedinPdfGuide } from './linkedin-pdf-guide'
 
 type Step = 'choose' | 'review'
 
@@ -188,6 +189,7 @@ export function ImportDialog({
 
         {step === 'choose' && !analyze.isPending && (
           <div className='space-y-4'>
+            <LinkedinPdfGuide />
             <div className='space-y-1'>
               <Label htmlFor='import-file'>Upload a new CV</Label>
               <Input
