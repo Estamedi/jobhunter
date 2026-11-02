@@ -31,9 +31,9 @@ public static class CvProfileMerger
                 var current = row.IsCurrent || row.EndDate is null;
                 matched.Add((entry with
                 {
-                    Role = row.Title,
-                    Company = row.Company,
-                    Location = string.IsNullOrWhiteSpace(row.Location) ? null : row.Location,
+                    Role = CvEnglishOnly.Clean(row.Title)!,
+                    Company = CvEnglishOnly.Clean(row.Company)!,
+                    Location = string.IsNullOrWhiteSpace(CvEnglishOnly.Clean(row.Location)) ? null : CvEnglishOnly.Clean(row.Location),
                     StartDate = row.StartDate.ToString("MMM yyyy", Culture),
                     EndDate = current ? "Present" : row.EndDate!.Value.ToString("MMM yyyy", Culture),
                 }, row.StartDate));
@@ -63,8 +63,8 @@ public static class CvProfileMerger
             {
                 matched.Add((entry with
                 {
-                    Degree = string.IsNullOrWhiteSpace(row.FieldOfStudy) ? row.Degree : $"{row.Degree}, {row.FieldOfStudy}",
-                    Institution = row.Institution,
+                    Degree = CvEnglishOnly.Clean(string.IsNullOrWhiteSpace(row.FieldOfStudy) ? row.Degree : $"{row.Degree}, {row.FieldOfStudy}")!,
+                    Institution = CvEnglishOnly.Clean(row.Institution)!,
                     StartDate = row.StartDate?.ToString("yyyy", Culture),
                     EndDate = row.EndDate?.ToString("yyyy", Culture),
                 }, row.EndDate ?? DateOnly.MaxValue));
