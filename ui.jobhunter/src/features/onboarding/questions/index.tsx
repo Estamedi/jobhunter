@@ -180,7 +180,7 @@ export function OnboardingQuestions() {
         toast.warning('Your answers are saved, but your profile summary could not be updated.')
       }
       reset()
-      navigate({ to: '/', replace: true })
+      navigate({ to: '/onboarding/extension', replace: true })
     } catch {
       toast.error('Failed to save your preferences. Please try again.')
     } finally {

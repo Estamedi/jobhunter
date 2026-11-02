@@ -265,7 +265,7 @@ export function Onboarding() {
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 2 of 3
+              Step 2 of 4
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
               Review your profile
@@ -424,7 +424,7 @@ export function Onboarding() {
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 1 of 3
+              Step 1 of 4
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
               Build your profile
@@ -533,7 +533,7 @@ export function Onboarding() {
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 1 of 3
+              Step 1 of 4
             </div>
             <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
           </div>

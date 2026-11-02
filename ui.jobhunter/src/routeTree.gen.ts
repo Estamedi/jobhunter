@@ -58,6 +58,7 @@ import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/_authenticated/settings/password'
 import { Route as AuthenticatedSettingsAiProviderRouteImport } from './routes/_authenticated/settings/ai-provider'
 import { Route as AuthenticatedOnboardingQuestionsRouteImport } from './routes/_authenticated/onboarding/questions'
+import { Route as AuthenticatedOnboardingExtensionRouteImport } from './routes/_authenticated/onboarding/extension'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 
 const TermsRoute = TermsRouteImport.update({
@@ -323,6 +324,12 @@ const AuthenticatedOnboardingQuestionsRoute =
     path: '/onboarding/questions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOnboardingExtensionRoute =
+  AuthenticatedOnboardingExtensionRouteImport.update({
+    id: '/onboarding/extension',
+    path: '/onboarding/extension',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedErrorsErrorRoute =
   AuthenticatedErrorsErrorRouteImport.update({
     id: '/errors/$error',
@@ -350,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/onboarding/extension': typeof AuthenticatedOnboardingExtensionRoute
   '/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
   '/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/settings/password': typeof AuthenticatedSettingsPasswordRoute
@@ -398,6 +406,7 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/onboarding/extension': typeof AuthenticatedOnboardingExtensionRoute
   '/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
   '/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/settings/password': typeof AuthenticatedSettingsPasswordRoute
@@ -451,6 +460,7 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/_authenticated/onboarding/extension': typeof AuthenticatedOnboardingExtensionRoute
   '/_authenticated/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
   '/_authenticated/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/_authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
@@ -502,6 +512,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/errors/$error'
+    | '/onboarding/extension'
     | '/onboarding/questions'
     | '/settings/ai-provider'
     | '/settings/password'
@@ -550,6 +561,7 @@ export interface FileRouteTypes {
     | '/503'
     | '/'
     | '/errors/$error'
+    | '/onboarding/extension'
     | '/onboarding/questions'
     | '/settings/ai-provider'
     | '/settings/password'
@@ -602,6 +614,7 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
+    | '/_authenticated/onboarding/extension'
     | '/_authenticated/onboarding/questions'
     | '/_authenticated/settings/ai-provider'
     | '/_authenticated/settings/password'
@@ -997,6 +1010,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingQuestionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/onboarding/extension': {
+      id: '/_authenticated/onboarding/extension'
+      path: '/onboarding/extension'
+      fullPath: '/onboarding/extension'
+      preLoaderRoute: typeof AuthenticatedOnboardingExtensionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/errors/$error': {
       id: '/_authenticated/errors/$error'
       path: '/errors/$error'
@@ -1029,6 +1049,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
+  AuthenticatedOnboardingExtensionRoute: typeof AuthenticatedOnboardingExtensionRoute
   AuthenticatedOnboardingQuestionsRoute: typeof AuthenticatedOnboardingQuestionsRoute
   AuthenticatedActivitiesIndexRoute: typeof AuthenticatedActivitiesIndexRoute
   AuthenticatedApplicationsIndexRoute: typeof AuthenticatedApplicationsIndexRoute
@@ -1057,6 +1078,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
+  AuthenticatedOnboardingExtensionRoute: AuthenticatedOnboardingExtensionRoute,
   AuthenticatedOnboardingQuestionsRoute: AuthenticatedOnboardingQuestionsRoute,
   AuthenticatedActivitiesIndexRoute: AuthenticatedActivitiesIndexRoute,
   AuthenticatedApplicationsIndexRoute: AuthenticatedApplicationsIndexRoute,
