@@ -130,6 +130,9 @@ jobs:
             LANGFUSE__SECRETKEY='${{ secrets.LANGFUSE_SECRET_KEY }}' \
             SEED__ADMINEMAIL='${{ secrets.SEED_ADMIN_EMAIL }}' \
             SEED__ADMINPASSWORD='${{ secrets.SEED_ADMIN_PASSWORD }}' \
+            FILESTORAGE__S3__BUCKETNAME='${{ vars.FILESTORAGE__S3__BUCKETNAME }}' \
+            FILESTORAGE__S3__ACCESSKEYID='${{ vars.FILESTORAGE__S3__ACCESSKEYID }}' \
+            FILESTORAGE__S3__SECRETACCESSKEY='${{ vars.FILESTORAGE__S3__SECRETACCESSKEY }}' \
             /opt/jobhunter/deploy-jobhunter-app.sh
 
             rm -f /tmp/jobhunter-app.tar.gz

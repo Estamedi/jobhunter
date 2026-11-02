@@ -24,6 +24,9 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__backend-jobhunterDb=Server=postgres;Port=5432;Database=${POSTGRES_DB:-jobhunterdb};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
       - FileStorage__RootPath=/app/uploads/cvs
+      - FileStorage__S3__BucketName=${FILESTORAGE__S3__BUCKETNAME:-}
+      - FileStorage__S3__AccessKeyId=${FILESTORAGE__S3__ACCESSKEYID:-}
+      - FileStorage__S3__SecretAccessKey=${FILESTORAGE__S3__SECRETACCESSKEY:-}
     ports:
       - "${BACKEND_PORT:-5290}:8080"
     volumes:

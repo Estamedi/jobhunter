@@ -79,7 +79,15 @@ public static class DependencyInjection
         builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
         builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
-        builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
+        if (string.Equals(builder.Configuration["FileStorage:Provider"], "Local", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<S3FileStorage>();
+            builder.Services.AddSingleton<IFileStorage, CachedS3FileStorage>();
+        }
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();
