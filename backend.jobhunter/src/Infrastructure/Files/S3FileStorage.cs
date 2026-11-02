@@ -25,7 +25,11 @@ public partial class S3FileStorage : IFileStorage, IDisposable
         _bucket = s3.BucketName;
         _prefix = s3.KeyPrefix ?? string.Empty;
 
-        var config = new AmazonS3Config();
+        var config = new AmazonS3Config
+        {
+            Timeout = TimeSpan.FromSeconds(s3.ClientTimeoutSeconds),
+            MaxErrorRetry = s3.MaxErrorRetry,
+        };
         if (!string.IsNullOrWhiteSpace(s3.ServiceUrl))
         {
             config.ServiceURL = s3.ServiceUrl;

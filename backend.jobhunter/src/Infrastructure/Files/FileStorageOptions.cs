@@ -15,7 +15,11 @@ public class S3StorageOptions
     public string BucketName { get; set; } = string.Empty;
 
     // AWS region system name, e.g. "eu-central-1".
-    public string Region { get; set; } = "me-south-1";
+    public string Region { get; set; } = "eu-central-1";
+
+    // Fail fast instead of hanging when S3 is unreachable.
+    public int ClientTimeoutSeconds { get; set; } = 30;
+    public int MaxErrorRetry { get; set; } = 2;
 
     // Optional key prefix inside the bucket, e.g. "cvs/". Not part of the stored key.
     public string KeyPrefix { get; set; } = "cvs/";

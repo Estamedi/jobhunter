@@ -25,6 +25,7 @@ services:
       - Seed__AdminPassword=${SEED__ADMINPASSWORD:-}
       - FileStorage__RootPath=/app/uploads/cvs
       - FileStorage__S3__BucketName=${FILESTORAGE__S3__BUCKETNAME:-}
+      - FileStorage__S3__Region=${FILESTORAGE__S3__REGION:-eu-central-1}
       - FileStorage__S3__AccessKeyId=${FILESTORAGE__S3__ACCESSKEYID:-}
       - FileStorage__S3__SecretAccessKey=${FILESTORAGE__S3__SECRETACCESSKEY:-}
       - DataProtection__KeysPath=/app/keys
