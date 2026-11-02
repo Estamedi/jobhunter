@@ -29,7 +29,7 @@ public class CvScorerTests
             Role("Lead", "Jan 2024", "Present",
                 "Cut deployment time by 40% across 12 services using Docker pipelines",
                 "Led a team of 6 engineers to deliver the billing platform in 5 months",
-                "Designed a caching layer that handled 2M requests per day"));
+                "Designed a caching layer that served 2M requests per day"));
 
         var score = CvScorer.Score(cv);
 
@@ -300,5 +300,17 @@ public class CvScorerTests
         var cv = Cv(Role("Lead", "Jan 2024", "Current", "Built a tool to cut costs by 20%"));
 
         Check(CvScorer.Score(cv), "dates").Issues.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public void BannedVerbsAndWordsAreFlagged()
+    {
+        var cv = Cv(Role("Lead", "Jan 2024", "Present",
+            $"Spearheaded a robust platform {Fact}", $"Led a team of 5 engineers {Fact}"));
+
+        var issues = Check(CvScorer.Score(cv), "buzzwords").Issues;
+
+        issues.Count.ShouldBe(2);
+        issues.ShouldAllBe(i => i.Locations.Single().BulletIndex == 0);
     }
 }

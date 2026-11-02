@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Check, TriangleAlert } from 'lucide-react'
+import { Check, RefreshCw, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cvBuilderApi, type CvScoreCheck, type CvScoreLocation } from '../api'
@@ -160,6 +160,22 @@ export function ScorePanel({
   }
 
   const { overall, checks } = score.data
+
+  // Scores the saved CV again with the current rules, e.g. after the rules change.
+  const recalculate = (
+    <Button
+      variant='outline'
+      size='sm'
+      onClick={() => score.refetch()}
+      disabled={score.isFetching}
+      title='Score this CV again'
+    >
+      <RefreshCw
+        className={`mr-1 h-4 w-4 ${score.isFetching ? 'animate-spin' : ''}`}
+      />
+      Recalculate
+    </Button>
+  )
   const toFix = checks.filter((c) => c.score < 10)
   const done = checks.filter((c) => c.score >= 10)
 
@@ -194,8 +210,10 @@ export function ScorePanel({
                 : `${toFix.length} ${toFix.length === 1 ? 'thing' : 'things'} to fix. Pick one to see the lines.`}
             </p>
           </div>
+          <div className='ml-auto'>{recalculate}</div>
         </div>
       )}
+      {!showSummary && <div className='flex justify-end'>{recalculate}</div>}
 
       {toFix.length > 0 && (
         <div className='space-y-1'>
