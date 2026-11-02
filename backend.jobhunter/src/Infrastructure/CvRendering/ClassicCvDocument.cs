@@ -24,7 +24,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         {
             page.Size(PageSizes.A4);
             page.Margin(0.75f, Unit.Inch);
-            page.DefaultTextStyle(t => t.FontFamily("Carlito").FontSize(BodySize).FontColor(BodyColor).LineHeight(1.24f));
+            page.DefaultTextStyle(t => t.FontFamily("Carlito", "Noto Sans Arabic").FontSize(BodySize).FontColor(BodyColor).LineHeight(1.24f));
 
             page.Content().Column(col =>
             {
