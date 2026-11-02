@@ -18,8 +18,8 @@ public class S3StorageOptions
     public string Region { get; set; } = "eu-central-1";
 
     // Fail fast instead of hanging when S3 is unreachable.
-    public int ClientTimeoutSeconds { get; set; } = 30;
-    public int MaxErrorRetry { get; set; } = 2;
+    public int ClientTimeoutSeconds { get; set; } = 10;
+    public int MaxErrorRetry { get; set; } = 1;
 
     // Optional key prefix inside the bucket, e.g. "cvs/". Not part of the stored key.
     public string KeyPrefix { get; set; } = "cvs/";
