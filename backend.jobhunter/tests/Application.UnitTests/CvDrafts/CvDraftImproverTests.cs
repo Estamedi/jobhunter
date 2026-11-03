@@ -103,4 +103,69 @@ public class CvDraftImproverTests
         result.Warnings.Count(w => w.Contains("employer")).ShouldBe(1);
         result.Warnings.ShouldNotContain(w => w.Contains("Globex"));
     }
+
+    private static CvGeneratedAlias Rich(string summary, params string[] bullets) => new(summary, bullets);
+
+    private sealed record CvGeneratedAlias(string Summary, string[] Bullets)
+    {
+        public GeneratedCvDto ToCv() => new()
+        {
+            Summary = Summary,
+            Experience =
+            [
+                new CvExperienceDto
+                {
+                    Role = "Technical Lead", Company = "Acme", StartDate = "Jan 2022", EndDate = "Present",
+                    Bullets = Bullets.ToList(),
+                },
+            ],
+        };
+    }
+
+    private static readonly string[] GoodBullets =
+    [
+        "Cut cloud costs by 30% across 12 services.",
+        "Led the platform team through two cloud migrations and kept every release on schedule.",
+        "Wrote the release checklist that the whole engineering group still follows for each deploy.",
+    ];
+
+    [Test]
+    public async Task ShouldRetryWhenTheSummaryUsesAPronounAndNameItInTheInstructions()
+    {
+        var ai = new FakeAi(Rich("Lead engineer with 12 years of delivery.", GoodBullets).ToCv());
+        var first = Rich("He leads a platform team.", GoodBullets).ToCv();
+
+        var result = await CvDraftImprover.ImproveAsync(ai, Request(), first, BackgroundWithNoProfile(), default);
+
+        ai.Calls.ShouldBe(1);
+        ai.LastInstructions!.ShouldContain("pronoun \"he\"");
+        result.Cv.Summary.ShouldStartWith("Lead engineer");
+    }
+
+    [Test]
+    public async Task ShouldWarnAboutACopiedSentenceAndPreferTheRetryThatDoesNotCopy()
+    {
+        const string job = "You will build CI/CD pipelines, manage infrastructure as code with Terraform, automate configuration with Ansible, and run containers on Docker.";
+        var copied = Rich("Lead engineer.", "Built CI/CD pipelines, manage infrastructure as code with Terraform, automate configuration with Ansible, and run containers on Docker.", GoodBullets[1], GoodBullets[2]).ToCv();
+        var ai = new FakeAi(Rich("Lead engineer.", GoodBullets).ToCv());
+
+        var kept = await CvDraftImprover.ImproveAsync(ai, Request() with { JobDescription = job }, copied, BackgroundWithNoProfile(), default);
+
+        ai.Calls.ShouldBe(1);
+        ai.LastInstructions!.ShouldContain("Copied from the job description");
+        kept.CopiedRuns.ShouldBe(0);
+        kept.Warnings.ShouldNotContain(w => w.Contains("copied from the job description"));
+    }
+
+    [Test]
+    public async Task ShouldShowACopiedSentenceWarningWhenTheRetryStillCopies()
+    {
+        const string job = "You will build CI/CD pipelines, manage infrastructure as code with Terraform, automate configuration with Ansible, and run containers on Docker.";
+        var copied = Rich("Lead engineer.", "Built CI/CD pipelines, manage infrastructure as code with Terraform, automate configuration with Ansible, and run containers on Docker.", GoodBullets[1], GoodBullets[2]).ToCv();
+        var ai = new FakeAi(copied);
+
+        var result = await CvDraftImprover.ImproveAsync(ai, Request() with { JobDescription = job }, copied, BackgroundWithNoProfile(), default);
+
+        result.Warnings.ShouldContain(w => w.Contains("copied from the job description"));
+    }
 }

@@ -10,42 +10,62 @@ public static class CvDraftImprover
 
     // A checked CV with the warnings that belong to it. Grounding decides between two drafts; the
     // profile-merge warnings only describe how entries were linked.
-    public sealed record CheckedCv(GeneratedCvDto Cv, List<string> Warnings, int GroundingIssues);
+    public sealed record CheckedCv(
+        GeneratedCvDto Cv, List<string> Warnings, int GroundingIssues, int CopiedRuns, int Pronouns, List<string> Problems);
 
-    public static CheckedCv Check(GeneratedCvDto cv, CvBackground background, out List<string> grounding)
+    // Everything the retry should fix is listed in Problems. Only grounding and copied text are also shown
+    // to the user as warnings; pronouns are just fixed by the retry.
+    public static CheckedCv Check(GeneratedCvDto cv, CvBackground background, string? jobDescription)
     {
         var warnings = new List<string>();
         var merged = CvProfileMerger.Merge(cv, background.Profile, warnings);
-        grounding = CvGroundingValidator.Validate(merged, background.Text);
+        var grounding = CvGroundingValidator.Validate(merged, background.Text);
+        var copied = CvJobCopyCheck.FindCopiedRuns(merged, jobDescription, background.Text);
+        var pronouns = CvPronounCheck.Find(merged);
+
         warnings.AddRange(grounding);
-        return new CheckedCv(merged, warnings, grounding.Count);
+        warnings.AddRange(copied.Select(c => $"A sentence was copied from the job description: \"{c}\"."));
+
+        var problems = grounding.Select(g => $"- Not in the background: {g}")
+            .Concat(copied.Select(c => $"- Copied from the job description, write it in your own words: \"{c}\""))
+            .Concat(pronouns.Select(p => $"- The summary uses the pronoun \"{p}\"; write it without personal pronouns."))
+            .ToList();
+        return new CheckedCv(merged, warnings, grounding.Count, copied.Count, pronouns.Count, problems);
     }
 
     public static async Task<CheckedCv> ImproveAsync(
         ICvGenerationAiService aiService, CvGenerationRequest generationRequest, GeneratedCvDto generated,
         CvBackground background, CancellationToken cancellationToken)
     {
-        var first = Check(generated, background, out var groundingProblems);
+        var first = Check(generated, background, generationRequest.JobDescription);
 
         var problems = CvScorer.Score(first.Cv).Checks
             .Where(c => WritingChecks.Contains(c.Id) && c.Score < 10)
             .SelectMany(c => c.Issues.Select(i => $"- {c.Title}: {i.Message} " +
                 string.Join(" | ", i.Locations.Take(6).Select(l => $"\"{l.Text}\""))))
-            .Concat(groundingProblems.Select(g => $"- Not in the background: {g}"))
+            .Concat(first.Problems)
             .ToList();
         if (problems.Count == 0) return first;
 
         var retry = await aiService.GenerateAsync(generationRequest with
         {
-            Instructions = $"{generationRequest.Instructions}\n\nA first draft of this CV failed these checks. Write it again and fix every one. Use only facts from the background: remove or correct anything listed as not in the background, and never add a new figure, employer or school:\n{string.Join("\n", problems)}",
+            Instructions = $"{generationRequest.Instructions}\n\nA first draft of this CV failed these checks. Write it again and fix every one. Use only facts from the background: remove or correct anything listed as not in the background, and never add a new figure, employer or school. Do not copy sentences from the job description:\n{string.Join("\n", problems)}",
         }, cancellationToken);
-        var second = Check(retry, background, out _);
+        var second = Check(retry, background, generationRequest.JobDescription);
 
-        // Fewer unsupported facts always wins. The writing score only breaks a tie, so a better-written
-        // draft can never win by inventing something.
+        // Fewer unsupported facts always wins, then fewer copied sentences, then fewer pronouns. The writing score only breaks
+        // a tie, so a better-written draft can never win by inventing something.
         if (second.GroundingIssues != first.GroundingIssues)
         {
             return second.GroundingIssues < first.GroundingIssues ? second : first;
+        }
+        if (second.CopiedRuns != first.CopiedRuns)
+        {
+            return second.CopiedRuns < first.CopiedRuns ? second : first;
+        }
+        if (second.Pronouns != first.Pronouns)
+        {
+            return second.Pronouns < first.Pronouns ? second : first;
         }
         return CvScorer.Score(second.Cv).Overall > CvScorer.Score(first.Cv).Overall ? second : first;
     }

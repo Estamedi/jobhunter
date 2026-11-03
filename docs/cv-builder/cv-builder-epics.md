@@ -4,13 +4,15 @@ Source: `cv-builder-improvements.md`. Task numbers (for example 1.3) point to th
 
 **Priority:** P0 = correctness or trust problem, fix first. P1 = clear quality win. P2 = polish or growth.
 
+**Status:** ✅ = done and tested. 🟡 = partly done (see notes below). No icon = not done yet.
+
 Farsi CVs (section 8 and task 9.10 of the source file) are out of scope for now.
 
 ## Summary
 
 | Epic | Name | Priority | Tasks | Source section |
 |------|------|----------|-------|----------------|
-| E1 | Correctness and trust | P0 | 6 (+ 4.1, 9.1) | 1 |
+| E1 ✅ | Correctness and trust | P0 | 6 (+ 4.1, 9.1) | 1 |
 | E2 | Job-description fit | P1 (9.1 is P0, 9.11 is P2) | 11 | 9 |
 | E3 | ATS-friendliness | P1 (4.1 is P0) | 7 | 4 |
 | E4 | Prompt and logic | P1 | 8 | 2 |
@@ -46,16 +48,16 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 
 ## P0
 
-### E1. Correctness and trust
+### E1. Correctness and trust ✅
 **Goal:** The CV never contains a fact the user did not enter, and the generation process is safe and predictable.
 
-- 1.1 Confirm the OpenAI model ID
-- 1.2 Fix the ordering conflict (reverse-chronological)
-- 1.3 Stop the model from producing hard facts (role, company, dates, degree)
-- 1.4 Post-generation grounding check (`CvGroundingValidator`)
-- 1.5 Remove silent truncation
-- 1.6 Treat pasted text as untrusted (prompt injection)
-- **Pulled in from other epics (P0):** 4.1 Round-trip ATS test, 9.1 Section regenerate loses language, tone and instructions
+- ✅ 1.1 Confirm the OpenAI model ID
+- ✅ 1.2 Fix the ordering conflict (reverse-chronological)
+- ✅ 1.3 Stop the model from producing hard facts (role, company, dates, degree)
+- ✅ 1.4 Post-generation grounding check (`CvGroundingValidator`)
+- ✅ 1.5 Remove silent truncation
+- ✅ 1.6 Treat pasted text as untrusted (prompt injection)
+- ✅ **Pulled in from other epics (P0):** 4.1 Round-trip ATS test, 9.1 Section regenerate loses language, tone and instructions
 
 ---
 
@@ -64,22 +66,22 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 ### E2. Job-description fit
 **Goal:** Each CV is tailored to the job, and the user sees and fixes gaps.
 
-- 9.1 Section regenerate keeps language, tone and instructions (**P0**, in E1)
-- 9.2 Fill in the job description from the linked application
-- 9.3 Warn when there is no job description
-- 9.4 Target the job title and level
-- 9.5 Order bullets by relevance inside each role
-- 9.6 Use the job's own wording
-- 9.7 No copying and no keyword stuffing
-- 9.8 Keywords in context, not only in Skills
-- 9.9 Gap loop (most important for fit)
-- 9.11 Section order by job type (**P2**)
+- ✅ 9.1 Section regenerate keeps language, tone and instructions (**P0**, in E1)
+- ✅ 9.2 Fill in the job description from the linked application
+- ✅ 9.3 Warn when there is no job description
+- ✅ 9.4 Target the job title and level
+- ✅ 9.5 Order bullets by relevance inside each role
+- 🟡 9.6 Use the job's own wording (prompt rule only, acronym over-expansion fixed in the prompt, check with the next live run)
+- 🟡 9.7 No copying and no keyword stuffing (copied-sentence check done in code; keyword cap is still a prompt rule; not run on section regenerate)
+- 🟡 9.8 Keywords in context, not only in Skills (match panel done; scoring waits for E7)
+- ✅ 9.9 Gap loop (most important for fit) (note: the rewrite covers the Skills section only)
+- ✅ 9.11 Section order by job type (**P2**)
 - 9.12 Fit score in the evaluation set
 
 ### E3. ATS-friendliness
 **Goal:** Every exported PDF is read correctly by ATS parsers.
 
-- 4.1 Round-trip ATS test (**P0**, in E1)
+- ✅ 4.1 Round-trip ATS test (**P0**, in E1)
 - 4.2 Standard headings
 - 4.3 Plain contact info
 - 4.4 Embed fonts and set metadata

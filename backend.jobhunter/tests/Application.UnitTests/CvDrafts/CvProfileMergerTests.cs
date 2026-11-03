@@ -107,4 +107,25 @@ public class CvProfileMergerTests
         merged.Experience.ShouldHaveSingleItem().Company.ShouldBe("Globex");
         warnings.ShouldHaveSingleItem();
     }
+
+    [Test]
+    public void ShouldDropSkillsListedMoreThanOnceAndEmptyGroups()
+    {
+        var cv = new GeneratedCvDto
+        {
+            Skills =
+            [
+                new CvSkillGroupDto { Category = "Languages", Items = ["C#", "SQL", "React"] },
+                new CvSkillGroupDto { Category = "Data", Items = ["sql", "**SQL**", "PostgreSQL"] },
+                new CvSkillGroupDto { Category = "Dupes only", Items = ["C#", "React"] },
+                new CvSkillGroupDto { Category = "Web", Items = ["React/ShadCn"] },
+            ],
+        };
+
+        var merged = CvProfileMerger.Merge(cv, Profile(), []);
+
+        merged.Skills.Select(g => g.Category).ShouldBe(["Languages", "Data", "Web"]);
+        merged.Skills[1].Items.ShouldBe(["PostgreSQL"]);
+        merged.Skills[2].Items.ShouldBe(["React/ShadCn"]);
+    }
 }

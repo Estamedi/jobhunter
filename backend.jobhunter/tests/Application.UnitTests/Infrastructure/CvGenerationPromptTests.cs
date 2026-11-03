@@ -131,9 +131,20 @@ public class CvGenerationPromptTests
         rules.ShouldContain("at most 60 characters");
         rules.ShouldContain("at most two");
         rules.ShouldContain("own wording");
-        rules.ShouldContain("full form once");
+        rules.ShouldContain("never expand common acronyms");
+        rules.ShouldNotContain("full form once");
         rules.ShouldContain("Never copy whole sentences");
         rules.ShouldContain("uploaded CV");
+    }
+
+    [Test]
+    public void ShouldKeepToolsOnTheirProjectAndSummariesFreeOfPronounsInBothPrompts()
+    {
+        foreach (var rules in new[] { CvGenerationPrompt.SystemPrompt, CvGenerationPrompt.RefineSystemPrompt })
+        {
+            rules.ShouldContain("attached to the project or task it belongs to");
+            rules.ShouldContain("without personal pronouns");
+        }
     }
 
     [Test]

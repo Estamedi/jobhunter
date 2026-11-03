@@ -15,7 +15,25 @@ public static class CvProfileMerger
         {
             Experience = MergeExperience(cv.Experience, profile, warnings),
             Education = MergeEducation(cv.Education, profile, warnings),
+            Skills = DedupeSkills(cv.Skills),
         };
+
+    // The same skill listed in two groups (or twice in one) shows up as padding. Keep the first one,
+    // ignoring case and bold markers, and drop any group left empty. Different items such as "React" and
+    // "React/ShadCn" stay as they are.
+    public static List<CvSkillGroupDto> DedupeSkills(List<CvSkillGroupDto> groups)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new List<CvSkillGroupDto>();
+        foreach (var group in groups)
+        {
+            var items = group.Items
+                .Where(item => !string.IsNullOrWhiteSpace(item) && seen.Add(item.Replace("**", string.Empty).Trim()))
+                .ToList();
+            if (items.Count > 0) result.Add(group with { Items = items });
+        }
+        return result;
+    }
 
     public static List<CvExperienceDto> MergeExperience(
         List<CvExperienceDto> entries, CandidateProfile? profile, List<string> warnings)
