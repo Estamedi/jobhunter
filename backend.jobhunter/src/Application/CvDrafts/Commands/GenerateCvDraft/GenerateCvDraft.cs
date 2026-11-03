@@ -94,13 +94,13 @@ public class GenerateCvDraftCommandHandler(
 
         var generated = await aiService.GenerateAsync(generationRequest, cancellationToken);
 
-        generated = CvProfileMerger.Merge(generated, background.Profile, warnings);
-
-        // The prompt asks for clean writing, but the model still slips (vague "-ing" endings, repeated
-        // sentence lengths, weak verbs). Score it with the same rules the editor uses and, when a writing
-        // check fails, ask once more with the exact problems; keep whichever version scores higher.
-        generated = await FixWritingIssuesAsync(generationRequest, generated, background.Profile, warnings, cancellationToken);
-        warnings.AddRange(CvGroundingValidator.Validate(generated, background.Text));
+        // The prompt asks for clean, grounded writing, but the model still slips (vague "-ing" endings,
+        // weak verbs, an employer or figure that is not in the background). Check the first draft and,
+        // when a check fails, ask once more with the exact problems. Each draft carries its own warnings,
+        // so only the one the user actually gets is reported.
+        var chosen = await CvDraftImprover.ImproveAsync(aiService, generationRequest, generated, background, cancellationToken);
+        generated = chosen.Cv;
+        warnings.AddRange(chosen.Warnings);
 
         var draft = new CvDraft
         {
@@ -124,27 +124,5 @@ public class GenerateCvDraftCommandHandler(
         await context.SaveChangesAsync(cancellationToken);
 
         return draft.ToDetailDto(warnings);
-    }
-
-    private static readonly string[] WritingChecks = ["ai-patterns", "weak-roles", "repetition", "buzzwords"];
-
-    private async Task<GeneratedCvDto> FixWritingIssuesAsync(
-        CvGenerationRequest generationRequest, GeneratedCvDto cv, CandidateProfile? profile,
-        List<string> warnings, CancellationToken cancellationToken)
-    {
-        var problems = CvScorer.Score(cv).Checks
-            .Where(c => WritingChecks.Contains(c.Id) && c.Score < 10)
-            .SelectMany(c => c.Issues.Select(i => $"- {c.Title}: {i.Message} " +
-                string.Join(" | ", i.Locations.Take(6).Select(l => $"\"{l.Text}\""))))
-            .ToList();
-        if (problems.Count == 0) return cv;
-
-        var retry = await aiService.GenerateAsync(generationRequest with
-        {
-            Instructions = $"{generationRequest.Instructions}\n\nA first draft of this CV failed these writing checks. Write it again and fix every one without changing any facts:\n{string.Join("\n", problems)}",
-        }, cancellationToken);
-        retry = CvProfileMerger.Merge(retry, profile, []);
-
-        return CvScorer.Score(retry).Overall > CvScorer.Score(cv).Overall ? retry : cv;
     }
 }

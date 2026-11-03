@@ -152,10 +152,10 @@ public static partial class CvGenerationPrompt
             sb.AppendLine($"Length target: about {pages} printed A4 page(s), roughly {(pages == 1 ? 450 : 800)} words in total.");
         }
         sb.AppendLine();
-        sb.AppendLine($"Candidate: {request.FullName}");
-        if (!string.IsNullOrWhiteSpace(request.Location)) sb.AppendLine($"Location: {request.Location}");
+        sb.AppendLine($"Candidate: {Line(request.FullName, 100)}");
+        if (!string.IsNullOrWhiteSpace(request.Location)) sb.AppendLine($"Location: {Line(request.Location, 100)}");
         sb.AppendLine();
-        sb.AppendLine($"Target job title: {request.JobTitle}");
+        sb.AppendLine($"Target job title: {Line(request.JobTitle, 200)}");
         AppendBlock(sb, "job_description", request.JobDescription);
         AppendBlock(sb, "instructions", request.Instructions);
         sb.AppendLine();
@@ -171,7 +171,7 @@ public static partial class CvGenerationPrompt
         sb.AppendLine($"Section to rewrite: \"{request.Section}\"");
         sb.AppendLine($"Tone: {Clean(request.Tone) ?? "professional"}. Language: {Clean(request.Language) ?? "English"}.");
         sb.AppendLine(WritingLevelLine(request.LanguageLevel));
-        if (!string.IsNullOrWhiteSpace(request.JobTitle)) sb.AppendLine($"Target job title: {request.JobTitle}");
+        if (!string.IsNullOrWhiteSpace(request.JobTitle)) sb.AppendLine($"Target job title: {Line(request.JobTitle, 200)}");
         AppendBlock(sb, "job_description", request.JobDescription);
         AppendBlock(sb, "original_instructions", request.DraftInstructions);
         sb.AppendLine();
@@ -206,6 +206,15 @@ public static partial class CvGenerationPrompt
     {
         var normalized = CvLanguageLevel.Normalize(level);
         return $"Writing level: CEFR {normalized} - {CvLanguageLevel.Describe(normalized)}.";
+    }
+
+    // Name, location and job title are single lines. Fold line breaks and defuse our tags so one of them
+    // cannot carry a second instruction, and cap the length.
+    private static string Line(string? value, int maxLength)
+    {
+        var line = (value ?? string.Empty).ReplaceLineEndings(" ").Trim();
+        if (line.Length > maxLength) line = line[..maxLength];
+        return TagPattern().Replace(line, "&lt;$1$2");
     }
 
     // Tone and language are short free text; keep them to one line so they cannot carry extra instructions.
