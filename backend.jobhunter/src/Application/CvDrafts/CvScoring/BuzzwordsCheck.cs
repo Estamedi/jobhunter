@@ -6,7 +6,7 @@ namespace backend.jobhunter.Application.CvDrafts;
 
 // Empty phrases recruiters skip, plus overused verbs and AI-sounding words, looked for in the summary and
 // every bullet. The verb and word lists come from resume-builder-skill and claude-resume-kit (see
-// cv-banned-verbs.md and cv-banned-words.md); keep them in step with CvGenerationPrompt.
+// docs/cv-builder/cv-banned-verbs.md and docs/cv-builder/cv-banned-words.md); keep them in step with CvGenerationPrompt.
 internal sealed partial class BuzzwordsCheck : ICvScoreCheck
 {
     private static readonly string[] Buzzwords =

@@ -132,6 +132,57 @@ The job description is already used in tasks 2.3 (extract requirements), 2.4 (se
 | 9.11 | **Section order by job type (P2).** `ClassicCvDocument` puts Projects before Experience. Make Experience first by default, and consider ordering sections per job type. | `ClassicCvDocument.cs` | Experience comes before Projects by default. |
 | 9.12 | **Fit score in the evaluation set.** Add job-fit checks to 7.2: required-skills coverage, title match, and no copied sentences. | evaluation set | The scoring command prints a job-fit column. |
 
+## 10. Architecture decision: technology choice
+
+**Decision:** keep a plain, deterministic pipeline that calls the LLM directly (structured outputs, schema-validated). Do not adopt LangChain. Add LangGraph only if the flow later needs loops or human approval steps. Use RAG only in a light form (retrieval over the achievement bank) if the profile grows large.
+
+Reliability comes from the design, not the framework:
+
+1. **Master profile as structured data.** Every fact (roles, projects, achievements with metrics, skills, dates) lives in a schema and is the only source of truth. The model cannot invent anything. See 1.3.
+2. **Parse the job description into a schema.** Extract required skills, seniority, keywords and responsibilities with schema-validated output. See 2.3.
+3. **Select, do not write from scratch.** Rank and pick the profile facts most relevant to the job. If the profile fits in context, pass it all in with prompt caching. If it grows to hundreds of achievements, use embeddings plus a reranker. This is the only RAG needed, and it is a retrieval step, not a framework. See 2.4.
+4. **Constrained rewriting.** The LLM rephrases only the selected facts. Each output bullet carries the ID of its source fact.
+5. **Verification pass.** Code checks that every bullet maps to a source fact and that no new numbers, companies or skills appeared. An optional second LLM call acts as judge. Reject and retry on failure. See 1.4.
+6. **Deterministic rendering.** Render with templates (QuestPDF here), never LLM-generated layout. Check ATS-friendliness and page length in code. See section 4.
+7. **Human review.** Show a diff against the master profile before export.
+
+Why not the others:
+
+| Option | Verdict | Reason |
+|--------|---------|--------|
+| LangChain | Skip | Adds abstraction without adding reliability. The direct SDK plus typed schemas is simpler and easier to debug. |
+| LangGraph | Later, only if needed | Useful for stateful loops (generate, verify, retry) and human-in-the-loop checkpoints. The pipeline is mostly linear, so a function with a retry loop is enough. |
+| Full RAG (vector DB, chunking) | Skip for now | Overkill for one person's profile. Structured data plus an LLM beats retrieval over unstructured text. |
+
+Add later: an evaluation set of job descriptions with expected outputs (section 7), and a record of which CV version went to which application in the CRM.
+
+## 11. Achievement discovery and user-claimed skills (P1)
+
+**Why:** many users do not know how to talk about their work, or do not know what counts as an achievement. Many also need to list skills they have never used at work (for example, an experienced C# developer who can now write Java with AI help). This is common today, so the app must cover it. The user decides what goes in their profile.
+
+### 11.1 Guided achievement interview
+
+| # | Task | Files | Done when |
+|---|------|-------|-----------|
+| 11.1 | **Interview flow.** The user picks a job or project. The AI asks short questions one at a time (daily tasks, problems solved, time or money saved, people taught or led, feedback received). It drafts a bullet (Action + Result + Number). The user edits or confirms it, and only then is it saved. | new `AchievementInterview` command and UI, `CvBackgroundBuilder.cs` | A user with an empty profile can create 3 confirmed bullets for one job. |
+| 11.2 | **Role-based question cards.** Show example questions for the job title (for example, "How many tables did you handle per shift?"). They are questions, not ready-made claims. | question data file, UI | Each common role shows at least 5 questions. |
+| 11.3 | **Estimates allowed.** If the user has no exact number, ask for a rough one and store it with an `isEstimate` flag. | profile model, UI | Estimated numbers are marked in the profile. |
+| 11.4 | **"Small achievements count" hints.** Show examples of normal achievements so users do not skip them. | UI copy | Hints appear in the interview. |
+
+### 11.2 User-claimed skills
+
+| # | Task | Files | Done when |
+|---|------|-------|-----------|
+| 11.5 | **Add `EvidenceLevel` to skills and experience facts.** Values: `Worked`, `Project`, `Course`, `Learning`, `Claimed`. The user chooses the level. The app does not block any choice. Needs a migration. | `Domain/Entities`, `Infrastructure/Migrations/`, profile UI | Every skill shows its level, and the user can change it. |
+| 11.6 | **Optional "Where did you use it?" field.** If filled, the AI uses it to write bullets. If empty, the AI writes only a skill line. | profile model, `CvBackgroundBuilder.cs`, `CvGenerationPrompt.cs` | A skill with context produces bullets. A skill without context produces a skills-section entry only. |
+| 11.7 | **Transferable-skill suggestions.** From the profile, propose related skills (C# → Java, Kotlin). The user clicks "Add" and picks the level. | new suggestion service, UI | A C# profile shows Java as a suggestion. |
+| 11.8 | **Level-aware wording.** The prompt gets each fact's level and writes in the user's chosen style (for example, `Worked` = normal bullets, `Project` = "project" wording, `Learning` = "currently learning"). `Claimed` is written as the user entered it. | `CvGenerationPrompt.cs` | Output wording follows the level for a mixed-level test profile. |
+| 11.9 | **Grounding check reads the profile.** `CvGroundingValidator` (task 1.4) treats everything the user entered, at any level, as valid. It still rejects things the user never entered, such as an invented employer or skill. | `CvGroundingValidator` | A test with a user-added `Claimed` skill passes. A test with an invented skill fails. |
+| 11.10 | **Keep `userConfirmed`.** Every fact and bullet records that the user confirmed it, so each claim traces back to the user's own input. | profile model | No AI-written fact is saved without confirmation. |
+| 11.11 | **Growth path (optional, P2).** For `Learning` and `Project` skills, suggest a small next step (mini project, course). When done, the user can raise the level. | UI, suggestion service | Completing a step offers a level change. |
+
+**Build order:** 11.5 → 11.8 → 11.9 → 11.6 → 11.1 → 11.3 → 11.2 → 11.7 → 11.4 → 11.10 → 11.11.
+
 ---
 
 ## Suggested order

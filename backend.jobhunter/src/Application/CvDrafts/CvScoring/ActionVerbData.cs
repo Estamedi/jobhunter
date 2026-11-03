@@ -1,4 +1,4 @@
-// Generated from the two action-verb pages in cv-action-verbs-research.md, plus a few technical verbs of our own.
+// Generated from the two action-verb pages in docs/cv-builder/cv-action-verbs-research.md, plus a few technical verbs of our own.
 // Source: R = resume.io, E = enhancv, O = added by us. Category is the resume.io group, or Other.
 namespace backend.jobhunter.Application.CvDrafts;
 
