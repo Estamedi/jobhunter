@@ -1,6 +1,7 @@
 using System.Text;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Domain.Entities;
+using backend.jobhunter.Domain.Enums;
 
 namespace backend.jobhunter.Application.CvDrafts;
 
@@ -125,7 +126,7 @@ public static class CvBackgroundBuilder
             sb.AppendLine().AppendLine("Skills:");
             foreach (var group in profile.Skills.OrderBy(s => s.SortOrder).GroupBy(s => s.Category ?? "General"))
             {
-                sb.AppendLine($"- {group.Key}: {string.Join(", ", group.Select(s => s.Name))}");
+                sb.AppendLine($"- {group.Key}: {string.Join(", ", group.Select(SkillText))}");
             }
         }
 
@@ -184,6 +185,25 @@ public static class CvBackgroundBuilder
         }
 
         return sb.Length == 0 ? null : sb.ToString().TrimEnd();
+    }
+
+    // A skill with no level, or Worked or Claimed with no note, is written exactly as before. Project,
+    // Course and Learning (and any note) are added in brackets so the AI describes each one honestly.
+    internal static string SkillText(ProfileSkill skill)
+    {
+        var label = skill.EvidenceLevel switch
+        {
+            SkillEvidenceLevel.Project => "project",
+            SkillEvidenceLevel.Course => "course",
+            SkillEvidenceLevel.Learning => "currently learning",
+            _ => null,
+        };
+        var note = string.IsNullOrWhiteSpace(skill.Note) ? null : skill.Note.ReplaceLineEndings(" ").Trim();
+        // A note on a Worked, Claimed or unset skill is prefixed so text such as "project lead tool" cannot
+        // be read as the Project level marker.
+        if (label is null && note is not null) note = $"note: {note}";
+        var detail = string.Join(": ", new[] { label, note }.Where(v => !string.IsNullOrEmpty(v)));
+        return detail.Length == 0 ? skill.Name : $"{skill.Name} ({detail})";
     }
 
     private static string Indent(string text)

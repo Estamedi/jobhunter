@@ -11,6 +11,7 @@ import {
   type ProfileExperience,
   type SaveEducationDto,
   type SaveExperienceDto,
+  type SaveSkillDto,
 } from './api'
 import { AboutCard } from './components/about-card'
 import { ContactCard, type ContactValues } from './components/contact-card'
@@ -145,10 +146,28 @@ export function Profile() {
   })
 
   const addSkill = useMutation({
-    mutationFn: (v: { name: string; category: string }) =>
-      profileApi.addSkill(candidate!.id, v.name, v.category),
+    mutationFn: (v: {
+      name: string
+      category: string
+      evidenceLevel: string
+      note: string
+    }) =>
+      profileApi.addSkill(
+        candidate!.id,
+        v.name,
+        v.category,
+        v.evidenceLevel,
+        v.note
+      ),
     onSuccess: refresh,
     onError: () => toast.error('Failed to add skill'),
+  })
+
+  const updateSkill = useMutation({
+    mutationFn: (v: { id: number; dto: SaveSkillDto }) =>
+      profileApi.updateSkill(v.id, v.dto),
+    onSuccess: refresh,
+    onError: () => toast.error('Failed to update skill'),
   })
 
   const removeSkill = useMutation({
@@ -183,10 +202,7 @@ export function Profile() {
         summary={profile.summary}
         isSaving={saveAbout.isPending}
         onSave={(fullName, headline, summary, done) =>
-          saveAbout.mutate(
-            { fullName, headline, summary },
-            { onSuccess: done }
-          )
+          saveAbout.mutate({ fullName, headline, summary }, { onSuccess: done })
         }
       />
 
@@ -216,7 +232,9 @@ export function Profile() {
       <SkillsSection
         skills={profile.skills}
         isAdding={addSkill.isPending}
-        onAdd={(name, category) => addSkill.mutate({ name, category })}
+        isUpdating={updateSkill.isPending}
+        onAdd={(skill) => addSkill.mutate(skill)}
+        onUpdate={(id, dto) => updateSkill.mutate({ id, dto })}
         onRemove={(skill) => removeSkill.mutate(skill.id)}
       />
 

@@ -10,6 +10,8 @@ public class ProfileSkillConfiguration : IEntityTypeConfiguration<ProfileSkill>
     {
         builder.Property(s => s.Name).HasMaxLength(100).IsRequired();
         builder.Property(s => s.Category).HasMaxLength(100);
+        builder.Property(s => s.EvidenceLevel).HasConversion<string>().HasMaxLength(30);
+        builder.Property(s => s.Note).HasMaxLength(300);
 
         builder.HasOne(s => s.Profile)
             .WithMany(p => p.Skills)

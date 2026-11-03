@@ -92,28 +92,28 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 ### E4. Prompt and logic
 **Goal:** Better, shorter, more useful CV content.
 
-- 2.1 Use the uploaded CV
-- 2.2 Length and style guidance
-- 2.3 Extract the job description first
-- 2.4 Select, do not dump
+- ✅ 2.1 Use the uploaded CV
+- ✅ 2.2 Length and style guidance
+- 🟡 2.3 Extract the job description first (the extraction runs for the match report only; generation does not use it yet)
+- 🟡 2.4 Select, do not dump (skills cap and relevance order added to the prompt only, unverified until the next live run)
 - 2.5 Respect the language in headings
 - 2.6 Version the prompt (later)
 - 2.7 Tune the model call (later)
-- 2.8 Fail clearly with friendly messages
+- 🟡 2.8 Fail clearly with friendly messages (backend maps AI errors to friendly messages; a retry button exists in the match and score panels, not on a failed generation)
 
 ### E5. Achievement discovery and user-claimed skills
 **Goal:** Users who cannot describe their work still get strong bullets, and users can list skills they never used at work, with an evidence level they choose.
 
-- 11.5 `EvidenceLevel` on skills and facts (start here)
-- 11.8 Level-aware wording
-- 11.9 Grounding check reads the profile
-- 11.6 "Where did you use it?" field
+- ✅ 11.5 `EvidenceLevel` on skills and facts (start here) (on skills only; null means not set)
+- 🟡 11.8 Level-aware wording (background text tested; the two prompt rules are unverified until the next live run)
+- ✅ 11.9 Grounding check reads the profile (skills are now checked against the background)
+- 🟡 11.6 "Where did you use it?" field (the note field and the profile page are done and tested; whether the AI writes bullets from the note is prompt-only, unverified until the next live run)
 - 11.1 Guided achievement interview
 - 11.3 Estimates allowed
 - 11.2 Role-based question cards
 - 11.7 Transferable-skill suggestions
 - 11.4 "Small achievements count" hints
-- 11.10 `userConfirmed` flag
+- 11.10 `userConfirmed` flag (deferred: every current input is user-entered or a reviewed import, so nothing would store "false". Do it with 11.1 and E10.)
 - 11.11 Growth path (P2 inside the epic)
 
 ### E6. User experience
@@ -143,11 +143,16 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 **Decisions:**
 - LibreChat is used for the interview only. CV generation stays in our pipeline (structured profile, grounding check, QuestPDF). We do not use LibreChat RAG to build the CV.
 - The Agents API is beta. Pin the LibreChat version and test every upgrade.
+- **LibreChat stays fully separate from our app. Only its API is used.**
+  - It runs as its own service with its own deployment, config and database. Its code and config do not live in our solution.
+  - No shared database, no SSO or login link, no iframe, and no LibreChat page or component in our UI.
+  - Our app talks to it only through one small adapter (L.4) that holds the base URL, API key and agent ID. If LibreChat is replaced, only the adapter changes.
+  - LibreChat holds no profile data. Our backend sends the context for each request and keeps the confirmed facts in our own database.
 
-- L.1 Deploy LibreChat (internal, not public). Pin the version. Enable the Agents API and grant the Remote Agents permission to the role that owns the API key
+- L.1 Deploy LibreChat as a separate service (internal, not public, outside our solution). Pin the version. Enable the Agents API and grant the Remote Agents permission to the role that owns the API key
 - L.2 Create the "Achievement interview" agent with a system prompt: one short question at a time, skip allowed, ends with a drafted bullet (Action + Result + Number) as JSON
 - L.3 Create an Agent API key and store it as a backend secret (the key is shown only once)
-- L.4 Backend client: call `POST /api/agents/v1/chat/completions` with `model` = agent ID, bearer key, through a small interface (so the provider can be swapped). The newer `/api/agents/v1/responses` endpoint is an option
+- L.4 Backend adapter (the only place that knows LibreChat): call `POST /api/agents/v1/chat/completions` with `model` = agent ID, bearer key, through a small interface (so the provider can be swapped). The newer `/api/agents/v1/responses` endpoint is an option
 - L.5 Per-user conversation state in our database. Send each user's message history with every request, because the API key acts as one LibreChat user
 - L.6 Send context with the first message: job or project picked, role, and a summary of the confirmed profile. Do not send email or phone (see 6.3)
 - L.7 Parse the agent's JSON bullet. If invalid, ask the agent once to fix it, then show an error. Only save after the user clicks "Yes, this is true" (task 11.10)

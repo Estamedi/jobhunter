@@ -1,6 +1,8 @@
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileLanguage;
+using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileSkill;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateContact;
 using NUnit.Framework;
@@ -145,5 +147,32 @@ public class ProfileValidationTests
         {
             CandidateId = 1, FullName = "Jane", Email = "jane@example.com", Phone = new string('1', 51),
         }).IsValid.ShouldBeFalse();
+    }
+
+    [TestCase(null, true)]
+    [TestCase("", true)]
+    [TestCase("Worked", true)]
+    [TestCase("project", true)]
+    [TestCase("Course", true)]
+    [TestCase("Learning", true)]
+    [TestCase("Claimed", true)]
+    [TestCase("Expert", false)]
+    public void ShouldOnlyAcceptKnownSkillEvidenceLevels(string? level, bool valid)
+    {
+        new AddProfileSkillCommandValidator()
+            .Validate(new AddProfileSkillCommand { CandidateId = 1, Name = "Java", EvidenceLevel = level })
+            .IsValid.ShouldBe(valid);
+        new UpdateProfileSkillCommandValidator()
+            .Validate(new UpdateProfileSkillCommand { Id = 1, Name = "Java", EvidenceLevel = level })
+            .IsValid.ShouldBe(valid);
+    }
+
+    [Test]
+    public void ShouldLimitTheSkillNoteTo300Characters()
+    {
+        var validator = new AddProfileSkillCommandValidator();
+
+        validator.Validate(new AddProfileSkillCommand { CandidateId = 1, Name = "Java", Note = new string('x', 300) }).IsValid.ShouldBeTrue();
+        validator.Validate(new AddProfileSkillCommand { CandidateId = 1, Name = "Java", Note = new string('x', 301) }).IsValid.ShouldBeFalse();
     }
 }

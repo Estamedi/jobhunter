@@ -29,7 +29,7 @@ public record ProfileEducationDto(
     string? Details
 );
 
-public record ProfileSkillDto(int Id, string Name, string? Category);
+public record ProfileSkillDto(int Id, string Name, string? Category, string? EvidenceLevel, string? Note);
 
 public record ProfileProjectDto(
     int Id,
@@ -91,7 +91,7 @@ internal static class CandidateProfileMapping
     public static ProfileEducationDto ToDto(this ProfileEducation e) => new(
         e.Id, e.Institution, e.Degree, e.FieldOfStudy, e.Location, e.StartDate, e.EndDate, e.Details);
 
-    public static ProfileSkillDto ToDto(this ProfileSkill s) => new(s.Id, s.Name, s.Category);
+    public static ProfileSkillDto ToDto(this ProfileSkill s) => new(s.Id, s.Name, s.Category, s.EvidenceLevel?.ToString(), s.Note);
 
     // Skills are trimmed, de-duplicated (case-insensitive) and capped; empty entries dropped.
     public static List<string> CleanSkills(IEnumerable<string>? skills) =>

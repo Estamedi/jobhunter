@@ -5,6 +5,7 @@ using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileSkill;
+using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateContact;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateProfile;
@@ -47,6 +48,7 @@ public class CandidateProfiles : IEndpointGroup
         group.MapPut(UpdateEducation, "educations/{id}");
         group.MapDelete(DeleteEducation, "educations/{id}");
         group.MapPost(AddSkill, "skills");
+        group.MapPut(UpdateSkill, "skills/{id}");
         group.MapDelete(DeleteSkill, "skills/{id}");
         group.MapPost(AddProject, "projects");
         group.MapPut(UpdateProject, "projects/{id}");
@@ -142,6 +144,16 @@ public class CandidateProfiles : IEndpointGroup
     {
         var id = await sender.Send(command, ct);
         return TypedResults.Created($"/api/CandidateProfiles/skills/{id}", id);
+    }
+
+    [EndpointSummary("Update a skill")]
+    [EndpointDescription("Changes a skill's name, category, evidence level (Worked, Project, Course, Learning, Claimed) and note.")]
+    public static async Task<Results<NoContent, BadRequest>> UpdateSkill(
+        ISender sender, int id, UpdateProfileSkillCommand command, CancellationToken ct = default)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command, ct);
+        return TypedResults.NoContent();
     }
 
     [EndpointSummary("Delete a skill")]

@@ -39,6 +39,16 @@ export interface ProfileSkill {
   id: number
   name: string
   category?: string | null
+  // Worked, Project, Course, Learning or Claimed; empty means not set.
+  evidenceLevel?: string | null
+  note?: string | null
+}
+
+export interface SaveSkillDto {
+  name: string
+  category?: string | null
+  evidenceLevel?: string | null
+  note?: string | null
 }
 
 export type LanguageProficiency =
@@ -255,14 +265,31 @@ export const profileApi = {
   deleteEducation: (id: number) =>
     http.delete(`/api/CandidateProfiles/educations/${id}`),
 
-  addSkill: (candidateId: number, name: string, category?: string | null) =>
+  addSkill: (
+    candidateId: number,
+    name: string,
+    category?: string | null,
+    evidenceLevel?: string | null,
+    note?: string | null
+  ) =>
     http
       .post<number>('/api/CandidateProfiles/skills', {
         candidateId,
         name,
         category: category || null,
+        evidenceLevel: evidenceLevel || null,
+        note: note || null,
       })
       .then((r) => r.data),
+
+  updateSkill: (id: number, dto: SaveSkillDto) =>
+    http.put(`/api/CandidateProfiles/skills/${id}`, {
+      id,
+      name: dto.name,
+      category: dto.category || null,
+      evidenceLevel: dto.evidenceLevel || null,
+      note: dto.note || null,
+    }),
 
   deleteSkill: (id: number) =>
     http.delete(`/api/CandidateProfiles/skills/${id}`),

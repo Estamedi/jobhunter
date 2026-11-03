@@ -180,4 +180,40 @@ public class CvBackgroundBuilderTests
         result.Text!.ShouldNotContain("uploaded text");
         result.Warnings.ShouldHaveSingleItem();
     }
+
+    [Test]
+    public void ShouldWriteSkillsWithNoLevelOrWithWorkedOrClaimedExactlyAsBefore()
+    {
+        var profile = new CandidateProfile
+        {
+            Skills =
+            {
+                new ProfileSkill { Name = "C#", Category = "Backend" },
+                new ProfileSkill { Name = "Docker", Category = "Backend", EvidenceLevel = SkillEvidenceLevel.Worked, SortOrder = 1 },
+                new ProfileSkill { Name = "Java", Category = "Backend", EvidenceLevel = SkillEvidenceLevel.Claimed, SortOrder = 2 },
+            },
+        };
+
+        CvBackgroundBuilder.Build(profile, null)!.ShouldContain("- Backend: C#, Docker, Java");
+    }
+
+    [Test]
+    public void ShouldAddTheLevelAndNoteToProjectCourseAndLearningSkills()
+    {
+        var profile = new CandidateProfile
+        {
+            Skills =
+            {
+                new ProfileSkill { Name = "Java", Category = "Backend", EvidenceLevel = SkillEvidenceLevel.Project, Note = "built a billing API\nin a side project" },
+                new ProfileSkill { Name = "Kubernetes", Category = "DevOps", EvidenceLevel = SkillEvidenceLevel.Course, SortOrder = 1 },
+                new ProfileSkill { Name = "Rust", Category = "DevOps", EvidenceLevel = SkillEvidenceLevel.Learning, SortOrder = 2 },
+                new ProfileSkill { Name = "Go", Category = "DevOps", EvidenceLevel = SkillEvidenceLevel.Claimed, Note = "used it for CLI tools", SortOrder = 3 },
+            },
+        };
+
+        var text = CvBackgroundBuilder.Build(profile, null)!;
+
+        text.ShouldContain("- Backend: Java (project: built a billing API in a side project)");
+        text.ShouldContain("- DevOps: Kubernetes (course), Rust (currently learning), Go (note: used it for CLI tools)");
+    }
 }

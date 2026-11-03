@@ -148,6 +148,23 @@ public class CvGenerationPromptTests
     }
 
     [Test]
+    public void ShouldDescribeProjectCourseAndLearningSkillsHonestlyInBothPrompts()
+    {
+        foreach (var rules in new[] { CvGenerationPrompt.SystemPrompt, CvGenerationPrompt.RefineSystemPrompt })
+        {
+            rules.ShouldContain("never as work done in a job");
+            rules.ShouldContain("\"Currently learning\"");
+        }
+    }
+
+    [Test]
+    public void ShouldCapAndOrderTheSkillsList()
+    {
+        CvGenerationPrompt.SystemPrompt.ShouldContain("at most 20 skill items");
+        CvGenerationPrompt.SystemPrompt.ShouldContain("most relevant to the job first");
+    }
+
+    [Test]
     public void ShouldWriteAtB2WhenNoLevelIsGiven()
     {
         var user = CvGenerationPrompt.BuildUserPrompt(new CvGenerationRequest { FullName = "Jane", JobTitle = "Engineer" });
