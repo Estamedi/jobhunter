@@ -8,7 +8,7 @@ namespace backend.jobhunter.Infrastructure.Files;
 // S3 is the source of truth; the local disk (FileStorage:RootPath, a persistent volume on the VPS)
 // is a read-through cache. Reads hit disk first and fall back to S3, filling the cache on a miss.
 // Uploads are asynchronous: SaveAsync writes to disk only and CvUploadWorker pushes the file to S3.
-public class CachedS3FileStorage : IFileStorage
+public class CachedS3FileStorage : IFileStorage, ICvRemoteSync
 {
     private readonly string _cachePath;
     private readonly S3FileStorage _s3;
@@ -127,6 +127,13 @@ public class CachedS3FileStorage : IFileStorage
         {
         }
     }
+}
+
+public interface ICvRemoteSync
+{
+    Task<RemoteSyncResult> SyncToRemoteAsync(string storageKey, CancellationToken cancellationToken);
+
+    Task DeleteRemoteAsync(string storageKey, CancellationToken cancellationToken);
 }
 
 public enum RemoteSyncResult

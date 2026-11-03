@@ -34,10 +34,17 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 
 function formatFileSize(size: number) {
   if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function UploadStatusBadge({ status }: { status: Cv['uploadStatus'] }) {
+  if (status === 'Uploaded') return null
+  if (status === 'Failed') return <Badge variant='destructive'>Cloud upload failed</Badge>
+  return <Badge variant='secondary'>Uploading to cloud…</Badge>
 }
 
 function UploadCvForm({ onSubmit }: { onSubmit: (data: { file: File }) => void }) {
@@ -158,6 +165,7 @@ export function Cvs() {
                   <div className='flex items-center gap-2'>
                     <FileText className='h-4 w-4 text-muted-foreground' />
                     {cv.fileName}
+                    <UploadStatusBadge status={cv.uploadStatus} />
                   </div>
                 </TableCell>
                 <TableCell className='text-sm text-muted-foreground'>{formatFileSize(cv.fileSizeBytes)}</TableCell>

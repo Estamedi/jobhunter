@@ -61,7 +61,7 @@ describe('ApplicationsMutateDialog', () => {
     vi.mocked(jobTitlesApi.list).mockResolvedValue({ items: [], total: 0 })
     vi.mocked(contactsApi.list).mockResolvedValue({ items: [], total: 0 })
     vi.mocked(cvsApi.list).mockResolvedValue({
-      items: [{ id: 5, candidateId: 42, fileName: 'resume-v1.pdf', contentType: 'application/pdf', fileSizeBytes: 1024, uploadedDate: '2026-01-01' }],
+      items: [{ id: 5, candidateId: 42, fileName: 'resume-v1.pdf', contentType: 'application/pdf', fileSizeBytes: 1024, uploadedDate: '2026-01-01', uploadStatus: 'Uploaded' }],
       total: 1,
     })
   })

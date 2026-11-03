@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -90,7 +92,14 @@ public static class DependencyInjection
             builder.Services.AddSingleton<S3FileStorage>();
             builder.Services.AddSingleton<CachedS3FileStorage>();
             builder.Services.AddSingleton<IFileStorage>(sp => sp.GetRequiredService<CachedS3FileStorage>());
-            builder.Services.AddHostedService<CvUploadWorker>();
+            builder.Services.AddSingleton<ICvRemoteSync>(sp => sp.GetRequiredService<CachedS3FileStorage>());
+            builder.Services.AddHostedService(sp => new CvUploadWorker(
+                sp.GetRequiredService<IServiceScopeFactory>(),
+                sp,
+                sp.GetRequiredService<CvUploadSignal>(),
+                sp.GetRequiredService<IOptions<FileStorageOptions>>(),
+                sp.GetRequiredService<TimeProvider>(),
+                sp.GetRequiredService<ILogger<CvUploadWorker>>()));
         }
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));

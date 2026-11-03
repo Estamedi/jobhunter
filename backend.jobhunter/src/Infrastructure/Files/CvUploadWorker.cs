@@ -10,27 +10,58 @@ namespace backend.jobhunter.Infrastructure.Files;
 
 // Uploads Pending CV files from the local cache to S3. Woken by CvUploadRequestedEvent and by a
 // poll fallback (covers restarts and retries). Assumes a single backend instance.
-public class CvUploadWorker(
-    IServiceScopeFactory scopeFactory,
-    CachedS3FileStorage storage,
-    CvUploadSignal signal,
-    IOptions<FileStorageOptions> options,
-    TimeProvider clock,
-    ILogger<CvUploadWorker> logger) : BackgroundService
+public class CvUploadWorker : BackgroundService
 {
     // The event fires before the row is committed; give the save a moment to finish.
     private static readonly TimeSpan CommitGrace = TimeSpan.FromMilliseconds(500);
 
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IServiceProvider _services;
+    private readonly CvUploadSignal _signal;
+    private readonly IOptions<FileStorageOptions> _options;
+    private readonly TimeProvider _clock;
+    private readonly ILogger<CvUploadWorker> _logger;
+    private ICvRemoteSync? _remote;
+
+    public CvUploadWorker(
+        IServiceScopeFactory scopeFactory,
+        IServiceProvider services,
+        CvUploadSignal signal,
+        IOptions<FileStorageOptions> options,
+        TimeProvider clock,
+        ILogger<CvUploadWorker> logger,
+        ICvRemoteSync? remote = null)
+    {
+        _scopeFactory = scopeFactory;
+        _services = services;
+        _signal = signal;
+        _options = options;
+        _clock = clock;
+        _logger = logger;
+        _remote = remote;
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var retry = options.Value.Retry;
+        try
+        {
+            // Resolved lazily so an unconfigured S3 (empty bucket) disables the worker instead of failing startup.
+            _remote ??= _services.GetRequiredService<ICvRemoteSync>();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "S3 file storage is not configured; the CV upload worker is disabled.");
+            return;
+        }
+
+        var retry = _options.Value.Retry;
         var poll = TimeSpan.FromSeconds(Math.Max(1, retry.PollSeconds));
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                if (await signal.WaitAsync(poll, stoppingToken))
+                if (await _signal.WaitAsync(poll, stoppingToken))
                 {
                     await Task.Delay(CommitGrace, stoppingToken);
                 }
@@ -43,17 +74,17 @@ public class CvUploadWorker(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "CV upload worker iteration failed.");
+                _logger.LogError(ex, "CV upload worker iteration failed.");
                 await Task.Delay(poll, stoppingToken);
             }
         }
     }
 
-    private async Task ProcessPendingAsync(UploadRetryOptions retry, CancellationToken cancellationToken)
+    public async Task ProcessPendingAsync(UploadRetryOptions retry, CancellationToken cancellationToken)
     {
-        using var scope = scopeFactory.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
-        var now = clock.GetUtcNow();
+        var now = _clock.GetUtcNow();
 
         var candidates = await context.Cvs
             .IgnoreQueryFilters()
@@ -75,7 +106,7 @@ public class CvUploadWorker(
     {
         try
         {
-            var result = await storage.SyncToRemoteAsync(cv.StorageKey, cancellationToken);
+            var result = await _remote!.SyncToRemoteAsync(cv.StorageKey, cancellationToken);
             cv.UploadStatus = result == RemoteSyncResult.Uploaded ? CvUploadStatus.Uploaded : CvUploadStatus.Failed;
             cv.LastUploadError = result == RemoteSyncResult.Missing ? "File is not in the local cache or S3." : null;
         }
@@ -84,10 +115,10 @@ public class CvUploadWorker(
             cv.UploadAttempts++;
             cv.LastUploadError = Truncate(ex.Message);
             cv.UploadStatus = cv.UploadAttempts >= retry.MaxAttempts ? CvUploadStatus.Failed : CvUploadStatus.Pending;
-            logger.LogWarning(ex, "S3 upload failed for CV {CvId} ({StorageKey}), attempt {Attempt}.", cv.Id, cv.StorageKey, cv.UploadAttempts);
+            _logger.LogWarning(ex, "S3 upload failed for CV {CvId} ({StorageKey}), attempt {Attempt}.", cv.Id, cv.StorageKey, cv.UploadAttempts);
         }
 
-        cv.LastUploadAttemptAt = clock.GetUtcNow();
+        cv.LastUploadAttemptAt = _clock.GetUtcNow();
 
         try
         {
@@ -98,7 +129,7 @@ public class CvUploadWorker(
             // The CV was deleted while uploading: remove the object that was just written.
             if (cv.UploadStatus == CvUploadStatus.Uploaded)
             {
-                await storage.DeleteRemoteAsync(cv.StorageKey, cancellationToken);
+                await _remote!.DeleteRemoteAsync(cv.StorageKey, cancellationToken);
             }
         }
     }

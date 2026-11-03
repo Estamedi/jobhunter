@@ -7,6 +7,7 @@ export interface Cv {
   contentType: string
   fileSizeBytes: number
   uploadedDate: string
+  uploadStatus: 'Pending' | 'Uploaded' | 'Failed'
 }
 
 export interface GetCvsResult {

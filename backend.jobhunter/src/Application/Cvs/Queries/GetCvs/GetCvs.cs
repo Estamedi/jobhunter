@@ -9,7 +9,8 @@ public record CvDto(
     string FileName,
     string ContentType,
     long FileSizeBytes,
-    DateTimeOffset UploadedDate
+    DateTimeOffset UploadedDate,
+    string UploadStatus
 );
 
 public record GetCvsResult(IReadOnlyList<CvDto> Items, int Total);
@@ -36,7 +37,7 @@ public class GetCvsQueryHandler(IApplicationDbContext context)
             .OrderByDescending(c => c.Created)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(c => new CvDto(c.Id, c.CandidateId, c.FileName, c.ContentType, c.FileSizeBytes, c.Created))
+            .Select(c => new CvDto(c.Id, c.CandidateId, c.FileName, c.ContentType, c.FileSizeBytes, c.Created, c.UploadStatus.ToString()))
             .ToListAsync(cancellationToken);
 
         return new GetCvsResult(items, total);
