@@ -1,4 +1,5 @@
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.Cvs;
 using backend.jobhunter.Application.Common.Security;
 using backend.jobhunter.Domain.Entities;
 
@@ -19,8 +20,11 @@ public class UploadCvCommandHandler(IApplicationDbContext context, IFileStorage 
 {
     public async Task<int> Handle(UploadCvCommand request, CancellationToken cancellationToken)
     {
-        var candidateExists = await context.Candidates.AnyAsync(c => c.Id == request.CandidateId, cancellationToken);
-        if (!candidateExists)
+        var candidateName = await context.Candidates
+            .Where(c => c.Id == request.CandidateId)
+            .Select(c => c.FullName)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (candidateName is null)
         {
             throw new NotFoundException(nameof(Candidate), request.CandidateId);
         }
@@ -38,7 +42,7 @@ public class UploadCvCommandHandler(IApplicationDbContext context, IFileStorage 
 
         var contentType = UploadCvCommandValidator.AllowedTypes[extension];
 
-        var storageKey = await fileStorage.SaveAsync(request.Content, request.FileName, request.CandidateId.ToString(), cancellationToken);
+        var storageKey = await fileStorage.SaveAsync(request.Content, request.FileName, CvStorageFolder.For(request.CandidateId, candidateName), cancellationToken);
 
         var entity = new Cv
         {

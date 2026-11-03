@@ -119,4 +119,17 @@ public class CvUploadTests
     [Test]
     public void StorageKey_New_RejectsUnsafeFolder() =>
         Should.Throw<InvalidOperationException>(() => StorageKey.New("cv.pdf", "../x"));
+
+    [TestCase(2, "Jane Sample", "2-jane-sample")]
+    [TestCase(7, "  José Álvarez-Ñuñez ", "7-jose-alvarez-nunez")]
+    [TestCase(9, "محمد", "9")]
+    [TestCase(3, null, "3")]
+    [TestCase(4, "../../etc/passwd", "4-etc-passwd")]
+    public void CvStorageFolder_BuildsReadableSafeFolder(int id, string? name, string expected) =>
+        backend.jobhunter.Application.Cvs.CvStorageFolder.For(id, name).ShouldBe(expected);
+
+    [Test]
+    public void CvStorageFolder_IsAlwaysAValidStorageFolder() =>
+        StorageKey.New("cv.pdf", backend.jobhunter.Application.Cvs.CvStorageFolder.For(5, new string('a', 200)))
+            .ShouldStartWith("5-");
 }

@@ -1,4 +1,5 @@
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.Cvs;
 using backend.jobhunter.Application.Common.Security;
 using System.Text.RegularExpressions;
 using backend.jobhunter.Domain.Entities;
@@ -32,7 +33,7 @@ public class ExportCvDraftCommandHandler(
 
         var fileName = BuildFileName(candidate.FullName, string.IsNullOrWhiteSpace(draft.JobTitle) ? draft.Title : draft.JobTitle, isDocx ? "docx" : "pdf");
         await using var stream = new MemoryStream(pdf);
-        var storageKey = await fileStorage.SaveAsync(stream, fileName, draft.CandidateId.ToString(), cancellationToken);
+        var storageKey = await fileStorage.SaveAsync(stream, fileName, CvStorageFolder.For(draft.CandidateId, candidate.FullName), cancellationToken);
 
         var cv = new Cv
         {
