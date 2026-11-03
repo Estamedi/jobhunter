@@ -6,19 +6,26 @@ import { Skeleton } from '@/components/ui/skeleton'
 // done, never as a percentage that could be wrong. The last step stays active until the CV arrives.
 const STEPS = [
   { at: 0, text: 'Reading the job description' },
-  { at: 6, text: 'Matching it with your profile' },
-  { at: 14, text: 'Writing your summary and skills' },
-  { at: 22, text: 'Tailoring your experience' },
-  { at: 32, text: 'Checking every fact against your profile' },
+  { at: 8, text: 'Matching it with your profile' },
+  { at: 20, text: 'Writing your summary and skills' },
+  { at: 40, text: 'Tailoring your experience' },
+  { at: 70, text: 'Checking every fact against your profile' },
 ]
 
-export function GeneratingPanel() {
-  const [seconds, setSeconds] = useState(0)
+// `since` is when the draft was queued, so the clock is right after a reload or when the page is
+// opened later. Without it the clock starts when the panel appears.
+export function GeneratingPanel({ since }: { since?: string }) {
+  const [start] = useState(() =>
+    since ? new Date(since).getTime() : Date.now()
+  )
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000)
+    const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [])
+
+  const seconds = Math.max(0, Math.floor((now - start) / 1000))
 
   const current = STEPS.reduce((acc, s, i) => (seconds >= s.at ? i : acc), 0)
 
@@ -33,8 +40,8 @@ export function GeneratingPanel() {
           <Loader2 className='h-4 w-4 animate-spin' /> Writing your CV…
         </p>
         <p className='text-sm text-muted-foreground'>
-          This usually takes 20–40 seconds. You can keep this page open; the CV
-          appears here when it is ready.
+          This usually takes 1–2 minutes. It is written in the background, so
+          you can leave this page: the CV appears here when it is ready.
         </p>
       </div>
 
@@ -67,7 +74,7 @@ export function GeneratingPanel() {
 
       <p className='text-xs text-muted-foreground'>
         {seconds}s elapsed
-        {seconds > 60 && ' – taking longer than usual, still working.'}
+        {seconds > 150 && ' – taking longer than usual, still working.'}
       </p>
     </div>
   )

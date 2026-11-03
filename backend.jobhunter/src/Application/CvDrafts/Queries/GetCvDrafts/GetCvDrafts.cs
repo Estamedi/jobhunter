@@ -11,7 +11,8 @@ public record CvDraftSummaryDto(
     string JobTitle,
     string TemplateId,
     DateTimeOffset Created,
-    DateTimeOffset LastModified
+    DateTimeOffset LastModified,
+    string Status = "Completed"
 );
 
 public record GetCvDraftsResult(IReadOnlyList<CvDraftSummaryDto> Items, int Total);
@@ -44,7 +45,7 @@ public class GetCvDraftsQueryHandler(IApplicationDbContext context)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(d => new CvDraftSummaryDto(
-                d.Id, d.CandidateId, d.JobApplicationId, d.Title, d.JobTitle, d.TemplateId, d.Created, d.LastModified))
+                d.Id, d.CandidateId, d.JobApplicationId, d.Title, d.JobTitle, d.TemplateId, d.Created, d.LastModified, d.Status.ToString()))
             .ToListAsync(cancellationToken);
 
         return new GetCvDraftsResult(items, total);

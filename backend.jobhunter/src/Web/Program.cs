@@ -1,4 +1,8 @@
 using backend.jobhunter.Infrastructure.Data;
+using backend.jobhunter.Web.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,6 +81,13 @@ if (app.Environment.IsDevelopment())
 
 app.MapDefaultEndpoints();
 app.MapEndpoints(typeof(Program).Assembly);
+
+app.MapHub<CvGenerationHub>(CvGenerationHub.Path, options =>
+    {
+        options.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
+        options.LongPolling.PollTimeout = TimeSpan.FromSeconds(45);
+    })
+    .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = IdentityConstants.BearerScheme });
 
 
 app.Run();

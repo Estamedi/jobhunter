@@ -23,6 +23,7 @@ Farsi CVs (section 8 and task 9.10 of the source file) are out of scope for now.
 | E9 | Professional look | P2 | 4 | 5 |
 | E10 | AI chat via LibreChat (achievement interview) | P1 | 9 | new (L.x) |
 | E11 | Mock interview | P2 | 7 | new (M.x) |
+| E12 ✅ | Background CV generation (worker and live updates) | P0 | 8 | new (B.x) |
 
 Epics E10 and E11 are new. Their tasks use the prefixes L (LibreChat) and M (mock interview) and are defined only in this file.
 
@@ -71,7 +72,7 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 9.3 Warn when there is no job description
 - ✅ 9.4 Target the job title and level
 - ✅ 9.5 Order bullets by relevance inside each role
-- 🟡 9.6 Use the job's own wording (prompt rule only, acronym over-expansion fixed in the prompt, check with the next live run)
+- ✅ 9.6 Use the job's own wording (checked on a live run: the job's own wording is kept and no acronyms were spelled out)
 - 🟡 9.7 No copying and no keyword stuffing (copied-sentence check done in code; keyword cap is still a prompt rule; not run on section regenerate)
 - 🟡 9.8 Keywords in context, not only in Skills (match panel done; scoring waits for E7)
 - ✅ 9.9 Gap loop (most important for fit) (note: the rewrite covers the Skills section only)
@@ -95,11 +96,11 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 2.1 Use the uploaded CV
 - ✅ 2.2 Length and style guidance
 - 🟡 2.3 Extract the job description first (the extraction runs for the match report only; generation does not use it yet)
-- 🟡 2.4 Select, do not dump (skills cap and relevance order added to the prompt only, unverified until the next live run)
+- 🟡 2.4 Select, do not dump (prompt only; live run: the DevOps CV listed 20 skills, the AI Engineer CV 28, so the cap of 20 is not always followed)
 - 2.5 Respect the language in headings
 - 2.6 Version the prompt (later)
 - 2.7 Tune the model call (later)
-- 🟡 2.8 Fail clearly with friendly messages (backend maps AI errors to friendly messages; a retry button exists in the match and score panels, not on a failed generation)
+- ✅ 2.8 Fail clearly with friendly messages (the backend maps AI errors to friendly messages, and a failed draft shows its message with a "Try again" button)
 
 ### E5. Achievement discovery and user-claimed skills
 **Goal:** Users who cannot describe their work still get strong bullets, and users can list skills they never used at work, with an evidence level they choose.
@@ -160,6 +161,20 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - L.9 Limits and monitoring: rate limit per user (6.1), cost logging (6.2), friendly error when LibreChat is down (2.8)
 
 **Depends on:** 11.5 (`EvidenceLevel`) and 11.10 (`userConfirmed`) from E5.
+
+### E12. Background CV generation (worker and live updates) ✅
+**Goal:** A CV is written by a background worker, not inside the web request. One generation takes about a minute with `gpt-5.5`, and a retry doubles it, so a request held open was cut by the reverse proxy's 60-second default and no CV was saved (seen on the server on 2026-11-03).
+
+- ✅ B.1 `CvDraft` has a status (Completed, Pending, Running, Failed) with the error, the stored warnings and the form notes. Old drafts read as Completed (migration `AddCvDraftGenerationStatus`)
+- ✅ B.2 `POST /api/CvGeneration` only queues the draft and answers at once with 202 and a Pending draft
+- ✅ B.3 `CvGenerationWorker` writes Pending drafts one at a time. Each is claimed with one atomic update, and it runs as the draft's owner so the per-user data filters work
+- ✅ B.4 A restart in the middle of a write puts the draft back in the queue once, then marks it Failed
+- ✅ B.5 A failed draft keeps a readable error, and `POST /api/CvGeneration/{id}/retry` queues it again
+- ✅ B.6 Export, edit, regenerate, match, score and restore refuse a draft that is not Completed
+- ✅ B.7 SignalR hub `/hubs/cv-generation` (WebSockets or long polling, token in the query string) tells the owner when a draft finishes
+- ✅ B.8 (page not tested in a browser; only build, lint and helper tests ran) The CV builder shows a writing panel from the draft's status, polls every 4 seconds while a draft is being written (so it works without the hub), and tells the user when it finishes or fails
+
+**Server setup (not part of the code):** to use WebSockets, `api.applyladder.com` needs a `location /hubs/` block with `proxy_http_version 1.1`, `Upgrade` and `Connection "upgrade"` headers and a long `proxy_read_timeout`. Without it the hub uses long polling, which works behind the default proxy. Other long calls (section regenerate, profile import) are still single requests of about a minute and can hit the 60-second limit until `proxy_read_timeout` is raised.
 
 ---
 

@@ -20,6 +20,8 @@ public class AnalyzeCvDraftMatchCommandHandler(IApplicationDbContext context, IC
         var draft = await context.CvDrafts.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        CvDraftGuard.EnsureCompleted(draft);
+
         if (string.IsNullOrWhiteSpace(draft.JobDescription))
         {
             return new CvJobMatchDto(false, [], [], 0, 0);

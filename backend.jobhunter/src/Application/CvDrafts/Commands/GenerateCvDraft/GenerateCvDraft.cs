@@ -1,7 +1,9 @@
+using System.Text.Json;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraft;
 using backend.jobhunter.Domain.Entities;
+using backend.jobhunter.Domain.Enums;
 
 namespace backend.jobhunter.Application.CvDrafts.Commands.GenerateCvDraft;
 
@@ -23,22 +25,21 @@ public record GenerateCvDraftCommand : IRequest<CvDraftDetailDto>
     public string? LanguageLevel { get; init; }
 }
 
-public class GenerateCvDraftCommandHandler(
-    IApplicationDbContext context, ICvGenerationAiService aiService, IFileStorage fileStorage, ICvTextExtractor textExtractor)
+// Accepts the request and queues the draft. The AI work runs in CvGenerationWorker, and the draft's
+// Status goes Pending, Running, Completed (or Failed). The response comes back at once with the Pending draft.
+public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGenerationSignal signal)
     : IRequestHandler<GenerateCvDraftCommand, CvDraftDetailDto>
 {
     public async Task<CvDraftDetailDto> Handle(GenerateCvDraftCommand request, CancellationToken cancellationToken)
     {
-        var candidate = await context.Candidates.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == request.CandidateId, cancellationToken)
-            ?? throw new NotFoundException(nameof(Candidate), request.CandidateId);
+        var candidateExists = await context.Candidates.AsNoTracking()
+            .AnyAsync(c => c.Id == request.CandidateId, cancellationToken);
+        if (!candidateExists) throw new NotFoundException(nameof(Candidate), request.CandidateId);
 
-        Cv? sourceCv = null;
-        if (request.SourceCvId.HasValue)
+        if (request.SourceCvId.HasValue
+            && !await context.Cvs.AsNoTracking().AnyAsync(c => c.Id == request.SourceCvId, cancellationToken))
         {
-            sourceCv = await context.Cvs.AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == request.SourceCvId, cancellationToken)
-                ?? throw new NotFoundException(nameof(Cv), request.SourceCvId.Value);
+            throw new NotFoundException(nameof(Cv), request.SourceCvId.Value);
         }
 
         var jobDescription = request.JobDescription;
@@ -58,11 +59,6 @@ public class GenerateCvDraftCommandHandler(
         }
 
         var warnings = new List<string>();
-        var sourceCvText = await CvSourceText.ReadAsync(sourceCv, fileStorage, textExtractor, warnings, cancellationToken);
-        var background = await CvBackgroundBuilder.BuildAsync(
-            context, request.CandidateId, request.BackgroundText, sourceCvText, cancellationToken);
-        warnings.AddRange(background.Warnings);
-
         if (string.IsNullOrWhiteSpace(jobDescription))
         {
             warnings.Add("No job description was given, so this CV is general rather than tailored to a job.");
@@ -75,32 +71,6 @@ public class GenerateCvDraftCommandHandler(
         {
             warnings.Add("Your instructions were too long, so the end of them was cut off before writing the CV.");
         }
-
-        var generationRequest = new CvGenerationRequest
-        {
-            FullName = candidate.FullName,
-            Email = candidate.Email,
-            Phone = candidate.Phone,
-            Location = candidate.CurrentLocation,
-            JobTitle = request.JobTitle,
-            JobDescription = jobDescription,
-            Instructions = request.Instructions,
-            BackgroundText = background.Text,
-            Tone = request.Tone,
-            Language = request.Language,
-            LanguageLevel = CvLanguageLevel.Normalize(request.LanguageLevel),
-            TargetPages = CvLengthGuide.TargetPages(background.Profile, DateOnly.FromDateTime(DateTime.UtcNow)),
-        };
-
-        var generated = await aiService.GenerateAsync(generationRequest, cancellationToken);
-
-        // The prompt asks for clean, grounded writing, but the model still slips (vague "-ing" endings,
-        // weak verbs, an employer or figure that is not in the background). Check the first draft and,
-        // when a check fails, ask once more with the exact problems. Each draft carries its own warnings,
-        // so only the one the user actually gets is reported.
-        var chosen = await CvDraftImprover.ImproveAsync(aiService, generationRequest, generated, background, cancellationToken);
-        generated = chosen.Cv;
-        warnings.AddRange(chosen.Warnings);
 
         var draft = new CvDraft
         {
@@ -117,11 +87,19 @@ public class GenerateCvDraftCommandHandler(
             Language = request.Language,
             LanguageLevel = CvLanguageLevel.Normalize(request.LanguageLevel),
             TemplateId = string.IsNullOrWhiteSpace(request.TemplateId) ? "classic" : request.TemplateId,
-            ContentJson = CvDraftContent.Serialize(generated),
+            ContentJson = CvDraftContent.Serialize(new GeneratedCvDto()),
+            Status = CvDraftStatus.Pending,
+            GenerationNotes = request.BackgroundText is { Length: > CvLimits.MaxFieldLength }
+                ? request.BackgroundText[..CvLimits.MaxFieldLength]
+                : request.BackgroundText,
+            GenerationWarningsJson = JsonSerializer.Serialize(warnings),
         };
 
         context.CvDrafts.Add(draft);
         await context.SaveChangesAsync(cancellationToken);
+
+        // Woken after the save, so the worker can already see the row.
+        signal.Notify();
 
         return draft.ToDetailDto(warnings);
     }

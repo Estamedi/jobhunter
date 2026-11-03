@@ -16,6 +16,8 @@ public class RestoreCvDraftVersionCommandHandler(IApplicationDbContext context)
         var draft = await context.CvDrafts.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        CvDraftGuard.EnsureCompleted(draft);
+
         // A version only counts when it belongs to this draft.
         var version = await context.CvDraftVersions
             .FirstOrDefaultAsync(v => v.Id == request.VersionId && v.CvDraftId == draft.Id, cancellationToken)

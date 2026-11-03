@@ -45,6 +45,14 @@ export interface CvContent {
 
 export type CvSection = keyof CvContent
 
+// A draft is written in the background: Pending, then Running, then Completed (or Failed).
+export type CvDraftStatus = 'Completed' | 'Pending' | 'Running' | 'Failed'
+
+// Pending and Running drafts have no content yet; the UI waits for them.
+export function isWriting(status?: CvDraftStatus | null): boolean {
+  return status === 'Pending' || status === 'Running'
+}
+
 export interface CvDraft {
   id: number
   candidateId: number
@@ -62,6 +70,9 @@ export interface CvDraft {
   warnings?: string[] | null
   // The saved copy of the content this change replaced; Undo restores exactly this version.
   previousVersionId?: number | null
+  status?: CvDraftStatus
+  // Why writing failed; only set when status is Failed.
+  error?: string | null
 }
 
 export interface CvDraftVersionSummary {
@@ -83,6 +94,7 @@ export interface CvDraftSummary {
   templateId: string
   created: string
   lastModified: string
+  status?: CvDraftStatus
 }
 
 export interface GetCvDraftsResult {
@@ -180,6 +192,10 @@ export const cvBuilderApi = {
 
   generate: (dto: GenerateCvDraftDto) =>
     http.post<CvDraft>('/api/CvGeneration', dto).then((r) => r.data),
+
+  // Puts a draft whose writing failed back in the queue.
+  retry: (id: number) =>
+    http.post<CvDraft>(`/api/CvGeneration/${id}/retry`).then((r) => r.data),
 
   update: (id: number, dto: UpdateCvDraftDto) =>
     http

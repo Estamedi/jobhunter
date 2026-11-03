@@ -25,6 +25,8 @@ public class ExportCvDraftCommandHandler(
             .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        CvDraftGuard.EnsureCompleted(draft);
+
         var candidate = draft.Candidate;
         var header = new CvHeaderDto(candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation);
         var content = CvDraftContent.Deserialize(draft.ContentJson);

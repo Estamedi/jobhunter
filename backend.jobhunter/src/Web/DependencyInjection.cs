@@ -17,6 +17,11 @@ public static class DependencyInjection
 
         builder.Services.AddHttpContextAccessor();
 
+        // Live CV progress. Long polling is kept under the 60 seconds a reverse proxy waits by default,
+        // so push still works through a proxy that does not forward WebSockets.
+        builder.Services.AddSignalR();
+        builder.Services.AddSingleton<ICvGenerationNotifier, SignalRCvGenerationNotifier>();
+
         builder.Services.AddHttpClient();
 
         builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();

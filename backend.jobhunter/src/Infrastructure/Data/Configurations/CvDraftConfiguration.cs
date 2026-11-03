@@ -1,4 +1,5 @@
 using backend.jobhunter.Domain.Entities;
+using backend.jobhunter.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,6 +19,11 @@ public class CvDraftConfiguration : IEntityTypeConfiguration<CvDraft>
         builder.Property(d => d.TemplateId).HasMaxLength(50).IsRequired();
         builder.Property(d => d.ContentJson).HasColumnType("jsonb").IsRequired();
         builder.Property(d => d.JobRequirementsJson).HasColumnType("jsonb");
+        // Existing drafts are finished ones, so the column defaults to Completed.
+        builder.Property(d => d.Status).HasConversion<string>().HasMaxLength(20).HasDefaultValue(CvDraftStatus.Completed);
+        builder.Property(d => d.GenerationError).HasMaxLength(500);
+        builder.Property(d => d.GenerationNotes).HasMaxLength(20000);
+        builder.Property(d => d.GenerationWarningsJson).HasColumnType("jsonb");
 
         builder.HasOne(d => d.Candidate)
             .WithMany(c => c.CvDrafts)
@@ -34,6 +40,7 @@ public class CvDraftConfiguration : IEntityTypeConfiguration<CvDraft>
             .HasForeignKey(d => d.JobApplicationId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasIndex(d => d.Status);
         builder.HasIndex(d => d.CandidateId);
         builder.HasIndex(d => d.SourceCvId);
         builder.HasIndex(d => d.JobApplicationId);

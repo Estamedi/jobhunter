@@ -1,8 +1,11 @@
-﻿using backend.jobhunter.Application.Common.Interfaces;
+﻿using backend.jobhunter.Application.Common;
+using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.CvDrafts;
 using backend.jobhunter.Infrastructure.AiCommon;
 using backend.jobhunter.Infrastructure.AiCvGeneration;
 using backend.jobhunter.Infrastructure.AiProfileImport;
 using backend.jobhunter.Infrastructure.AiExtraction;
+using backend.jobhunter.Infrastructure.CvGeneration;
 using backend.jobhunter.Infrastructure.CvImport;
 using backend.jobhunter.Infrastructure.CvRendering;
 using backend.jobhunter.Infrastructure.Data;
@@ -50,6 +53,17 @@ public static class DependencyInjection
                 // token must live as long as the cookie or users are signed out after the default hour.
                 options.BearerTokenExpiration = TimeSpan.FromDays(7);
                 options.RefreshTokenExpiration = TimeSpan.FromDays(14);
+
+                // Browsers cannot set headers on a WebSocket, so the live-update hub sends the token in the query string.
+                options.Events.OnMessageReceived = context =>
+                {
+                    var token = context.Request.Query["access_token"];
+                    if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = token;
+                    }
+                    return Task.CompletedTask;
+                };
             });
 
         builder.Services.AddAuthorizationBuilder();
@@ -101,6 +115,12 @@ public static class DependencyInjection
                 sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<CvUploadWorker>>()));
         }
+
+        builder.Services.AddSingleton<CvGenerationSignal>();
+        builder.Services.AddSingleton<ICvGenerationSignal>(sp => sp.GetRequiredService<CvGenerationSignal>());
+        builder.Services.AddScoped<UserOverride>();
+        builder.Services.AddScoped<CvDraftGenerationService>();
+        builder.Services.AddHostedService<CvGenerationWorker>();
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();

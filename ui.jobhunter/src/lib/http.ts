@@ -8,12 +8,15 @@ export const http = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-http.interceptors.request.use((config) => {
+// The signed-in user's access token, or an empty string when there is none.
+export function getAccessToken(): string {
   const raw = getCookie(ACCESS_TOKEN)
-  if (raw) {
-    const token = JSON.parse(raw) as string
-    if (token) config.headers.Authorization = `Bearer ${token}`
-  }
+  return raw ? (JSON.parse(raw) as string) || '' : ''
+}
+
+http.interceptors.request.use((config) => {
+  const token = getAccessToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 

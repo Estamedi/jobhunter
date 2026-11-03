@@ -22,6 +22,8 @@ public class UpdateCvDraftCommandHandler(IApplicationDbContext context)
         var draft = await context.CvDrafts.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        CvDraftGuard.EnsureCompleted(draft);
+
         var newContentJson = CvDraftContent.Serialize(request.Content);
         var previous = await CvVersioning.SnapshotAsync(
             context, draft, newContentJson, "Before editing by hand", cancellationToken);

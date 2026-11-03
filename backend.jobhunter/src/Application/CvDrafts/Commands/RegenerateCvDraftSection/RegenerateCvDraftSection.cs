@@ -39,6 +39,8 @@ public class RegenerateCvDraftSectionCommandHandler(
         var draft = await context.CvDrafts.FindAsync([request.Id], cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        CvDraftGuard.EnsureCompleted(draft);
+
         var section = request.Section.ToLowerInvariant();
         var current = CvDraftContent.Deserialize(draft.ContentJson);
 

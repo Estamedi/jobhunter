@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -40,8 +40,10 @@ import { jobRolesApi } from '@/features/job-roles/api'
 import { profileApi } from '@/features/profile/api'
 import {
   cvBuilderApi,
+  isWriting,
   type CvContent,
   type CvDraft,
+  type CvDraftStatus,
   type CvDraftSummary,
   type CvScoreLocation,
   type CvSection,
@@ -53,6 +55,11 @@ import { ReviewPanel } from './components/review-panel'
 import { SectionEditor } from './components/section-editor'
 import { VersionHistoryDialog } from './components/version-history-dialog'
 import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
+import {
+  finishedEvent,
+  listPollInterval,
+  pollInterval,
+} from './lib/draft-status'
 import { serverDetail } from './lib/error-message'
 import {
   buildFixInstruction,
@@ -61,6 +68,7 @@ import {
   type FixIssue,
 } from './lib/fix-issues'
 import { jobPostingText } from './lib/job-text'
+import { useCvGenerationHub } from './lib/use-cv-hub'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
 
@@ -406,13 +414,24 @@ export function CvBuilder({
     queryFn: () =>
       cvBuilderApi.list({ candidateId: candidate?.id, pageSize: 50 }),
     enabled: !!candidate,
+    refetchInterval: (query) => listPollInterval(query.state.data?.items),
   })
 
+  // While a draft is being written the page asks again every few seconds. The live hub below only makes
+  // that faster, so the page works even when the hub cannot connect.
   const { data: draft, isLoading: draftLoading } = useQuery({
     queryKey: ['cv-draft', selectedId],
     queryFn: () => cvBuilderApi.get(selectedId!),
     enabled: selectedId !== null,
+    refetchInterval: (query) => pollInterval(query.state.data?.status),
   })
+
+  // A draft with no status comes from an older server and is a finished one.
+  const draftStatus: CvDraftStatus | undefined = draft
+    ? (draft.status ?? 'Completed')
+    : undefined
+  const writing = isWriting(draftStatus)
+  const ready = draftStatus === 'Completed'
 
   const applyDraft = (updated: CvDraft) => {
     qc.setQueryData(['cv-draft', updated.id], updated)
@@ -433,20 +452,66 @@ export function CvBuilder({
         language: data.language || undefined,
         languageLevel: data.languageLevel,
       }),
+    // The server only queues the draft and answers at once; it is written in the background.
     onSuccess: (created) => {
       applyDraft(created)
       setSelectedId(created.id)
       setEditing(false)
       setShowForm(false)
-      toast.success('CV generated')
-      showWarnings(created.warnings)
+      toast.info('Your CV is being written', {
+        description:
+          'It appears here when it is ready. You can leave this page.',
+      })
     },
     onError: (error) =>
       toast.error(serverDetail(error, 'Failed to generate CV')),
   })
 
-  // Writes one CV per wishlist job that has a posting and no draft yet, one after another so a
-  // slow or failing job does not hold up or break the others.
+  const retry = useMutation({
+    mutationFn: (id: number) => cvBuilderApi.retry(id),
+    onSuccess: (updated) => {
+      applyDraft(updated)
+      toast.info('Trying again')
+    },
+    onError: (error) => toast.error(serverDetail(error, 'Failed to try again')),
+  })
+
+  // Says so once when a draft that was being written finishes, whether the page noticed by polling or
+  // from the live hub. A draft opened already finished stays quiet.
+  const lastStatus = useRef(new Map<number, CvDraftStatus>())
+  useEffect(() => {
+    if (!draft || !draftStatus) return
+    const event = finishedEvent(lastStatus.current.get(draft.id), draftStatus)
+    lastStatus.current.set(draft.id, draftStatus)
+    if (event) qc.invalidateQueries({ queryKey: ['cv-drafts'] })
+    if (event === 'ready') {
+      toast.success('CV ready')
+      showWarnings(draft.warnings)
+    } else if (event === 'failed') {
+      toast.error(draft.error ?? 'The CV could not be written')
+    }
+  }, [draft, draftStatus, qc])
+
+  // A push from the server: read the draft again. A draft the user is not looking at gets a toast
+  // with a way to open it.
+  useCvGenerationHub((event) => {
+    qc.invalidateQueries({ queryKey: ['cv-draft', event.draftId] })
+    qc.invalidateQueries({ queryKey: ['cv-drafts'] })
+    if (event.draftId !== selectedId && event.status === 'Completed') {
+      toast.success('A CV is ready', {
+        action: {
+          label: 'Open',
+          onClick: () => {
+            setSelectedId(event.draftId)
+            setEditing(false)
+          },
+        },
+      })
+    }
+  })
+
+  // Queues one CV per wishlist job that has a posting and no draft yet. The server writes them in the
+  // background, one after another, so a slow or failing job does not hold up or break the others.
   const generateAll = useMutation({
     mutationFn: async () => {
       const existing = new Set(
@@ -483,10 +548,10 @@ export function CvBuilder({
       return result
     },
     onSuccess: (r) => {
-      if (r.failed === 0) toast.success(`Wrote ${r.total} CVs`)
-      else toast.warning(`Wrote ${r.total - r.failed} of ${r.total} CVs`)
+      if (r.failed === 0) toast.success(`Queued ${r.total} CVs`)
+      else toast.warning(`Queued ${r.total - r.failed} of ${r.total} CVs`)
     },
-    onError: () => toast.error('Failed to write the CVs'),
+    onError: () => toast.error('Failed to queue the CVs'),
   })
 
   // Every hand edit, refine and restore saves the content it replaced; Undo puts exactly that back.
@@ -551,7 +616,7 @@ export function CvBuilder({
   const scoreData = useQuery({
     queryKey: ['cv-draft-score', draft?.id, draft?.lastModified],
     queryFn: () => cvBuilderApi.score(draft!.id),
-    enabled: !!draft,
+    enabled: !!draft && ready,
     retry: false,
   })
 
@@ -675,7 +740,7 @@ export function CvBuilder({
 
   // Beside the CV on wide screens so the lines it points at stay in view; under the CV on narrow ones.
   const review =
-    draft && candidate && !editing ? (
+    draft && candidate && ready && !editing ? (
       <ReviewPanel
         draftId={draft.id}
         lastModified={draft.lastModified}
@@ -731,7 +796,11 @@ export function CvBuilder({
                 >
                   <div className='truncate'>{d.title}</div>
                   <div className='text-xs text-muted-foreground'>
-                    {format(new Date(d.lastModified), 'MMM d, yyyy')}
+                    {isWriting(d.status)
+                      ? 'Writing…'
+                      : d.status === 'Failed'
+                        ? 'Failed, open to try again'
+                        : format(new Date(d.lastModified), 'MMM d, yyyy')}
                   </div>
                 </button>
               </li>
@@ -774,7 +843,42 @@ export function CvBuilder({
       </div>
 
       <div className='min-w-0'>
-        {generate.isPending && <GeneratingPanel />}
+        {(generate.isPending || writing) && (
+          <GeneratingPanel
+            key={writing ? draft?.id : 'new'}
+            since={writing ? draft?.created : undefined}
+          />
+        )}
+        {draft && draftStatus === 'Failed' && !generate.isPending && (
+          <div
+            role='alert'
+            className='space-y-3 rounded-md border border-destructive/40 p-6'
+          >
+            <p className='font-semibold'>This CV could not be written</p>
+            <p className='text-sm text-muted-foreground'>
+              {draft.error ?? 'Something went wrong while writing it.'}
+            </p>
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                onClick={() => retry.mutate(draft.id)}
+                disabled={retry.isPending}
+              >
+                {retry.isPending && (
+                  <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                )}
+                Try again
+              </Button>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={() => setDeleting(draft)}
+              >
+                <Trash2 className='mr-1 h-4 w-4' /> Delete
+              </Button>
+            </div>
+          </div>
+        )}
         {!generate.isPending && selectedId === null && (
           <div className='flex h-64 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground'>
             Generate a CV or pick a draft to see it here.
@@ -783,7 +887,7 @@ export function CvBuilder({
         {!generate.isPending && selectedId !== null && draftLoading && (
           <Skeleton className='h-96 w-full' />
         )}
-        {!generate.isPending && draft && candidate && (
+        {!generate.isPending && draft && candidate && ready && (
           <div className='space-y-3'>
             <div className='flex flex-wrap items-center justify-between gap-2'>
               <div>

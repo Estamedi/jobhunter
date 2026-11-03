@@ -1,3 +1,5 @@
+using backend.jobhunter.Domain.Enums;
+
 namespace backend.jobhunter.Domain.Entities;
 
 public class CvDraft : OwnedEntity
@@ -19,6 +21,16 @@ public class CvDraft : OwnedEntity
     // description never changes after the draft is made, so this cannot go stale.
     public string? JobRequirementsJson { get; set; }
     public string TemplateId { get; set; } = "classic";
+
+    public CvDraftStatus Status { get; set; } = CvDraftStatus.Completed;
+    // Why the last attempt failed, in words the user can read.
+    public string? GenerationError { get; set; }
+    // Notes the user typed in the form. Only the request has them, so the worker needs them stored.
+    public string? GenerationNotes { get; set; }
+    // Warnings found while writing (cut-off text, unlinked entries, copied sentences...), as a JSON list.
+    public string? GenerationWarningsJson { get; set; }
+    // How many times the worker started on this draft; a restart mid-write retries once.
+    public int GenerationAttempts { get; set; }
 
     public Candidate Candidate { get; set; } = null!;
     public Cv? SourceCv { get; set; }

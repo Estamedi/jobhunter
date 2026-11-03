@@ -17,6 +17,8 @@ public class GetCvDraftScoreQueryHandler(IApplicationDbContext context)
             .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(CvDraft), request.Id);
 
+        CvDraftGuard.EnsureCompleted(draft);
+
         return CvScorer.Score(CvDraftContent.Deserialize(draft.ContentJson));
     }
 }

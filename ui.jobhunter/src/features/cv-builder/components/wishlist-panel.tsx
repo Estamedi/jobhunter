@@ -51,7 +51,7 @@ export function WishlistPanel({
               <Sparkles className='mr-1 h-4 w-4' />
             )}
             {isGenerating && progress
-              ? `Writing ${progress.done + 1} of ${progress.total}…`
+              ? `Queuing ${progress.done + 1} of ${progress.total}…`
               : `Write all (${pending.length})`}
           </Button>
         )}
@@ -111,10 +111,10 @@ export function WishlistPanel({
 
       {progress && !isGenerating && (
         <p className='mt-3 text-xs text-muted-foreground'>
-          Wrote {progress.done - progress.failed} of {progress.total} CVs
+          Queued {progress.done - progress.failed} of {progress.total} CVs. They
+          are written one after another; see Your drafts.
           {progress.failed > 0 &&
-            ` (${progress.failed} failed, try them one by one)`}
-          .
+            ` ${progress.failed} could not be queued, try them one by one.`}
         </p>
       )}
     </div>

@@ -87,3 +87,7 @@ All package versions are centrally managed in `Directory.Packages.props`. Do not
 ## Live CV test (real AI)
 
 `tests/Application.UnitTests/Live/LiveCvGenerationTests.cs` runs the whole CV process on a real LinkedIn PDF with the real AI (`Explicit`, so it never runs by default). It costs money and takes about 2 minutes per job. Run it only after very big CV-pipeline changes (new prompt, model, schema, or generation flow), not after every change. Needs `CV_LIVE_OPENAI_KEY`; optional `CV_LIVE_PROFILE_PDF` and `CV_LIVE_OUT_DIR`. Run with `--filter "FullyQualifiedName~LiveCvGeneration"`.
+
+## CV drafts are written in the background
+
+`POST /api/CvGeneration` only queues a `CvDraft` (status Pending). `CvGenerationWorker` (Infrastructure/CvGeneration) writes it with `CvDraftGenerationService`, running as the draft's owner through `UserOverride` because there is no HTTP request. The owner is told over the SignalR hub `/hubs/cv-generation` through `ICvGenerationNotifier`; the UI also polls, so the hub is only a speed-up. Edit, export, regenerate, match, score and restore refuse a draft that is not Completed (`CvDraftGuard`). Functional tests replace the AI with `FakeCvAi` and still run the real worker and hub.

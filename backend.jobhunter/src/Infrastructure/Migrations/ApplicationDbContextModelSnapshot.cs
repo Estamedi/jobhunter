@@ -459,6 +459,20 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("GenerationAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("GenerationError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("GenerationNotes")
+                        .HasMaxLength(20000)
+                        .HasColumnType("character varying(20000)");
+
+                    b.Property<string>("GenerationWarningsJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("Instructions")
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");
@@ -498,6 +512,13 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<int?>("SourceCvId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Completed");
+
                     b.Property<string>("TemplateId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -519,6 +540,8 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.HasIndex("JobApplicationId");
 
                     b.HasIndex("SourceCvId");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("CvDrafts");
                 });
