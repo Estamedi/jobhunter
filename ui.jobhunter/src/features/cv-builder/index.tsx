@@ -68,6 +68,7 @@ import {
   type FixIssue,
 } from './lib/fix-issues'
 import { jobPostingText } from './lib/job-text'
+import { profileGaps, type ProfileGap } from './lib/profile-check'
 import { useCvGenerationHub } from './lib/use-cv-hub'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
@@ -147,11 +148,13 @@ function GenerateForm({
   isPending,
   initial,
   profileRoles,
+  gaps,
   cvs,
   onSubmit,
 }: {
   isPending: boolean
   profileRoles: number
+  gaps: ProfileGap[]
   cvs: Cv[]
   initial?: { jobTitle: string; jobDescription: string }
   onSubmit: (data: GenerateFormData) => void
@@ -226,6 +229,18 @@ function GenerateForm({
             </Link>
             , or paste your CV text below.
           </p>
+        )}
+        {gaps.length > 0 && (
+          <ul className='mt-2 list-disc space-y-0.5 pl-5 text-muted-foreground'>
+            {gaps.map((g) => (
+              <li key={g.id}>
+                {g.message}{' '}
+                <Link to='/profile' className='underline'>
+                  Add it to your profile
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
       <div className='space-y-1'>
@@ -829,6 +844,12 @@ export function CvBuilder({
                 key={`${applicationId}-${jobRoleId}`}
                 initial={prefill}
                 profileRoles={profile?.experiences.length ?? 0}
+                gaps={profileGaps({
+                  skills: profile?.skills.length ?? 0,
+                  email: candidate?.email,
+                  phone: candidate?.phone,
+                  location: candidate?.currentLocation,
+                })}
                 cvs={cvsResult?.items ?? []}
                 isPending={generate.isPending || !candidate}
                 onSubmit={(d) => generate.mutate(d)}

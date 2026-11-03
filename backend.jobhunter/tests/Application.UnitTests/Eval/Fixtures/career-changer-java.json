@@ -1,0 +1,130 @@
+{
+  "name": "career-changer-java",
+  "header": {
+    "fullName": "Alex Example",
+    "email": "alex@example.test",
+    "phone": "+000 0000 0000",
+    "location": "Testville"
+  },
+  "job": {
+    "title": "Java Backend Engineer",
+    "description": "We need a Java Backend Engineer to build services with Java and Spring Boot, work with SQL databases, and write unit tests. Kotlin experience is a plus. You will join a team that values clean code."
+  },
+  "profile": {
+    "summary": "C# developer with 8 years of experience in line-of-business systems.",
+    "experiences": [
+      {
+        "title": "Senior Developer",
+        "company": "Acme Logistics",
+        "start": "2021-02",
+        "end": null,
+        "location": "Testville",
+        "bullets": [
+          "Built the shipment tracking API in C# and ASP.NET Core used by 12 depots.",
+          "Wrote xUnit tests that raised coverage from 30% to 75%.",
+          "Moved reports from stored procedures to EF Core queries."
+        ]
+      },
+      {
+        "title": "Developer",
+        "company": "Acme Logistics",
+        "start": "2018-03",
+        "end": "2021-01",
+        "location": "Testville",
+        "bullets": [
+          "Developed warehouse screens in C# and WPF.",
+          "Fixed 90 production bugs."
+        ]
+      },
+      {
+        "title": "Junior Developer",
+        "company": "Bright Software",
+        "start": "2016-06",
+        "end": "2018-02",
+        "location": "Testville",
+        "bullets": [
+          "Built SQL reports for finance.",
+          "Wrote small C# utilities."
+        ]
+      }
+    ],
+    "educations": [
+      {
+        "institution": "Example State University",
+        "degree": "BSc",
+        "field": "Computer Science",
+        "start": "2012",
+        "end": "2016"
+      }
+    ],
+    "skills": [
+      {
+        "name": "C#",
+        "category": "Backend",
+        "level": "Worked"
+      },
+      {
+        "name": "SQL",
+        "category": "Data",
+        "level": "Worked"
+      },
+      {
+        "name": "xUnit",
+        "category": "Testing",
+        "level": "Worked"
+      },
+      {
+        "name": "Java",
+        "category": "Backend",
+        "level": "Claimed",
+        "note": "comfortable writing Java services after months of pairing with AI tools"
+      },
+      {
+        "name": "Kotlin",
+        "category": "Backend",
+        "level": "Project",
+        "note": "built an Android habit tracker as a personal project"
+      }
+    ]
+  },
+  "expect": {
+    "mustHave": [
+      {
+        "name": "Java",
+        "aliases": []
+      },
+      {
+        "name": "Spring Boot",
+        "aliases": [
+          "Spring"
+        ]
+      },
+      {
+        "name": "SQL",
+        "aliases": []
+      },
+      {
+        "name": "Unit testing",
+        "aliases": [
+          "unit tests",
+          "xUnit"
+        ]
+      }
+    ],
+    "niceToHave": [
+      {
+        "name": "Kotlin",
+        "aliases": []
+      }
+    ],
+    "forbidInText": [],
+    "forbidInBullets": [
+      "Kotlin",
+      "Spring Boot"
+    ],
+    "requireInText": [
+      "Acme Logistics"
+    ],
+    "forbidPairs": []
+  }
+}

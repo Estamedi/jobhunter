@@ -33,28 +33,16 @@ public class CvDraftGenerationService(
             context, draft.CandidateId, draft.GenerationNotes, sourceCvText, cancellationToken);
         warnings.AddRange(background.Warnings);
 
-        var generationRequest = new CvGenerationRequest
-        {
-            FullName = candidate.FullName,
-            Email = candidate.Email,
-            Phone = candidate.Phone,
-            Location = candidate.CurrentLocation,
-            JobTitle = draft.JobTitle,
-            JobDescription = draft.JobDescription,
-            Instructions = draft.Instructions,
-            BackgroundText = background.Text,
-            Tone = draft.Tone,
-            Language = draft.Language,
-            LanguageLevel = CvLanguageLevel.Normalize(draft.LanguageLevel),
-            TargetPages = CvLengthGuide.TargetPages(background.Profile, DateOnly.FromDateTime(DateTime.UtcNow)),
-        };
-
-        var generated = await aiService.GenerateAsync(generationRequest, cancellationToken);
+        var generationRequest = CvGenerationPipeline.BuildRequest(
+            candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation,
+            new CvGenerationInputs(
+                draft.JobTitle, draft.JobDescription, draft.Instructions, draft.Tone, draft.Language, draft.LanguageLevel),
+            background, DateOnly.FromDateTime(DateTime.UtcNow));
 
         // The prompt asks for clean, grounded writing, but the model still slips (vague "-ing" endings,
-        // weak verbs, an employer or figure that is not in the background). Check the first draft and,
-        // when a check fails, ask once more with the exact problems.
-        var chosen = await CvDraftImprover.ImproveAsync(aiService, generationRequest, generated, background, cancellationToken);
+        // weak verbs, an employer or figure that is not in the background). The pipeline checks the first
+        // draft and, when a check fails, asks once more with the exact problems.
+        var chosen = await CvGenerationPipeline.RunAsync(aiService, generationRequest, background, cancellationToken);
         warnings.AddRange(chosen.Warnings);
 
         draft.ContentJson = CvDraftContent.Serialize(chosen.Cv);

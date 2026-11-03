@@ -1,0 +1,91 @@
+{
+  "name": "attribution-two-projects",
+  "header": {
+    "fullName": "Alex Example",
+    "email": "alex@example.test",
+    "phone": "+000 0000 0000",
+    "location": "Testville"
+  },
+  "job": {
+    "title": "AI Engineer",
+    "description": "We are looking for an AI Engineer to build chatbots and document-processing workflows. You will integrate LLM APIs, evaluate output quality, and ship reliable services. Strong backend skills and API design are required."
+  },
+  "profile": {
+    "summary": "Backend engineer working on public-sector platforms.",
+    "experiences": [
+      {
+        "title": "Full Stack Developer",
+        "company": "Orbit Digital",
+        "start": "2023-01",
+        "end": null,
+        "location": "Testville",
+        "bullets": [
+          "Delivered the citizen support chatbot for a government agency using a rule-based dialogue engine, with no language model involved.",
+          "Built an invoice document processing service that sends scanned invoices to the OpenAI API and stores the extracted fields.",
+          "Designed REST APIs for both projects in C#."
+        ]
+      }
+    ],
+    "educations": [
+      {
+        "institution": "Example State University",
+        "degree": "BSc",
+        "field": "Software Engineering",
+        "start": "2015",
+        "end": "2019"
+      }
+    ],
+    "skills": [
+      {
+        "name": "C#",
+        "category": "Backend"
+      },
+      {
+        "name": "REST APIs",
+        "category": "Backend"
+      },
+      {
+        "name": "OpenAI API",
+        "category": "AI"
+      },
+      {
+        "name": "Chatbots",
+        "category": "AI"
+      }
+    ]
+  },
+  "expect": {
+    "mustHave": [
+      {
+        "name": "LLM APIs",
+        "aliases": [
+          "OpenAI API",
+          "OpenAI"
+        ]
+      },
+      {
+        "name": "Chatbots",
+        "aliases": [
+          "chatbot"
+        ]
+      },
+      {
+        "name": "API design",
+        "aliases": [
+          "REST APIs"
+        ]
+      }
+    ],
+    "niceToHave": [],
+    "forbidInText": [],
+    "requireInText": [
+      "Orbit Digital"
+    ],
+    "forbidPairs": [
+      [
+        "chatbot",
+        "OpenAI"
+      ]
+    ]
+  }
+}

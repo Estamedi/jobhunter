@@ -1,0 +1,131 @@
+{
+  "name": "learning-skill-gap",
+  "header": {
+    "fullName": "Alex Example",
+    "email": "alex@example.test",
+    "phone": "+000 0000 0000",
+    "location": "Testville"
+  },
+  "job": {
+    "title": "DevOps Engineer",
+    "description": "We are hiring a DevOps Engineer. You will manage infrastructure as code with Terraform, automate servers with Ansible, build CI/CD pipelines, and run workloads on Kubernetes. Monitoring with Prometheus and Grafana is expected."
+  },
+  "profile": {
+    "summary": "Engineer who moved from development into operations.",
+    "experiences": [
+      {
+        "title": "DevOps Engineer",
+        "company": "Globex Hosting",
+        "start": "2022-01",
+        "end": null,
+        "location": "Testville",
+        "bullets": [
+          "Wrote Terraform modules for 3 environments, which cut provisioning from 2 days to 2 hours.",
+          "Automated patching of 60 servers with Ansible.",
+          "Set up Prometheus and Grafana dashboards for 25 services.",
+          "Built GitLab CI pipelines for 10 repositories."
+        ]
+      },
+      {
+        "title": "Systems Administrator",
+        "company": "Globex Hosting",
+        "start": "2018-05",
+        "end": "2021-12",
+        "location": "Testville",
+        "bullets": [
+          "Managed 80 Linux servers.",
+          "Wrote Bash scripts for backups and log rotation."
+        ]
+      }
+    ],
+    "educations": [
+      {
+        "institution": "Example State University",
+        "degree": "BSc",
+        "field": "Information Technology",
+        "start": "2014",
+        "end": "2018"
+      }
+    ],
+    "skills": [
+      {
+        "name": "Terraform",
+        "category": "DevOps",
+        "level": "Worked"
+      },
+      {
+        "name": "Ansible",
+        "category": "DevOps",
+        "level": "Worked"
+      },
+      {
+        "name": "Prometheus",
+        "category": "Monitoring",
+        "level": "Worked"
+      },
+      {
+        "name": "Grafana",
+        "category": "Monitoring",
+        "level": "Worked"
+      },
+      {
+        "name": "GitLab CI",
+        "category": "DevOps",
+        "level": "Worked"
+      },
+      {
+        "name": "Linux",
+        "category": "Systems",
+        "level": "Worked"
+      },
+      {
+        "name": "Kubernetes",
+        "category": "DevOps",
+        "level": "Learning",
+        "note": "working through a Kubernetes course on my own"
+      }
+    ]
+  },
+  "expect": {
+    "mustHave": [
+      {
+        "name": "Terraform",
+        "aliases": []
+      },
+      {
+        "name": "Ansible",
+        "aliases": []
+      },
+      {
+        "name": "CI/CD",
+        "aliases": [
+          "pipelines",
+          "GitLab CI"
+        ]
+      },
+      {
+        "name": "Kubernetes",
+        "aliases": [
+          "K8s"
+        ]
+      }
+    ],
+    "niceToHave": [
+      {
+        "name": "Prometheus",
+        "aliases": []
+      },
+      {
+        "name": "Grafana",
+        "aliases": []
+      }
+    ],
+    "forbidInText": [
+      "Kubernetes"
+    ],
+    "requireInText": [
+      "Globex Hosting"
+    ],
+    "forbidPairs": []
+  }
+}

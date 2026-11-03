@@ -1,0 +1,111 @@
+{
+  "name": "copyable-long-job",
+  "header": {
+    "fullName": "Alex Example",
+    "email": "alex@example.test",
+    "phone": "+000 0000 0000",
+    "location": "Testville"
+  },
+  "job": {
+    "title": "Data Platform Engineer",
+    "description": "As a Data Platform Engineer you will design, build and operate the pipelines that move data from our product databases into the warehouse. You will own the reliability of these pipelines and respond to incidents when data arrives late or wrong. You will work closely with analysts to understand what they need and turn those needs into tested, documented datasets. We value engineers who automate repetitive work, who write clear documentation, and who share what they learn with the team. You will use Python, SQL and Airflow every day, and you will help us improve how we monitor data quality across the platform."
+  },
+  "profile": {
+    "summary": "Engineer focused on reporting and data work.",
+    "experiences": [
+      {
+        "title": "Data Engineer",
+        "company": "Initech Analytics",
+        "start": "2021-04",
+        "end": null,
+        "location": "Testville",
+        "bullets": [
+          "Built 18 Airflow pipelines loading product data into the warehouse.",
+          "Wrote SQL models and tests for 60 datasets used by analysts.",
+          "Added data quality checks that caught late loads within 15 minutes.",
+          "Documented every pipeline in the team wiki."
+        ]
+      },
+      {
+        "title": "BI Developer",
+        "company": "Initech Analytics",
+        "start": "2018-08",
+        "end": "2021-03",
+        "location": "Testville",
+        "bullets": [
+          "Created 25 dashboards for sales and finance.",
+          "Automated the weekly sales report with Python, saving 6 hours a week."
+        ]
+      },
+      {
+        "title": "Analyst",
+        "company": "Umbrella Retail",
+        "start": "2016-07",
+        "end": "2018-07",
+        "location": "Testville",
+        "bullets": [
+          "Prepared monthly reports in Excel and SQL."
+        ]
+      }
+    ],
+    "educations": [
+      {
+        "institution": "Example State University",
+        "degree": "BSc",
+        "field": "Statistics",
+        "start": "2012",
+        "end": "2016"
+      }
+    ],
+    "skills": [
+      {
+        "name": "Python",
+        "category": "Data"
+      },
+      {
+        "name": "SQL",
+        "category": "Data"
+      },
+      {
+        "name": "Airflow",
+        "category": "Data"
+      },
+      {
+        "name": "dbt",
+        "category": "Data"
+      }
+    ]
+  },
+  "expect": {
+    "mustHave": [
+      {
+        "name": "Python",
+        "aliases": []
+      },
+      {
+        "name": "SQL",
+        "aliases": []
+      },
+      {
+        "name": "Airflow",
+        "aliases": []
+      },
+      {
+        "name": "Data pipelines",
+        "aliases": [
+          "pipelines"
+        ]
+      },
+      {
+        "name": "Data quality",
+        "aliases": []
+      }
+    ],
+    "niceToHave": [],
+    "forbidInText": [],
+    "requireInText": [
+      "Initech Analytics"
+    ],
+    "forbidPairs": []
+  }
+}

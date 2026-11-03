@@ -1,0 +1,101 @@
+{
+  "name": "thin-one-role",
+  "header": {
+    "fullName": "Alex Example",
+    "email": "alex@example.test",
+    "phone": "+000 0000 0000",
+    "location": "Testville"
+  },
+  "job": {
+    "title": "Junior Web Developer",
+    "description": "Join our team as a Junior Web Developer. You will build pages with HTML, CSS and JavaScript, use React, and work with a designer. Basic Git knowledge is needed. Experience with AWS or Terraform is not required but useful."
+  },
+  "profile": {
+    "summary": null,
+    "experiences": [
+      {
+        "title": "Web Assistant",
+        "company": "Corner Bakery",
+        "start": "2024-06",
+        "end": "2025-03",
+        "location": "Testville",
+        "bullets": [
+          "Updated the shop website menu pages with HTML and CSS.",
+          "Added an online order form with JavaScript."
+        ]
+      }
+    ],
+    "educations": [
+      {
+        "institution": "Example Community College",
+        "degree": "Diploma",
+        "field": "Web Design",
+        "start": "2022",
+        "end": "2024"
+      }
+    ],
+    "skills": [
+      {
+        "name": "HTML",
+        "category": "Web"
+      },
+      {
+        "name": "CSS",
+        "category": "Web"
+      },
+      {
+        "name": "JavaScript",
+        "category": "Web"
+      },
+      {
+        "name": "Git",
+        "category": "Tools"
+      }
+    ]
+  },
+  "expect": {
+    "mustHave": [
+      {
+        "name": "HTML",
+        "aliases": []
+      },
+      {
+        "name": "CSS",
+        "aliases": []
+      },
+      {
+        "name": "JavaScript",
+        "aliases": [
+          "JS"
+        ]
+      },
+      {
+        "name": "React",
+        "aliases": []
+      },
+      {
+        "name": "Git",
+        "aliases": []
+      }
+    ],
+    "niceToHave": [
+      {
+        "name": "AWS",
+        "aliases": []
+      },
+      {
+        "name": "Terraform",
+        "aliases": []
+      }
+    ],
+    "forbidInText": [
+      "Kubernetes",
+      "Terraform",
+      "AWS"
+    ],
+    "requireInText": [
+      "Corner Bakery"
+    ],
+    "forbidPairs": []
+  }
+}

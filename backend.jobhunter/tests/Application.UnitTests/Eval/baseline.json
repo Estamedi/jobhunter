@@ -1,0 +1,84 @@
+{
+  "model": "gpt-5.5",
+  "promptSha": "35f1f66fade4",
+  "rows": {
+    "attribution-two-projects": {
+      "score": 80,
+      "mustHaveTotal": 3,
+      "mustHaveInText": 3,
+      "mustHaveSkillsOnly": 0,
+      "headlineHasJobTitle": true,
+      "skillCount": 6,
+      "averageBullets": 3,
+      "words": 111,
+      "targetWords": 450,
+      "groundingIssues": 0,
+      "copiedRuns": 0
+    },
+    "career-changer-java": {
+      "score": 89,
+      "mustHaveTotal": 4,
+      "mustHaveInText": 4,
+      "mustHaveSkillsOnly": 0,
+      "headlineHasJobTitle": true,
+      "skillCount": 14,
+      "averageBullets": 2.7,
+      "words": 184,
+      "targetWords": 800,
+      "groundingIssues": 0,
+      "copiedRuns": 0
+    },
+    "copyable-long-job": {
+      "score": 100,
+      "mustHaveTotal": 5,
+      "mustHaveInText": 5,
+      "mustHaveSkillsOnly": 0,
+      "headlineHasJobTitle": true,
+      "skillCount": 12,
+      "averageBullets": 2.7,
+      "words": 159,
+      "targetWords": 800,
+      "groundingIssues": 0,
+      "copiedRuns": 0
+    },
+    "learning-skill-gap": {
+      "score": 98,
+      "mustHaveTotal": 4,
+      "mustHaveInText": 3,
+      "mustHaveSkillsOnly": 1,
+      "headlineHasJobTitle": true,
+      "skillCount": 9,
+      "averageBullets": 3.5,
+      "words": 124,
+      "targetWords": 450,
+      "groundingIssues": 0,
+      "copiedRuns": 0
+    },
+    "senior-many-roles": {
+      "score": 96,
+      "mustHaveTotal": 6,
+      "mustHaveInText": 5,
+      "mustHaveSkillsOnly": 0,
+      "headlineHasJobTitle": true,
+      "skillCount": 14,
+      "averageBullets": 1.6,
+      "words": 286,
+      "targetWords": 800,
+      "groundingIssues": 0,
+      "copiedRuns": 0
+    },
+    "thin-one-role": {
+      "score": 80,
+      "mustHaveTotal": 5,
+      "mustHaveInText": 4,
+      "mustHaveSkillsOnly": 0,
+      "headlineHasJobTitle": true,
+      "skillCount": 4,
+      "averageBullets": 3,
+      "words": 69,
+      "targetWords": 450,
+      "groundingIssues": 0,
+      "copiedRuns": 0
+    }
+  }
+}

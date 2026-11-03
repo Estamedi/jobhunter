@@ -10,6 +10,7 @@ import {
   type CvExperience,
   type CvSection,
 } from '../api'
+import { bulletLineHints } from '../lib/bullet-hints'
 import {
   lines,
   projectsToText,
@@ -192,6 +193,14 @@ export function SectionEditor({
                 value={job.bulletsText}
                 onChange={(e) => patchJob(i, { bulletsText: e.target.value })}
               />
+              {bulletLineHints(job.bulletsText).map((h) => (
+                <p
+                  key={h.line}
+                  className='text-xs text-amber-700 dark:text-amber-400'
+                >
+                  Line {h.line}: {h.hints.join('; ')}
+                </p>
+              ))}
             </div>
           ))}
           <Button

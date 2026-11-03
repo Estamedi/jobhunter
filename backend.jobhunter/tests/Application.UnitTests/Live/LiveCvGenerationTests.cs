@@ -40,11 +40,13 @@ public class LiveCvGenerationTests
 
     private static void Step(string text) => TestContext.Progress.WriteLine($"[live-cv] {text}");
 
-    private static (AiCvGenerationService Cv, AiProfileImportService Import) Services(string key)
+    internal const string Model = "gpt-5.5";
+
+    internal static (AiCvGenerationService Cv, AiProfileImportService Import) Services(string key)
     {
         var factory = new Mock<IHttpClientFactory>();
         factory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient { Timeout = TimeSpan.FromMinutes(5) });
-        var options = new AiExtractionOptions { PreferredProvider = "OpenAI", OpenAiApiKey = key, OpenAiCvModel = "gpt-5.5" };
+        var options = new AiExtractionOptions { PreferredProvider = "OpenAI", OpenAiApiKey = key, OpenAiCvModel = Model };
         var client = new AiJsonClient(
             factory.Object, Options.Create(options), NullLogger<AiJsonClient>.Instance,
             new LangfuseTelemetry(Options.Create(new LangfuseOptions())));
@@ -134,13 +136,9 @@ public class LiveCvGenerationTests
         Step($"    background is {background.Text?.Length ?? 0} characters, {background.Warnings.Count} warning(s)");
 
         // 5. Generate for the target job.
-        var request = new CvGenerationRequest
-        {
-            FullName = "Saber Motamedi", Email = "sabermotamed@gmail.com", Phone = "+968 9221 8568", Location = "Muscat, Oman",
-            JobTitle = title, JobDescription = description, BackgroundText = background.Text,
-            LanguageLevel = CvLanguageLevel.Normalize(null),
-            TargetPages = CvLengthGuide.TargetPages(profile, DateOnly.FromDateTime(DateTime.UtcNow)),
-        };
+        var request = CvGenerationPipeline.BuildRequest(
+            "Saber Motamedi", "sabermotamed@gmail.com", "+968 9221 8568", "Muscat, Oman",
+            new CvGenerationInputs(title, description), background, DateOnly.FromDateTime(DateTime.UtcNow));
         Step($"5/7 AI generation for \"{title}\" (target {request.TargetPages} page(s))");
         var first = await cvAi.GenerateAsync(request, default);
         File.WriteAllText(Path.Combine(outDir, "04-first-draft.json"), CvDraftContent.Serialize(first));

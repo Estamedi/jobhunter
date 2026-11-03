@@ -17,8 +17,8 @@ Farsi CVs (section 8 and task 9.10 of the source file) are out of scope for now.
 | E3 | ATS-friendliness | P1 (4.1 is P0) | 7 | 4 |
 | E4 | Prompt and logic | P1 | 8 | 2 |
 | E5 | Achievement discovery and user-claimed skills | P1 | 11 | 11 |
-| E6 | User experience | P1 | 8 | 3 |
-| E7 | Quality evaluation | P1 | 3 | 7 |
+| E6 ✅ | User experience | P1 | 8 | 3 |
+| E7 ✅ | Quality evaluation | P1 | 3 | 7 |
 | E8 | Business rules | P1 and P2 | 5 | 6 |
 | E9 | Professional look | P2 | 4 | 5 |
 | E10 | AI chat via LibreChat (achievement interview) | P1 | 9 | new (L.x) |
@@ -74,10 +74,10 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 9.5 Order bullets by relevance inside each role
 - ✅ 9.6 Use the job's own wording (checked on a live run: the job's own wording is kept and no acronyms were spelled out)
 - 🟡 9.7 No copying and no keyword stuffing (copied-sentence check done in code; keyword cap is still a prompt rule; not run on section regenerate)
-- 🟡 9.8 Keywords in context, not only in Skills (match panel done; scoring waits for E7)
+- ✅ 9.8 Keywords in context, not only in Skills (the eval reports must-have keywords in the text and in the skills list only)
 - ✅ 9.9 Gap loop (most important for fit) (note: the rewrite covers the Skills section only)
 - ✅ 9.11 Section order by job type (**P2**)
-- 9.12 Fit score in the evaluation set
+- ✅ 9.12 Fit score in the evaluation set (the eval reports must-have coverage, headline match and copied sentences)
 
 ### E3. ATS-friendliness
 **Goal:** Every exported PDF is read correctly by ATS parsers.
@@ -96,7 +96,7 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 2.1 Use the uploaded CV
 - ✅ 2.2 Length and style guidance
 - 🟡 2.3 Extract the job description first (the extraction runs for the match report only; generation does not use it yet)
-- 🟡 2.4 Select, do not dump (prompt only; live run: the DevOps CV listed 20 skills, the AI Engineer CV 28, so the cap of 20 is not always followed)
+- 🟡 2.4 Select, do not dump (prompt only; live runs: 20 and 28 skills on the real profile, at most 14 on the fixtures, so the cap of 20 is not always followed)
 - 2.5 Respect the language in headings
 - 2.6 Version the prompt (later)
 - 2.7 Tune the model call (later)
@@ -106,9 +106,9 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 **Goal:** Users who cannot describe their work still get strong bullets, and users can list skills they never used at work, with an evidence level they choose.
 
 - ✅ 11.5 `EvidenceLevel` on skills and facts (start here) (on skills only; null means not set)
-- 🟡 11.8 Level-aware wording (background text tested; the two prompt rules are unverified until the next live run)
+- ✅ 11.8 Level-aware wording (checked by the eval: a Project skill never appears in a bullet, and a Learning skill appears only in a "Currently learning" group)
 - ✅ 11.9 Grounding check reads the profile (skills are now checked against the background)
-- 🟡 11.6 "Where did you use it?" field (the note field and the profile page are done and tested; whether the AI writes bullets from the note is prompt-only, unverified until the next live run)
+- ✅ 11.6 "Where did you use it?" field (checked by the eval: the note on a Claimed skill reaches the CV, so the AI writes about it)
 - 11.1 Guided achievement interview
 - 11.3 Estimates allowed
 - 11.2 Role-based question cards
@@ -117,17 +117,24 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - 11.10 `userConfirmed` flag (deferred: every current input is user-entered or a reviewed import, so nothing would store "false". Do it with 11.1 and E10.)
 - 11.11 Growth path (P2 inside the epic)
 
-### E6. User experience
+### E6. User experience ✅
 **Goal:** The user can see, check and edit what the AI produced.
 
-- 3.1 to 3.8 (see section 3 of the source file). Key tasks: 3.1, 3.2 (match and keyword report), 3.3. Later: 3.4, 3.8.
+- ✅ 3.1 Profile completeness check before generating (the form warns about missing experience, skills, email, phone and location, each with a link to the profile; tested helper)
+- ✅ 3.2 Keyword match report (job-fit tests)
+- ✅ 3.3 Undo and diff on regenerate (Undo restores the saved version; the history dialog shows before and after; version tests and `cv-diff` tests)
+- ✅ 3.4 Version history (version functional tests)
+- ✅ 3.5 Edit-time hints (the editor shows hints under each bullet while typing: over 25 words, no number, an unclosed `**`, a weak opener; tested helper)
+- ✅ 3.6 Progress while the AI works (writing panel with steps and elapsed time; checked in code, no test)
+- ✅ 3.7 Entry points ("Tailor CV" on applications and "Generate" on job roles open the builder with the job filled in; checked in code, no test)
+- ✅ 3.8 DOCX export (DOCX renderer test)
 
-### E7. Quality evaluation
+### E7. Quality evaluation ✅
 **Goal:** Prompt and model changes are measured before they ship.
 
-- 7.1 Fixed test profiles and job descriptions
-- 7.2 Automatic scoring
-- 7.3 Run on every prompt or model change
+- ✅ 7.1 Fixed test profiles and job descriptions (six synthetic fixtures in `Eval/Fixtures/`: senior with 11 roles, thin profile, C# to Java career changer, Learning-level skill gap, tool on the wrong project, copyable long job)
+- ✅ 7.2 Automatic scoring (`CvEvalRunTests` prints one table; hard gates are grounding, copied text, ATS round trip and the fixture rules; scoring logic has unit tests)
+- ✅ 7.3 Run on every prompt or model change (compares with `Eval/baseline.json`; run only after very big CV-pipeline changes, as agreed, not on every change)
 
 ### E8. Business rules
 **Goal:** Cost, privacy and reliability under control.

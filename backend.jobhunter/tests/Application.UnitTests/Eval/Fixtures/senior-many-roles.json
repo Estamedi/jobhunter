@@ -1,0 +1,232 @@
+{
+  "name": "senior-many-roles",
+  "header": {
+    "fullName": "Alex Example",
+    "email": "alex@example.test",
+    "phone": "+000 0000 0000",
+    "location": "Testville"
+  },
+  "job": {
+    "title": "Senior Backend Engineer",
+    "description": "We are looking for a Senior Backend Engineer to build payment services in C# and .NET. You will design REST APIs, work with PostgreSQL, ship services in Docker containers, and improve our CI/CD pipelines. Experience with microservices and mentoring other engineers is required. Kafka is a plus."
+  },
+  "profile": {
+    "headline": "Principal engineer, payments",
+    "summary": "Engineer with 15 years of experience building payment and healthcare systems in C# and .NET.",
+    "experiences": [
+      {
+        "title": "Principal Engineer",
+        "company": "Northwind Payments",
+        "start": "2022-03",
+        "end": null,
+        "location": "Testville",
+        "bullets": [
+          "Led the redesign of the card authorisation service in C# and .NET 8, cutting p95 latency from 420 ms to 180 ms.",
+          "Introduced contract tests across 14 microservices, which reduced production incidents by 35%.",
+          "Mentored 6 engineers and ran the weekly architecture review.",
+          "Moved the build pipeline to GitHub Actions, taking deploys from 40 minutes to 12."
+        ]
+      },
+      {
+        "title": "Senior Engineer",
+        "company": "Northwind Payments",
+        "start": "2019-06",
+        "end": "2022-02",
+        "location": "Testville",
+        "bullets": [
+          "Built the settlement batch engine processing 2 million transactions a night.",
+          "Replaced a legacy SOAP gateway with REST APIs used by 9 partners.",
+          "Wrote the PostgreSQL partitioning plan that kept reports under 3 seconds."
+        ]
+      },
+      {
+        "title": "Software Engineer",
+        "company": "Contoso Health",
+        "start": "2016-09",
+        "end": "2019-05",
+        "location": "Testville",
+        "bullets": [
+          "Developed the patient scheduling API in C# for 40 clinics.",
+          "Added Docker images for 5 services and a staging environment.",
+          "Cut appointment double-booking errors by 80% with optimistic locking."
+        ]
+      },
+      {
+        "title": "Software Engineer",
+        "company": "Contoso Health",
+        "start": "2015-01",
+        "end": "2016-08",
+        "location": "Testville",
+        "bullets": [
+          "Maintained the HL7 integration layer.",
+          "Fixed 120 defects in the reporting module."
+        ]
+      },
+      {
+        "title": "Developer",
+        "company": "Fabrikam Travel",
+        "start": "2013-04",
+        "end": "2014-12",
+        "location": "Testville",
+        "bullets": [
+          "Built the fare search page in ASP.NET MVC.",
+          "Improved search response time from 5 s to 2 s."
+        ]
+      },
+      {
+        "title": "Developer",
+        "company": "Fabrikam Travel",
+        "start": "2012-02",
+        "end": "2013-03",
+        "location": "Testville",
+        "bullets": [
+          "Wrote SQL Server stored procedures for booking reports."
+        ]
+      },
+      {
+        "title": "Junior Developer",
+        "company": "Adventure Retail",
+        "start": "2011-03",
+        "end": "2012-01",
+        "location": "Testville",
+        "bullets": [
+          "Built internal inventory screens in WinForms.",
+          "Wrote nightly import jobs."
+        ]
+      },
+      {
+        "title": "Junior Developer",
+        "company": "Adventure Retail",
+        "start": "2010-06",
+        "end": "2011-02",
+        "location": "Testville",
+        "bullets": [
+          "Fixed bugs in the order entry system."
+        ]
+      },
+      {
+        "title": "Support Engineer",
+        "company": "Litware Software",
+        "start": "2009-07",
+        "end": "2010-05",
+        "location": "Testville",
+        "bullets": [
+          "Answered 30 customer tickets a day.",
+          "Wrote 15 knowledge base articles."
+        ]
+      },
+      {
+        "title": "Intern",
+        "company": "Litware Software",
+        "start": "2009-01",
+        "end": "2009-06",
+        "location": "Testville",
+        "bullets": [
+          "Tested release builds and logged defects."
+        ]
+      },
+      {
+        "title": "Technician",
+        "company": "City Computers",
+        "start": "2007-06",
+        "end": "2008-12",
+        "location": "Testville",
+        "bullets": [
+          "Repaired and configured desktop computers for small businesses."
+        ]
+      }
+    ],
+    "educations": [
+      {
+        "institution": "Example State University",
+        "degree": "BSc",
+        "field": "Computer Science",
+        "start": "2005",
+        "end": "2009"
+      }
+    ],
+    "skills": [
+      {
+        "name": "C#",
+        "category": "Backend"
+      },
+      {
+        "name": ".NET",
+        "category": "Backend"
+      },
+      {
+        "name": "PostgreSQL",
+        "category": "Data"
+      },
+      {
+        "name": "SQL Server",
+        "category": "Data"
+      },
+      {
+        "name": "Docker",
+        "category": "DevOps"
+      },
+      {
+        "name": "GitHub Actions",
+        "category": "DevOps"
+      },
+      {
+        "name": "REST APIs",
+        "category": "Backend"
+      },
+      {
+        "name": "Microservices",
+        "category": "Architecture"
+      }
+    ]
+  },
+  "expect": {
+    "mustHave": [
+      {
+        "name": "C#",
+        "aliases": [
+          "C-Sharp"
+        ]
+      },
+      {
+        "name": ".NET",
+        "aliases": [
+          "dotnet"
+        ]
+      },
+      {
+        "name": "PostgreSQL",
+        "aliases": [
+          "Postgres"
+        ]
+      },
+      {
+        "name": "Docker",
+        "aliases": []
+      },
+      {
+        "name": "CI/CD",
+        "aliases": [
+          "continuous integration"
+        ]
+      },
+      {
+        "name": "Microservices",
+        "aliases": []
+      }
+    ],
+    "niceToHave": [
+      {
+        "name": "Kafka",
+        "aliases": []
+      }
+    ],
+    "forbidInText": [
+      "Kafka"
+    ],
+    "requireInText": [
+      "Northwind Payments"
+    ],
+    "forbidPairs": []
+  }
+}
