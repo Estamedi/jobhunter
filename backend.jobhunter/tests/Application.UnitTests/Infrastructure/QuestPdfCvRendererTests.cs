@@ -93,4 +93,107 @@ public class QuestPdfCvRendererTests
         // Newest role comes before the older one.
         text.IndexOf("Acme", StringComparison.Ordinal).ShouldBeLessThan(text.IndexOf("Globex", StringComparison.Ordinal));
     }
+
+    private static readonly string[] LongSentences =
+    [
+        "Senior engineer with 13 years of experience delivering production systems across payments, healthcare and government, with a focus on architecture, reliable delivery and clear communication with business owners.",
+    ];
+
+    [Test]
+    public async Task ShouldNotMergeWordsInALongWrappedSummaryNowThatTextIsNotJustified()
+    {
+        var cv = new GeneratedCvDto
+        {
+            Summary = LongSentences[0],
+            Experience = [new CvExperienceDto { Role = "Lead", Company = "Acme", StartDate = "Jan 2025", Bullets = [LongSentences[0]] }],
+        };
+
+        var pdf = new QuestPdfCvRenderer().Render("classic", Header, cv);
+        using var stream = new MemoryStream(pdf);
+        var text = await new CvTextExtractor().ExtractTextAsync(stream, "cv.pdf", default);
+        var collapsed = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
+
+        collapsed.ShouldContain(LongSentences[0]);
+    }
+
+    [Test]
+    public void ShouldPutAuthorSubjectAndKeywordsInThePdfMetadata()
+    {
+        var cv = new GeneratedCvDto
+        {
+            Headline = "DevOps Engineer | Terraform",
+            Skills = [new CvSkillGroupDto { Category = "DevOps", Items = ["**Terraform**", "Ansible", "terraform", "Docker"] }],
+        };
+
+        var metadata = new ClassicCvDocument(Header, cv).GetMetadata();
+
+        metadata.Author.ShouldBe("Jane Sample");
+        metadata.Subject.ShouldBe("DevOps Engineer | Terraform");
+        metadata.Keywords.ShouldBe("Terraform, Ansible, Docker");
+    }
+
+    [Test]
+    public void ShouldCapTheKeywordsAtTwentySkills()
+    {
+        var cv = new GeneratedCvDto
+        {
+            Skills = [new CvSkillGroupDto { Category = "All", Items = Enumerable.Range(1, 30).Select(i => $"Skill{i}").ToList() }],
+        };
+
+        ClassicCvDocument.Keywords(cv).Split(", ").Length.ShouldBe(20);
+    }
+
+    [Test]
+    public async Task ShouldShowTheLinkedInLinkInTheHeaderAndNotRepeatItInAdditionalInformation()
+    {
+        var cv = new GeneratedCvDto
+        {
+            Summary = "Engineer.",
+            Languages = ["English"],
+            Links = ["https://github.com/example", "https://www.linkedin.com/in/example/"],
+        };
+
+        var pdf = new QuestPdfCvRenderer().Render("classic", Header, cv);
+        using var stream = new MemoryStream(pdf);
+        var text = await new CvTextExtractor().ExtractTextAsync(stream, "cv.pdf", default);
+
+        text.IndexOf("linkedin.com/in/example", StringComparison.Ordinal).ShouldBeInRange(0, text.IndexOf("Summary", StringComparison.Ordinal));
+        text.Split("linkedin.com/in/example").Length.ShouldBe(2);
+        text.ShouldContain("github.com/example");
+    }
+
+    [Test]
+    public void ShouldUseTheFirstLinkInTheHeaderWhenThereIsNoLinkedIn()
+    {
+        var cv = new GeneratedCvDto { Links = ["github.com/example", "example.com"] };
+
+        ClassicCvDocument.HeaderLink(cv).ShouldBe("github.com/example");
+        ClassicCvDocument.OtherLinks(cv).ShouldBe(["example.com"]);
+        ClassicCvDocument.LinkUrl("github.com/example").ShouldBe("https://github.com/example");
+        ClassicCvDocument.LinkText("https://github.com/example/").ShouldBe("github.com/example");
+    }
+
+    [Test]
+    public void ShouldWriteDocxPropertiesAndLeaveTextLeftAligned()
+    {
+        var cv = new GeneratedCvDto
+        {
+            Headline = "DevOps Engineer",
+            Summary = LongSentences[0],
+            Skills = [new CvSkillGroupDto { Category = "DevOps", Items = ["Terraform", "Ansible"] }],
+            Experience = [new CvExperienceDto { Role = "Lead", Company = "Acme", Bullets = [LongSentences[0]] }],
+            Links = ["https://www.linkedin.com/in/example/"],
+        };
+
+        var docx = new DocxCvRenderer().Render(Header, cv);
+        using var stream = new MemoryStream(docx);
+        using var document = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+
+        document.PackageProperties.Creator.ShouldBe("Jane Sample");
+        document.PackageProperties.Subject.ShouldBe("DevOps Engineer");
+        document.PackageProperties.Keywords.ShouldBe("Terraform, Ansible");
+        document.MainDocumentPart!.Document!.Body!.Descendants<DocumentFormat.OpenXml.Wordprocessing.Justification>()
+            .ShouldNotContain(j => j.Val!.Value == DocumentFormat.OpenXml.Wordprocessing.JustificationValues.Both);
+        document.MainDocumentPart!.Document!.Body!.InnerText.ShouldContain("linkedin.com/in/example");
+    }
 }

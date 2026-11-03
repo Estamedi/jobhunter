@@ -82,12 +82,12 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 **Goal:** Every exported PDF is read correctly by ATS parsers.
 
 - ✅ 4.1 Round-trip ATS test (**P0**, in E1)
-- 4.2 Standard headings
-- 4.3 Plain contact info
-- 4.4 Embed fonts and set metadata
-- 4.5 Consistent dates
-- 4.6 No decorative bullets or justified text
-- 4.7 Safe file name
+- ✅ 4.2 Standard headings
+- ✅ 4.3 Plain contact info (LinkedIn or the first link now sits in the header)
+- ✅ 4.4 Embed fonts and set metadata (author, subject and keywords added to PDF and DOCX)
+- 🟡 4.5 Consistent dates (dates of entries not linked to the profile are normalised; education stays year-only, hand edits are untouched)
+- ✅ 4.6 No decorative bullets or justified text (PDF and DOCX)
+- ✅ 4.7 Safe file name
 
 ### E4. Prompt and logic
 **Goal:** Better, shorter, more useful CV content.

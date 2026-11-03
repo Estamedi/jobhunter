@@ -16,7 +16,46 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
     internal const string BodyColor = "#000000";
     internal const float BodySize = 10.5f;
 
-    public DocumentMetadata GetMetadata() => new() { Title = $"{header.FullName} - CV" };
+    public DocumentMetadata GetMetadata() => new()
+    {
+        Title = $"{header.FullName} - CV",
+        Author = header.FullName,
+        Subject = CleanText(cv.Headline),
+        Keywords = Keywords(cv),
+    };
+
+    private static string CleanText(string? value) => (value ?? string.Empty).Replace("**", string.Empty).Trim();
+
+    // Skill names for the PDF's keyword field, without bold markers, at most 20.
+    public static string Keywords(GeneratedCvDto cv)
+        => string.Join(", ", cv.Skills.SelectMany(g => g.Items)
+            .Select(CleanText).Where(k => k.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).Take(20));
+
+    // The profile link that goes in the header next to the contact details: LinkedIn if there is one,
+    // otherwise the first link. It is then left out of "Additional Information" so it is not shown twice.
+    public static string? HeaderLink(GeneratedCvDto cv)
+        => cv.Links.FirstOrDefault(l => l.Contains("linkedin.com", StringComparison.OrdinalIgnoreCase))
+           ?? cv.Links.FirstOrDefault(l => !string.IsNullOrWhiteSpace(l));
+
+    public static List<string> OtherLinks(GeneratedCvDto cv)
+    {
+        var header = HeaderLink(cv);
+        return cv.Links.Where(l => !string.Equals(l, header, StringComparison.Ordinal)).ToList();
+    }
+
+    public static string LinkUrl(string link)
+        => link.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? link : $"https://{link}";
+
+    public static string LinkText(string link)
+    {
+        var text = link.Trim();
+        foreach (var scheme in new[] { "https://", "http://" })
+        {
+            if (text.StartsWith(scheme, StringComparison.OrdinalIgnoreCase)) text = text[scheme.Length..];
+        }
+        return text.TrimEnd('/');
+    }
 
     public void Compose(IDocumentContainer container)
     {
@@ -34,7 +73,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                 if (!string.IsNullOrWhiteSpace(cv.Summary))
                 {
                     col.Item().Element(c => Section(c, "Summary", s =>
-                        s.Item().Text(t => { t.Justify(); t.AppendRich(cv.Summary); })));
+                        s.Item().Text(t => t.AppendRich(cv.Summary))));
                 }
 
                 if (cv.Skills.Count > 0)
@@ -106,13 +145,14 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                     }));
                 }
 
-                if (cv.Links.Count > 0 || cv.Languages.Count > 0)
+                var otherLinks = OtherLinks(cv);
+                if (otherLinks.Count > 0 || cv.Languages.Count > 0)
                 {
                     col.Item().Element(c => Section(c, "Additional Information", s =>
                     {
-                        foreach (var link in cv.Links)
+                        foreach (var link in otherLinks)
                         {
-                            s.Item().Text(t => t.Hyperlink(link, link.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? link : $"https://{link}")
+                            s.Item().Text(t => t.Hyperlink(link, LinkUrl(link))
                                 .FontColor(CompanyColor).Underline());
                         }
                         if (cv.Languages.Count > 0)
@@ -143,7 +183,8 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
             var contact = new[] { ("Location", header.Location), ("Phone", header.Phone), ("Email", header.Email) }
                 .Where(c => !string.IsNullOrWhiteSpace(c.Item2))
                 .ToList();
-            if (contact.Count > 0)
+            var link = HeaderLink(cv);
+            if (contact.Count > 0 || link is not null)
             {
                 col.Item().PaddingTop(2).AlignCenter().Text(t =>
                 {
@@ -152,6 +193,11 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                     {
                         if (i > 0) t.Span(" |  ");
                         t.Span(contact[i].Item2!.Trim()).Bold();
+                    }
+                    if (link is not null)
+                    {
+                        if (contact.Count > 0) t.Span(" |  ");
+                        t.Hyperlink(LinkText(link), LinkUrl(link)).Bold();
                     }
                 });
             }
@@ -195,7 +241,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
 
             foreach (var bullet in job.Bullets)
             {
-                col.Item().Element(b => Bullet(b, t => { t.Justify(); t.AppendRich(bullet); }));
+                col.Item().Element(b => Bullet(b, t => t.AppendRich(bullet)));
             }
         });
     }

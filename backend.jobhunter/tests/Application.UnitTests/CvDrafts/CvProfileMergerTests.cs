@@ -128,4 +128,29 @@ public class CvProfileMergerTests
         merged.Skills[1].Items.ShouldBe(["PostgreSQL"]);
         merged.Skills[2].Items.ShouldBe(["React/ShadCn"]);
     }
+
+    [TestCase("Current", "Present")]
+    [TestCase("now", "Present")]
+    [TestCase("Ongoing", "Present")]
+    [TestCase("To date", "Present")]
+    [TestCase("January 2022", "Jan 2022")]
+    [TestCase("Sept 2021", "Sep 2021")]
+    [TestCase("mar. 2020", "Mar 2020")]
+    [TestCase("9/2013", "Sep 2013")]
+    [TestCase("2019-03", "Mar 2019")]
+    [TestCase("Spring 2020", "Spring 2020")]
+    [TestCase("2018", "2018")]
+    [TestCase("13/2020", "13/2020")]
+    public void ShouldPutAnUnlinkedEntrysDatesInTheCvFormat(string written, string expected)
+    {
+        var cv = new GeneratedCvDto
+        {
+            Experience = [new CvExperienceDto { Role = "Dev", Company = "Own notes", StartDate = written, EndDate = written }],
+        };
+
+        var merged = CvProfileMerger.Merge(cv, Profile(), []);
+
+        merged.Experience[0].StartDate.ShouldBe(expected);
+        merged.Experience[0].EndDate.ShouldBe(expected);
+    }
 }

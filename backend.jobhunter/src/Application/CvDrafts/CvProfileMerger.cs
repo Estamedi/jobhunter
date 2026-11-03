@@ -58,7 +58,11 @@ public static class CvProfileMerger
             }
             else
             {
-                unmatched.Add(entry);
+                unmatched.Add(entry with
+                {
+                    StartDate = CvDateText.Normalize(entry.StartDate),
+                    EndDate = CvDateText.Normalize(entry.EndDate),
+                });
                 warnings.Add($"The experience \"{entry.Role} at {entry.Company}\" is not linked to your profile, so its details were not verified.");
             }
         }

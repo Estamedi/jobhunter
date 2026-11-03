@@ -40,6 +40,8 @@ public class DocxCvRenderer : ICvDocxRenderer
 
             document.PackageProperties.Title = $"{header.FullName} - CV";
             document.PackageProperties.Creator = header.FullName;
+            document.PackageProperties.Subject = cv.Headline.Replace("**", string.Empty).Trim();
+            document.PackageProperties.Keywords = ClassicCvDocument.Keywords(cv);
             main.Document.Save();
         }
 
@@ -72,7 +74,7 @@ public class DocxCvRenderer : ICvDocxRenderer
             if (!string.IsNullOrWhiteSpace(cv.Summary))
             {
                 Section("Summary");
-                var p = Paragraph(justify: true);
+                var p = Paragraph();
                 AppendRich(p, cv.Summary);
             }
 
@@ -130,10 +132,11 @@ public class DocxCvRenderer : ICvDocxRenderer
                 foreach (var cert in cv.Certifications) BulletParagraph(justify: false).Append(Run(cert));
             }
 
-            if (cv.Links.Count > 0 || cv.Languages.Count > 0)
+            var otherLinks = ClassicCvDocument.OtherLinks(cv);
+            if (otherLinks.Count > 0 || cv.Languages.Count > 0)
             {
                 Section("Additional Information");
-                foreach (var link in cv.Links) Paragraph().Append(Link(link, link));
+                foreach (var link in otherLinks) Paragraph().Append(Link(ClassicCvDocument.LinkUrl(link), link));
                 if (cv.Languages.Count > 0)
                 {
                     var p = Paragraph();
@@ -157,7 +160,8 @@ public class DocxCvRenderer : ICvDocxRenderer
             var contact = new[] { ("Location", header.Location), ("Phone", header.Phone), ("Email", header.Email) }
                 .Where(c => !string.IsNullOrWhiteSpace(c.Item2))
                 .ToList();
-            if (contact.Count == 0) return;
+            var headerLink = ClassicCvDocument.HeaderLink(cv);
+            if (contact.Count == 0 && headerLink is null) return;
 
             var line = Paragraph(center: true, before: 40);
             for (var i = 0; i < contact.Count; i++)
@@ -168,6 +172,13 @@ public class DocxCvRenderer : ICvDocxRenderer
                 line.Append(contact[i].Item1 == "Email"
                     ? Link($"mailto:{value}", value, bold: true, color: ClassicCvDocument.MutedColor, underline: false)
                     : Run(value, bold: true, color: ClassicCvDocument.MutedColor));
+            }
+
+            if (headerLink is not null)
+            {
+                if (contact.Count > 0) line.Append(Run(" |  ", color: ClassicCvDocument.MutedColor));
+                line.Append(Link(ClassicCvDocument.LinkUrl(headerLink), ClassicCvDocument.LinkText(headerLink),
+                    bold: true, color: ClassicCvDocument.MutedColor, underline: false));
             }
         }
 
@@ -194,7 +205,7 @@ public class DocxCvRenderer : ICvDocxRenderer
 
             foreach (var bullet in job.Bullets)
             {
-                var p = BulletParagraph(justify: true);
+                var p = BulletParagraph(justify: false);
                 AppendRich(p, bullet);
             }
         }
