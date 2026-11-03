@@ -38,7 +38,7 @@ public class UploadCvCommandHandler(IApplicationDbContext context, IFileStorage 
 
         var contentType = UploadCvCommandValidator.AllowedTypes[extension];
 
-        var storageKey = await fileStorage.SaveAsync(request.Content, request.FileName, cancellationToken);
+        var storageKey = await fileStorage.SaveAsync(request.Content, request.FileName, request.CandidateId.ToString(), cancellationToken);
 
         var entity = new Cv
         {
@@ -49,6 +49,7 @@ public class UploadCvCommandHandler(IApplicationDbContext context, IFileStorage 
             StorageKey = storageKey,
         };
 
+        entity.MarkForUpload(fileStorage.RequiresRemoteSync);
         context.Cvs.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
 

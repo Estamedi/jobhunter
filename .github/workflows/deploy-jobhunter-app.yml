@@ -132,8 +132,8 @@ jobs:
             SEED__ADMINPASSWORD='${{ secrets.SEED_ADMIN_PASSWORD }}' \
             FILESTORAGE__S3__BUCKETNAME='${{ vars.FILESTORAGE__S3__BUCKETNAME }}' \
             FILESTORAGE__S3__REGION='${{ vars.FILESTORAGE__S3__REGION }}' \
-            FILESTORAGE__S3__ACCESSKEYID='${{ secrets.FILESTORAGE__S3__ACCESSKEYID }}' \
-            FILESTORAGE__S3__SECRETACCESSKEY='${{ secrets.FILESTORAGE__S3__SECRETACCESSKEY }}' \
+            FILESTORAGE__S3__ACCESSKEYID='${{ secrets.FILESTORAGE__S3__ACCESSKEYID || vars.FILESTORAGE__S3__ACCESSKEYID }}' \
+            FILESTORAGE__S3__SECRETACCESSKEY='${{ secrets.FILESTORAGE__S3__SECRETACCESSKEY || vars.FILESTORAGE__S3__SECRETACCESSKEY }}' \
             /opt/jobhunter/deploy-jobhunter-app.sh
 
             rm -f /tmp/jobhunter-app.tar.gz

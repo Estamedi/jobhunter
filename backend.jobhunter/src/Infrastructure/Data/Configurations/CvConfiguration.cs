@@ -11,6 +11,8 @@ public class CvConfiguration : IEntityTypeConfiguration<Cv>
         builder.Property(c => c.FileName).HasMaxLength(260).IsRequired();
         builder.Property(c => c.ContentType).HasMaxLength(200).IsRequired();
         builder.Property(c => c.StorageKey).HasMaxLength(260).IsRequired();
+        builder.Property(c => c.LastUploadError).HasMaxLength(500);
+        builder.HasIndex(c => c.UploadStatus);
 
         builder.HasOne(c => c.Candidate)
             .WithMany(c => c.Cvs)

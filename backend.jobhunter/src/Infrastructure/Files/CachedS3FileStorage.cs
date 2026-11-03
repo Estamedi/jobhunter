@@ -7,7 +7,7 @@ namespace backend.jobhunter.Infrastructure.Files;
 
 // S3 is the source of truth; the local disk (FileStorage:RootPath, a persistent volume on the VPS)
 // is a read-through cache. Reads hit disk first and fall back to S3, filling the cache on a miss.
-// S3 problems never block the user: a failed upload keeps the file on disk and is logged.
+// Uploads are asynchronous: SaveAsync writes to disk only and CvUploadWorker pushes the file to S3.
 public class CachedS3FileStorage : IFileStorage
 {
     private readonly string _cachePath;
@@ -22,29 +22,39 @@ public class CachedS3FileStorage : IFileStorage
         Directory.CreateDirectory(_cachePath);
     }
 
-    public async Task<string> SaveAsync(Stream content, string fileName, CancellationToken cancellationToken)
+    public bool RequiresRemoteSync => true;
+
+    // Disk only: the request never waits on S3. CvUploadWorker copies the file to S3 afterwards.
+    public async Task<string> SaveAsync(Stream content, string fileName, string? folder, CancellationToken cancellationToken)
     {
-        var storageKey = S3FileStorage.NewStorageKey(fileName);
-        var cacheFile = ResolvePath(storageKey);
+        var storageKey = StorageKey.New(fileName, folder);
+        var cacheFile = StorageKey.ToPath(_cachePath, storageKey, createFolder: true);
 
-        await using (var fileStream = File.Create(cacheFile))
-        {
-            await content.CopyToAsync(fileStream, cancellationToken);
-        }
-
-        try
-        {
-            await using var upload = File.OpenRead(cacheFile);
-            await _s3.PutAsync(storageKey, upload, cancellationToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
-        {
-            // Keep the cached copy so the user can still use the file; it is served from disk.
-            _logger.LogWarning(ex, "S3 upload failed for {StorageKey}; file kept on local disk only.", storageKey);
-        }
+        await using var fileStream = File.Create(cacheFile);
+        await content.CopyToAsync(fileStream, cancellationToken);
 
         return storageKey;
     }
+
+    // Copies the cached file to S3. If the cache file is gone, S3 may already hold it
+    // (e.g. the upload succeeded but the status update did not).
+    public async Task<RemoteSyncResult> SyncToRemoteAsync(string storageKey, CancellationToken cancellationToken)
+    {
+        var cacheFile = ResolvePath(storageKey);
+        if (File.Exists(cacheFile))
+        {
+            await using var upload = File.OpenRead(cacheFile);
+            await _s3.PutAsync(storageKey, upload, cancellationToken);
+            return RemoteSyncResult.Uploaded;
+        }
+
+        return await _s3.ExistsAsync(storageKey, cancellationToken)
+            ? RemoteSyncResult.Uploaded
+            : RemoteSyncResult.Missing;
+    }
+
+    public Task DeleteRemoteAsync(string storageKey, CancellationToken cancellationToken) =>
+        _s3.DeleteAsync(storageKey, cancellationToken);
 
     public async Task<Stream> OpenReadAsync(string storageKey, CancellationToken cancellationToken)
     {
@@ -70,6 +80,7 @@ public class CachedS3FileStorage : IFileStorage
         }
 
         // Download to a temp file, then move into place so a half-written file is never served.
+        StorageKey.ToPath(_cachePath, storageKey, createFolder: true);
         var tempFile = $"{cacheFile}.{Guid.NewGuid():N}.tmp";
         try
         {
@@ -104,15 +115,7 @@ public class CachedS3FileStorage : IFileStorage
         TryDelete(ResolvePath(storageKey));
     }
 
-    private string ResolvePath(string storageKey)
-    {
-        if (string.IsNullOrEmpty(storageKey) || storageKey != Path.GetFileName(storageKey))
-        {
-            throw new InvalidOperationException("Invalid storage key.");
-        }
-
-        return Path.Combine(_cachePath, storageKey);
-    }
+    private string ResolvePath(string storageKey) => StorageKey.ToPath(_cachePath, storageKey);
 
     private static void TryDelete(string path)
     {
@@ -124,4 +127,10 @@ public class CachedS3FileStorage : IFileStorage
         {
         }
     }
+}
+
+public enum RemoteSyncResult
+{
+    Uploaded,
+    Missing,
 }

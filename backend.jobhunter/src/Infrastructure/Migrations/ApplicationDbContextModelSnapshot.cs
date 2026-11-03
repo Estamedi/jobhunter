@@ -408,6 +408,13 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("LastUploadAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastUploadError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
@@ -416,9 +423,17 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("character varying(260)");
 
+                    b.Property<int>("UploadAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UploadStatus")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CandidateId");
+
+                    b.HasIndex("UploadStatus");
 
                     b.ToTable("Cvs");
                 });

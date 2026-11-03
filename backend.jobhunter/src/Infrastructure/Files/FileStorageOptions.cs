@@ -8,6 +8,22 @@ public class FileStorageOptions
     public string RootPath { get; set; } = "App_Data/uploads";
 
     public S3StorageOptions S3 { get; set; } = new();
+
+    public UploadRetryOptions Retry { get; set; } = new();
+}
+
+public class UploadRetryOptions
+{
+    // Fallback poll interval; the worker is also woken immediately by a domain event.
+    public int PollSeconds { get; set; } = 30;
+
+    public int MaxAttempts { get; set; } = 8;
+
+    // Delay before attempt n+1 is BaseDelaySeconds * 2^(n-1), capped at MaxDelaySeconds.
+    public int BaseDelaySeconds { get; set; } = 15;
+    public int MaxDelaySeconds { get; set; } = 1800;
+
+    public int BatchSize { get; set; } = 20;
 }
 
 public class S3StorageOptions

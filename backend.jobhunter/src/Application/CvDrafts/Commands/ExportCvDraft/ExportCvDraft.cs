@@ -32,7 +32,7 @@ public class ExportCvDraftCommandHandler(
 
         var fileName = BuildFileName(candidate.FullName, string.IsNullOrWhiteSpace(draft.JobTitle) ? draft.Title : draft.JobTitle, isDocx ? "docx" : "pdf");
         await using var stream = new MemoryStream(pdf);
-        var storageKey = await fileStorage.SaveAsync(stream, fileName, cancellationToken);
+        var storageKey = await fileStorage.SaveAsync(stream, fileName, draft.CandidateId.ToString(), cancellationToken);
 
         var cv = new Cv
         {
@@ -45,6 +45,7 @@ public class ExportCvDraftCommandHandler(
             StorageKey = storageKey,
         };
 
+        cv.MarkForUpload(fileStorage.RequiresRemoteSync);
         context.Cvs.Add(cv);
 
         int? attachedTo = null;

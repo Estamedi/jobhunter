@@ -1,12 +1,13 @@
-using System.Text.RegularExpressions;
 using backend.jobhunter.Application.Common.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace backend.jobhunter.Infrastructure.Files;
 
-public partial class LocalFileStorage : IFileStorage
+public class LocalFileStorage : IFileStorage
 {
     private readonly string _rootPath;
+
+    public bool RequiresRemoteSync => false;
 
     public LocalFileStorage(IOptions<FileStorageOptions> options)
     {
@@ -14,16 +15,10 @@ public partial class LocalFileStorage : IFileStorage
         Directory.CreateDirectory(_rootPath);
     }
 
-    public async Task<string> SaveAsync(Stream content, string fileName, CancellationToken cancellationToken)
+    public async Task<string> SaveAsync(Stream content, string fileName, string? folder, CancellationToken cancellationToken)
     {
-        var extension = Path.GetExtension(fileName);
-        if (!ExtensionPattern().IsMatch(extension))
-        {
-            extension = string.Empty;
-        }
-
-        var storageKey = $"{Guid.NewGuid():N}{extension}";
-        var fullPath = Path.Combine(_rootPath, storageKey);
+        var storageKey = StorageKey.New(fileName, folder);
+        var fullPath = StorageKey.ToPath(_rootPath, storageKey, createFolder: true);
 
         await using var fileStream = File.Create(fullPath);
         await content.CopyToAsync(fileStream, cancellationToken);
@@ -48,16 +43,5 @@ public partial class LocalFileStorage : IFileStorage
         return Task.CompletedTask;
     }
 
-    private string ResolvePath(string storageKey)
-    {
-        if (string.IsNullOrEmpty(storageKey) || storageKey != Path.GetFileName(storageKey))
-        {
-            throw new InvalidOperationException("Invalid storage key.");
-        }
-
-        return Path.Combine(_rootPath, storageKey);
-    }
-
-    [GeneratedRegex(@"^\.[A-Za-z0-9]{1,10}$")]
-    private static partial Regex ExtensionPattern();
+    private string ResolvePath(string storageKey) => StorageKey.ToPath(_rootPath, storageKey);
 }

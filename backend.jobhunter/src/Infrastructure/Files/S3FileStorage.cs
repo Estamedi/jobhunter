@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.RegularExpressions;
 using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -8,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace backend.jobhunter.Infrastructure.Files;
 
-public partial class S3FileStorage : IFileStorage, IDisposable
+public class S3FileStorage : IFileStorage, IDisposable
 {
     private readonly IAmazonS3 _client;
     private readonly string _bucket;
@@ -45,22 +44,13 @@ public partial class S3FileStorage : IFileStorage, IDisposable
             : new AmazonS3Client(config);
     }
 
-    public async Task<string> SaveAsync(Stream content, string fileName, CancellationToken cancellationToken)
+    public bool RequiresRemoteSync => false;
+
+    public async Task<string> SaveAsync(Stream content, string fileName, string? folder, CancellationToken cancellationToken)
     {
-        var storageKey = NewStorageKey(fileName);
+        var storageKey = StorageKey.New(fileName, folder);
         await PutAsync(storageKey, content, cancellationToken);
         return storageKey;
-    }
-
-    public static string NewStorageKey(string fileName)
-    {
-        var extension = Path.GetExtension(fileName);
-        if (!ExtensionPattern().IsMatch(extension))
-        {
-            extension = string.Empty;
-        }
-
-        return $"{Guid.NewGuid():N}{extension}";
     }
 
     public async Task PutAsync(string storageKey, Stream content, CancellationToken cancellationToken)
@@ -93,6 +83,19 @@ public partial class S3FileStorage : IFileStorage, IDisposable
         }
     }
 
+    public async Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _client.GetObjectMetadataAsync(_bucket, _prefix + ValidateKey(storageKey), cancellationToken);
+            return true;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
     public async Task<Stream> OpenReadAsync(string storageKey, CancellationToken cancellationToken)
     {
         var response = await _client.GetObjectAsync(_bucket, _prefix + ValidateKey(storageKey), cancellationToken);
@@ -107,15 +110,7 @@ public partial class S3FileStorage : IFileStorage, IDisposable
 
     public void Dispose() => _client.Dispose();
 
-    private static string ValidateKey(string storageKey)
-    {
-        if (string.IsNullOrEmpty(storageKey) || storageKey != Path.GetFileName(storageKey))
-        {
-            throw new InvalidOperationException("Invalid storage key.");
-        }
-
-        return storageKey;
-    }
+    private static string ValidateKey(string storageKey) => StorageKey.Validate(storageKey);
 
     private static string ContentTypeFor(string extension) => extension.ToLowerInvariant() switch
     {
@@ -124,7 +119,4 @@ public partial class S3FileStorage : IFileStorage, IDisposable
         ".doc" => "application/msword",
         _ => "application/octet-stream",
     };
-
-    [GeneratedRegex(@"^\.[A-Za-z0-9]{1,10}$")]
-    private static partial Regex ExtensionPattern();
 }

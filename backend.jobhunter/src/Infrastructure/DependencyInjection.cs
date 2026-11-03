@@ -79,6 +79,8 @@ public static class DependencyInjection
         builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
         builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
+        builder.Services.AddSingleton<CvUploadSignal>();
+        builder.Services.AddSingleton<ICvUploadSignal>(sp => sp.GetRequiredService<CvUploadSignal>());
         if (string.Equals(builder.Configuration["FileStorage:Provider"], "Local", StringComparison.OrdinalIgnoreCase))
         {
             builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
@@ -86,7 +88,9 @@ public static class DependencyInjection
         else
         {
             builder.Services.AddSingleton<S3FileStorage>();
-            builder.Services.AddSingleton<IFileStorage, CachedS3FileStorage>();
+            builder.Services.AddSingleton<CachedS3FileStorage>();
+            builder.Services.AddSingleton<IFileStorage>(sp => sp.GetRequiredService<CachedS3FileStorage>());
+            builder.Services.AddHostedService<CvUploadWorker>();
         }
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
