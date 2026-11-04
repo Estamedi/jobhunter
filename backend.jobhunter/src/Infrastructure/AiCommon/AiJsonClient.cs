@@ -35,23 +35,54 @@ public class AiJsonClient(
         => CompleteAsync<T>(null, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel, cancellationToken);
 
     // systemPrompt carries the fixed rules; prompt carries the untrusted, user-supplied content.
+    // Tries the preferred provider first. If it is down, over quota or refuses the key, the next provider
+    // that has a key is tried. A refusal or a cut-off answer is not retried elsewhere: it would repeat.
     public async Task<T> CompleteAsync<T>(
         string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
     {
-        var provider = await PickProviderAsync(cancellationToken);
+        var providers = await PickProvidersAsync(cancellationToken);
+        if (providers.Count == 0)
+        {
+            throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key.");
+        }
+
+        for (var i = 0; i < providers.Count; i++)
+        {
+            var provider = providers[i];
+            try
+            {
+                return await CompleteWithAsync<T>(
+                    provider, systemPrompt, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel, cancellationToken);
+            }
+            catch (AiServiceException ex) when (i < providers.Count - 1 && CanFallBack(ex.Failure))
+            {
+                logger.LogWarning("{Provider} failed ({Failure}); trying {Next} instead.", provider, ex.Failure, providers[i + 1]);
+            }
+        }
+
+        throw new UnreachableException();
+    }
+
+    private static bool CanFallBack(AiFailure failure)
+        => failure is AiFailure.Unavailable or AiFailure.RateLimited or AiFailure.NotConfigured;
+
+    private async Task<T> CompleteWithAsync<T>(
+        string provider, string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
+        string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
+    {
         var call = new AiCallInfo();
-        using var activity = provider is null
-            ? null
-            : telemetry.StartGeneration(
-                LangfuseTelemetry.OperationName(schemaName), provider,
-                provider switch
-                {
-                    "OpenAI" => openAiModel ?? _options.OpenAiModel,
-                    "OpenRouter" => OpenRouterModel(openAiModel),
-                    _ => anthropicModel ?? _options.AnthropicModel,
-                },
-                maxTokens, user?.Id);
+        var timer = Stopwatch.StartNew();
+        var outcome = "ok";
+        using var activity = telemetry.StartGeneration(
+            LangfuseTelemetry.OperationName(schemaName), provider,
+            provider switch
+            {
+                "OpenAI" => openAiModel ?? _options.OpenAiModel,
+                "OpenRouter" => OpenRouterModel(openAiModel),
+                _ => anthropicModel ?? _options.AnthropicModel,
+            },
+            maxTokens, user?.Id);
         try
         {
             return provider switch
@@ -66,11 +97,17 @@ public class AiJsonClient(
         }
         catch (Exception ex)
         {
+            outcome = ex is AiServiceException ai ? ai.Failure.ToString() : ex.GetType().Name;
             if (activity is not null) LangfuseTelemetry.Fail(activity, ex);
             throw;
         }
         finally
         {
+            timer.Stop();
+            // One line per call for cost and speed. Only numbers and names: never the prompt or the answer.
+            logger.LogInformation(
+                "AI call {Operation} on {Provider} {Model}: {InputTokens} tokens in, {OutputTokens} out, {ElapsedMs} ms, {Outcome}",
+                schemaName, provider, call.Model, call.InputTokens, call.OutputTokens, timer.ElapsedMilliseconds, outcome);
             if (activity is not null)
             {
                 telemetry.Complete(activity, systemPrompt, prompt, call.Output, call.InputTokens, call.OutputTokens);
@@ -82,9 +119,9 @@ public class AiJsonClient(
     private string OpenRouterModel(string? openAiModel)
         => openAiModel is null ? _options.OpenRouterModel : _options.OpenRouterCvModel ?? _options.OpenRouterModel;
 
-    // The administrator's choice (saved in AppSettings) wins over config; if that provider has no key,
-    // fall back to the next one that does so the app keeps working.
-    private async Task<string?> PickProviderAsync(CancellationToken cancellationToken)
+    // The administrator's choice (saved in AppSettings) wins over config. The providers that have a key,
+    // the preferred one first, so the app keeps working when one of them is down.
+    private async Task<List<string>> PickProvidersAsync(CancellationToken cancellationToken)
     {
         var preferred = _options.PreferredProvider;
         if (db is not null)
@@ -96,14 +133,10 @@ public class AiJsonClient(
             if (!string.IsNullOrWhiteSpace(saved)) preferred = saved;
         }
 
-        var ordered = AiExtractionOptions.Providers
-            .OrderBy(p => string.Equals(p, preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1);
-
-        foreach (var name in ordered)
-        {
-            if (_options.IsConfigured(name)) return name;
-        }
-        return null;
+        return AiExtractionOptions.Providers
+            .OrderBy(p => string.Equals(p, preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .Where(_options.IsConfigured)
+            .ToList();
     }
 
     private async Task<T> WithClaudeAsync<T>(

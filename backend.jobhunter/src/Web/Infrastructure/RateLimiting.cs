@@ -39,6 +39,11 @@ public static class RateLimiting
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = async (context, cancellationToken) =>
+            {
+                var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : (TimeSpan?)null;
+                await WriteRejectionAsync(context.HttpContext, retryAfter, cancellationToken);
+            };
 
             options.GlobalLimiter = PartitionedRateLimiter.CreateChained(
                 PartitionedRateLimiter.Create<HttpContext, string>(context =>
@@ -54,6 +59,42 @@ public static class RateLimiting
                         ? RateLimitPartition.GetFixedWindowLimiter($"ai-day:{ClientKey(context)}", _ => FixedWindow(aiPerDay, TimeSpan.FromDays(1)))
                         : RateLimitPartition.GetNoLimiter("ai-day-none")));
         });
+    }
+
+    // A 429 with a plain explanation and, when the limiter knows it, how long to wait (also in Retry-After).
+    public static async Task WriteRejectionAsync(HttpContext context, TimeSpan? retryAfter, CancellationToken cancellationToken)
+    {
+        context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        if (retryAfter is { } wait)
+        {
+            context.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds)).ToString();
+        }
+
+        await context.Response.WriteAsJsonAsync(new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Status = StatusCodes.Status429TooManyRequests,
+            Title = "Too many requests",
+            Detail = RejectionMessage(IsAuthEndpoint(context), retryAfter),
+        }, options: null, contentType: "application/problem+json", cancellationToken);
+    }
+
+    // The size of the wait tells which limit was hit: about a minute is the burst limit, hours is the daily quota.
+    public static string RejectionMessage(bool authEndpoint, TimeSpan? retryAfter)
+    {
+        if (authEndpoint) return $"Too many sign-in attempts. Try again {When(retryAfter)}.";
+        if (retryAfter is { } wait && wait > TimeSpan.FromMinutes(5))
+        {
+            return $"You have used today's AI requests. Try again {When(retryAfter)}.";
+        }
+        return $"You are sending AI requests too fast. Try again {When(retryAfter)}.";
+    }
+
+    private static string When(TimeSpan? retryAfter)
+    {
+        if (retryAfter is not { } wait) return "later";
+        if (wait < TimeSpan.FromSeconds(90)) return $"in {Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds))} seconds";
+        if (wait < TimeSpan.FromHours(2)) return $"in {(int)Math.Ceiling(wait.TotalMinutes)} minutes";
+        return $"in about {(int)Math.Ceiling(wait.TotalHours)} hours";
     }
 
     private static FixedWindowRateLimiterOptions FixedWindow(int permits, TimeSpan window) => new()

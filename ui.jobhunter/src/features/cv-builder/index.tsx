@@ -242,6 +242,10 @@ function GenerateForm({
             ))}
           </ul>
         )}
+        <p className='mt-2 text-xs text-muted-foreground'>
+          To write the CV, your profile (without your email and phone), the job
+          description and your notes are sent to our AI provider.
+        </p>
       </div>
       <div className='space-y-1'>
         <Label>

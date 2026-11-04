@@ -139,11 +139,11 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 ### E8. Business rules
 **Goal:** Cost, privacy and reliability under control.
 
-- 6.1 Rate limits and quotas
-- 6.2 Cost tracking
-- 6.3 Privacy notice
-- 6.4 Provider fallback
-- 6.5 Model choice per step
+- ✅ 6.1 Rate limits and quotas (limits already existed; a rejected request now gets a clear message and a Retry-After time, tested)
+- ✅ 6.2 Cost tracking (one log line per AI call with model, tokens and time and never the text, tested; Langfuse keys are set in production, so Langfuse is the cost source and no daily cost summary was built)
+- 🟡 6.3 Privacy notice (postponed while the app is in testing: requests are logged again in full for debugging. Before launch, stop logging request contents in `UnhandledExceptionBehaviour` and `PerformanceBehaviour`, add a privacy-policy sentence about CV writing, and consider deleting old logs. The generate form already says what is sent to the AI provider)
+- 🟡 6.4 Provider fallback (fallback on outage, quota and key errors is built and tested, but production has only an OpenAI key, so it changes nothing until a second key is added; the Anthropic path has never run live)
+- ✅ 6.5 Model choice per step (extraction uses the cheaper model and CV writing the stronger one)
 
 ### E10. AI chat via LibreChat (achievement interview)
 **Goal:** Use LibreChat only as the chat engine behind the achievement interview (E5, task 11.1). Users never open LibreChat. They talk to our own chat panel, and our backend calls LibreChat through its Agents API. Confirmed facts are saved in our profile data, not in LibreChat.
