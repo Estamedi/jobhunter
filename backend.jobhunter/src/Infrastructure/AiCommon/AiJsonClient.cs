@@ -130,14 +130,12 @@ public class AiJsonClient(
     {
         var preferred = _options.PreferredProvider;
         string? actionProvider = null, actionModel = null;
-        var apiKeys = AiExtractionOptions.Providers
-            .Where(_options.IsConfigured)
-            .ToDictionary(p => p, p => _options.ConfigKey(p)!.Trim());
+        var apiKeys = AiProviderKeys.Effective(_options, new Dictionary<string, string>(), null);
 
         if (db is not null)
         {
             var keys = new[] { AiSettingKeys.Provider, AiSettingKeys.ActionProvider(action), AiSettingKeys.ActionModel(action) }
-                .Concat(AiExtractionOptions.Providers.Select(AiSettingKeys.ApiKey))
+                .Concat(AiProviderKeys.SavedSettingKeys)
                 .ToArray();
             var saved = await db.AppSettings.AsNoTracking()
                 .Where(s => keys.Contains(s.Key))
@@ -146,18 +144,7 @@ public class AiJsonClient(
             if (saved.TryGetValue(keys[1], out var p) && !string.IsNullOrWhiteSpace(p)) actionProvider = p;
             if (saved.TryGetValue(keys[2], out var m) && !string.IsNullOrWhiteSpace(m)) actionModel = m;
 
-            if (keyProtector is not null)
-            {
-                foreach (var provider in AiExtractionOptions.Providers)
-                {
-                    if (saved.TryGetValue(AiSettingKeys.ApiKey(provider), out var protectedKey)
-                        && keyProtector.TryUnprotect(protectedKey, out var plain)
-                        && !string.IsNullOrWhiteSpace(plain))
-                    {
-                        apiKeys[provider] = plain.Trim();
-                    }
-                }
-            }
+            apiKeys = AiProviderKeys.Effective(_options, saved, keyProtector);
         }
 
         var first = actionProvider ?? preferred;

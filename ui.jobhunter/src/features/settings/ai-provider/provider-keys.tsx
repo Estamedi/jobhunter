@@ -47,7 +47,11 @@ function statusText(p: ProviderStatus) {
 function KeyRow({ provider }: { provider: ProviderStatus }) {
   const qc = useQueryClient()
   const [key, setKey] = useState('')
-  const refresh = () => qc.invalidateQueries({ queryKey: ['ai-settings'] })
+  // A new or removed key changes which models the provider lists, so that list is read again too.
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ['ai-settings'] })
+    qc.invalidateQueries({ queryKey: ['ai-models', provider.name] })
+  }
 
   const save = useMutation({
     mutationFn: () => keysApi.save(provider.name, key.trim()),

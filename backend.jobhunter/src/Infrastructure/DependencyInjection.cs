@@ -136,6 +136,8 @@ public static class DependencyInjection
         builder.Services.AddSingleton<LangfuseTelemetry>();
         builder.Services.AddSingleton<IAiProviderCatalog, AiProviderCatalog>();
         builder.Services.AddSingleton<IAiKeyProtector, AiKeyProtector>();
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<IAiModelCatalog, AiModelCatalog>();
         builder.Services.AddTransient<AiJsonClient>();
         builder.Services.AddTransient<ICvGenerationAiService, AiCvGenerationService>();
         builder.Services.AddTransient<IProfileImportAiService, AiProfileImportService>();

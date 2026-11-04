@@ -3,6 +3,8 @@ using backend.jobhunter.Application.Settings.Commands.RemoveAiProviderKey;
 using backend.jobhunter.Application.Settings.Commands.SetAiProviderKey;
 using backend.jobhunter.Application.Settings.Commands.UpdateAiActions;
 using backend.jobhunter.Application.Settings.Commands.UpdateAiProvider;
+using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.Settings.Queries.GetAiModels;
 using backend.jobhunter.Application.Settings.Queries.GetAiSettings;
 
 namespace backend.jobhunter.Web.Endpoints;
@@ -15,11 +17,17 @@ public class Settings : IEndpointGroup
         groupBuilder.MapGet(GetAiSettings, "ai");
         groupBuilder.MapPut(UpdateAiProvider, "ai");
         groupBuilder.MapPut(UpdateAiActions, "ai/actions");
+        groupBuilder.MapGet(GetAiModels, "ai/models/{provider}");
         groupBuilder.MapPut(SetAiProviderKey, "ai/keys/{provider}");
         groupBuilder.MapDelete(RemoveAiProviderKey, "ai/keys/{provider}");
     }
 
     public record SetAiProviderKeyRequest(string ApiKey);
+
+    [EndpointSummary("List the models of an AI provider")]
+    [EndpointDescription("Administrator only. Asks the provider for its models with the key the server uses. Never fails because of the provider: Problem says why the list is empty.")]
+    public static async Task<Ok<AiModelList>> GetAiModels(string provider, ISender sender, CancellationToken cancellationToken)
+        => TypedResults.Ok(await sender.Send(new GetAiModelsQuery(provider), cancellationToken));
 
     [EndpointSummary("Save an AI provider API key")]
     [EndpointDescription("Administrator only. Saves the API key for one provider, encrypted. It is used instead of the key in server configuration. The key is never returned.")]

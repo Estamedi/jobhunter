@@ -8,6 +8,7 @@ using backend.jobhunter.Application.Settings.Commands.RemoveAiProviderKey;
 using backend.jobhunter.Application.Settings.Commands.SetAiProviderKey;
 using backend.jobhunter.Application.Settings.Commands.UpdateAiActions;
 using backend.jobhunter.Application.Settings.Commands.UpdateAiProvider;
+using backend.jobhunter.Application.Settings.Queries.GetAiModels;
 using backend.jobhunter.Application.Settings.Queries.GetAiSettings;
 using backend.jobhunter.Domain.Constants;
 using backend.jobhunter.Domain.Entities;
@@ -289,5 +290,119 @@ public class AiProviderKeyTests : TestBase
 
         (await client.PutAsJsonAsync("/api/Settings/ai/keys/Nope", new { apiKey = SavedKey })).StatusCode
             .ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    private static HttpResponseMessage ModelsReply(params string[] ids)
+        => new(HttpStatusCode.OK)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(new { data = ids.Select(id => new { id }) })),
+        };
+
+    [Test]
+    public async Task ShouldListTheOpenRouterModelsWithoutAKeyInAlphabeticalOrder()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        FakeAiHttp.Override = r => r.RequestUri!.AbsolutePath == "/api/v1/models"
+            ? ModelsReply("openai/gpt-4o", "anthropic/claude-x", "Meta/llama") : null;
+
+        var list = await TestApp.SendAsync(new GetAiModelsQuery("OpenRouter"));
+
+        list.Models.ShouldBe(new[] { "anthropic/claude-x", "Meta/llama", "openai/gpt-4o" });
+        list.Problem.ShouldBeNull();
+    }
+
+    [Test]
+    public async Task ShouldListOnlyOpenAiChatModelsAndAskWithTheSavedKey()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        await TestApp.SendAsync(new SetAiProviderKeyCommand("OpenAI", SavedKey));
+        FakeAiHttp.Override = r => r.RequestUri!.AbsolutePath == "/v1/models"
+            ? ModelsReply("gpt-5.5", "gpt-4o-mini", "o3", "text-embedding-3-small", "whisper-1", "gpt-4o-audio-preview", "dall-e-3", "gpt-image-1", "tts-1", "omni-moderation-latest", "gpt-realtime")
+            : null;
+
+        var list = await TestApp.SendAsync(new GetAiModelsQuery("OpenAI"));
+
+        list.Models.ShouldBe(["gpt-4o-mini", "gpt-5.5", "o3"]);
+        FakeAiHttp.Requests.Single().Authorization.ShouldBe($"Bearer {SavedKey}");
+    }
+
+    [Test]
+    public async Task ShouldListTheAnthropicModelsWithTheSavedKey()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        await TestApp.SendAsync(new SetAiProviderKeyCommand("Anthropic", SavedKey));
+        FakeAiHttp.Override = r => r.RequestUri!.AbsolutePath == "/v1/models" ? ModelsReply("claude-b", "claude-a") : null;
+
+        var list = await TestApp.SendAsync(new GetAiModelsQuery("Anthropic"));
+
+        list.Models.ShouldBe(["claude-a", "claude-b"]);
+        FakeAiHttp.Requests.Single().ApiKeyHeader.ShouldBe(SavedKey);
+    }
+
+    [Test]
+    public async Task ShouldSuggestModelsWithAMessageAndSendNothingWhenTheProviderHasNoKey()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        await TestApp.SendAsync(new RemoveAiProviderKeyCommand("Anthropic"));
+        var configured = (await StatusAsync("Anthropic")).Configured;
+        if (configured) Assert.Ignore("This machine has an Anthropic key in its server config.");
+
+        var list = await TestApp.SendAsync(new GetAiModelsQuery("Anthropic"));
+
+        list.Models.ShouldContain("claude-opus-4-8");
+        list.Problem!.ShouldContain("No API key");
+        FakeAiHttp.Requests.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task ShouldSuggestModelsAndShowNoProviderTextWhenTheProviderFails()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        // A key no other test uses: lists are kept for a few minutes per key, and this one must reach the provider.
+        var key = $"sk-fails-{Guid.NewGuid():N}";
+        await TestApp.SendAsync(new SetAiProviderKeyCommand("OpenAI", key));
+        FakeAiHttp.Override = _ => new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = new StringContent($"upstream exploded for {key}"),
+        };
+
+        var list = await TestApp.SendAsync(new GetAiModelsQuery("OpenAI"));
+
+        list.Models.ShouldContain("gpt-4o-mini");
+        list.Models.ShouldNotContain(m => m.Contains(key));
+        list.Problem.ShouldNotBeNull();
+        list.Problem.ShouldNotContain(key);
+        list.Problem.ShouldNotContain("exploded");
+    }
+
+    [Test]
+    public async Task ShouldAskAgainWhenTheKeyChangesInsteadOfAnsweringFromTheOldOne()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        FakeAiHttp.Override = r => ModelsReply(r.Headers.GetValues("x-api-key").Single().EndsWith("1111") ? "model-one" : "model-two");
+
+        await TestApp.SendAsync(new SetAiProviderKeyCommand("Anthropic", "key-1111"));
+        var first = await TestApp.SendAsync(new GetAiModelsQuery("Anthropic"));
+        await TestApp.SendAsync(new SetAiProviderKeyCommand("Anthropic", "key-2222"));
+        var second = await TestApp.SendAsync(new GetAiModelsQuery("Anthropic"));
+
+        first.Models.ShouldBe(["model-one"]);
+        second.Models.ShouldBe(["model-two"]);
+    }
+
+    [Test]
+    public async Task ShouldRefuseANormalUserTheModelList()
+    {
+        await TestApp.RunAsDefaultUserAsync();
+
+        await Should.ThrowAsync<ForbiddenAccessException>(() => TestApp.SendAsync(new GetAiModelsQuery("OpenRouter")));
+    }
+
+    [Test]
+    public async Task ShouldRefuseAnUnknownProviderForTheModelList()
+    {
+        await TestApp.RunAsAdministratorAsync();
+
+        await Should.ThrowAsync<ValidationException>(() => TestApp.SendAsync(new GetAiModelsQuery("Nope")));
     }
 }

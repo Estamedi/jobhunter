@@ -105,9 +105,13 @@ public sealed class FakeAiHttp : IHttpClientFactory
 {
     public static readonly List<(string Host, string? Authorization, string? ApiKeyHeader)> Requests = [];
 
+    // A test can answer a request itself (return null to use the default chat reply).
+    public static Func<HttpRequestMessage, HttpResponseMessage?>? Override { get; set; }
+
     public static void Reset()
     {
         lock (Requests) Requests.Clear();
+        Override = null;
     }
 
     public HttpClient CreateClient(string name) => new(new Handler());
@@ -123,6 +127,8 @@ public sealed class FakeAiHttp : IHttpClientFactory
                     request.Headers.Authorization?.ToString(),
                     request.Headers.TryGetValues("x-api-key", out var values) ? values.Single() : null));
             }
+            var custom = Override?.Invoke(request);
+            if (custom is not null) return Task.FromResult(custom);
             var reply = request.RequestUri!.Host == "api.anthropic.com"
                 ? """{"stop_reason":"end_turn","content":[{"type":"text","text":"{\"text\":\"ok\"}"}],"usage":{"input_tokens":1,"output_tokens":1}}"""
                 : """{"choices":[{"finish_reason":"stop","message":{"content":"{\"text\":\"ok\"}"}}],"usage":{"prompt_tokens":1,"completion_tokens":1}}""";
