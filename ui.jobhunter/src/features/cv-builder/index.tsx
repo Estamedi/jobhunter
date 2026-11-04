@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import {
   FileDown,
   History,
@@ -354,17 +354,7 @@ export function CvBuilder({
   jobRoleId?: number
 }) {
   const qc = useQueryClient()
-  // The open draft lives in the URL (?draftId=), so refresh, back and shared links land on the same draft.
-  const navigate = useNavigate()
-  const { draftId } = useSearch({ from: '/_authenticated/cv-builder/' })
-  const selectedId = draftId ?? null
-  const setSelectedId = (id: number | null) =>
-    navigate({
-      to: '.',
-      search: (prev) => ({ ...prev, draftId: id ?? undefined }),
-    })
-  // The score and job match run only when asked, so opening a draft never fills the sidebar by itself.
-  const [reviewFor, setReviewFor] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState(false)
   const [refining, setRefining] = useState<CvSection | null>(null)
   const [editingSection, setEditingSection] = useState<CvSection | null>(null)
@@ -793,35 +783,21 @@ export function CvBuilder({
   // Beside the CV on wide screens so the lines it points at stay in view; under the CV on narrow ones.
   const review =
     draft && candidate && ready && !editing ? (
-      reviewFor !== draft.id ? (
-        <div className='flex items-center justify-between gap-3 rounded-md border p-3'>
-          <div className='text-sm'>
-            <div className='font-medium'>Score &amp; job match</div>
-            <div className='text-xs text-muted-foreground'>
-              Check the writing and how well it fits the job.
-            </div>
-          </div>
-          <Button size='sm' onClick={() => setReviewFor(draft.id)}>
-            Run review
-          </Button>
-        </div>
-      ) : (
-        <ReviewPanel
-          draftId={draft.id}
-          lastModified={draft.lastModified}
-          hasJobDescription={!!draft.jobDescription?.trim()}
-          candidateId={candidate.id}
-          onRefine={(section, text) => {
-            setInstruction(text)
-            setRefining(section)
-          }}
-          onFix={(issues) => fix.mutate(issues)}
-          fixing={fix.isPending}
-          onShowLines={(locations) =>
-            setShown({ key: shownKey, locations: [...locations] })
-          }
-        />
-      )
+      <ReviewPanel
+        draftId={draft.id}
+        lastModified={draft.lastModified}
+        hasJobDescription={!!draft.jobDescription?.trim()}
+        candidateId={candidate.id}
+        onRefine={(section, text) => {
+          setInstruction(text)
+          setRefining(section)
+        }}
+        onFix={(issues) => fix.mutate(issues)}
+        fixing={fix.isPending}
+        onShowLines={(locations) =>
+          setShown({ key: shownKey, locations: [...locations] })
+        }
+      />
     ) : null
 
   return (
