@@ -239,7 +239,11 @@ export const profileApi = {
     const form = new FormData()
     form.append('candidateId', String(candidateId))
     form.append('file', photo, 'photo.jpg')
-    return http.put('/api/CandidateProfiles/photo', form)
+    // The shared `http` instance defaults to Content-Type: application/json, which would turn this form into
+    // JSON (and the server answers 415). Unset it so the browser sends multipart/form-data with its boundary.
+    return http.put('/api/CandidateProfiles/photo', form, {
+      headers: { 'Content-Type': undefined },
+    })
   },
 
   deletePhoto: (candidateId: number) =>
