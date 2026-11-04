@@ -98,6 +98,10 @@ All package versions are centrally managed in `Directory.Packages.props`. Do not
 
 The prompt asks for clean writing, and code enforces what the model still ignores. `CvProfileMerger.Merge` runs on every AI result (generate and section rewrite, never on hand edits): facts come from profile rows, skills are deduplicated and cut to 20 (a "Currently learning" group is kept whole), and the headline is cut at the first `|`. `CvDraftImprover` asks once more when grounding, copied job text, pronouns, keyword use above 6 times (`CvKeywordRepeatCheck`) or writing checks fail. A section rewrite has no retry and reports the problems as warnings. Before writing, `CvDraftGenerationService` reads the job's skills (`ExtractRequirementsAsync`), saves them on the draft and passes them as `<job_requirements>`; if that call fails the CV is still written.
 
+## AI provider keys
+
+An administrator can save one API key per provider on the AI provider settings page (`PUT/DELETE /api/Settings/ai/keys/{provider}`). It is stored in `AppSettings` as `Ai.ApiKey.{provider}`, encrypted with Data Protection (`IAiKeyProtector`, the same key ring as the bearer tokens, so production must keep `DataProtection:KeysPath` on a volume). `AiJsonClient` uses the saved key first and the key from server config second; a saved key that cannot be decrypted is skipped. The key is never returned (only its last 4 characters), and `SetAiProviderKeyCommand` hides it in `ToString` because the pipeline logs requests. A key can be at most 200 characters so the encrypted value fits the 500-character `AppSettings.Value`.
+
 ## CV import is a background job
 
 `POST /api/CandidateProfiles/import-jobs` only queues a `ProfileImportJob` (one per CV). `ProfileImportWorker` (Infrastructure/ProfileImport) reads it with `ProfileImportService`, running as the CV's owner through `UserOverride`. The UI polls the job (`GET .../import-jobs/{id}`) and resumes an unfinished one through `GET .../import-jobs/latest`. Functional tests replace the AI with `FakeProfileImportAi` and run the real worker, file storage and text extractor.

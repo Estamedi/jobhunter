@@ -4,6 +4,9 @@ public static class AiSettingKeys
 {
     public const string Provider = "Ai.Provider";
 
+    /// <summary>The API key an administrator saved for a provider, encrypted: "Ai.ApiKey.{provider}".</summary>
+    public static string ApiKey(string provider) => $"Ai.ApiKey.{provider}";
+
     /// <summary>Per-action override keys: "Ai.Action.{action}.Provider" and "Ai.Action.{action}.Model".</summary>
     public static string ActionProvider(string action) => $"Ai.Action.{action}.Provider";
 

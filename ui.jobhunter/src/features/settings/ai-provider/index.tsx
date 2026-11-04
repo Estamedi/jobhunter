@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ContentSection } from '../components/content-section'
+import { ProviderKeys, type ProviderStatus } from './provider-keys'
 
 interface AiAction {
   action: string
@@ -28,7 +29,7 @@ interface AiAction {
 
 interface AiSettings {
   provider: string
-  providers: { name: string; configured: boolean }[]
+  providers: ProviderStatus[]
   actions: AiAction[]
 }
 
@@ -67,7 +68,7 @@ export function SettingsAiProvider() {
   return (
     <ContentSection
       title='AI provider'
-      desc='Choose which service handles CV writing, job extraction and profile import. API keys are set on the server.'
+      desc='Choose which service handles CV writing, job extraction and profile import. Add or replace the API key of each provider below.'
     >
       {isLoading || !data ? (
         <Skeleton className='h-40 w-full' />
@@ -95,12 +96,13 @@ export function SettingsAiProvider() {
           </RadioGroup>
           {data.providers.find((p) => p.name === value)?.configured === false && (
             <p className='text-sm text-muted-foreground'>
-              This provider has no API key on the server, so requests will use the next provider that has one.
+              This provider has no API key, so requests will use the next provider that has one.
             </p>
           )}
           <Button disabled={save.isPending || value === data.provider} onClick={() => save.mutate(value)}>
             Save
           </Button>
+          <ProviderKeys providers={data.providers} />
           <ActionOverrides data={data} defaultProvider={data.provider} />
         </div>
       )}

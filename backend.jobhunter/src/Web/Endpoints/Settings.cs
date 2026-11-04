@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using backend.jobhunter.Application.Settings.Commands.RemoveAiProviderKey;
+using backend.jobhunter.Application.Settings.Commands.SetAiProviderKey;
 using backend.jobhunter.Application.Settings.Commands.UpdateAiActions;
 using backend.jobhunter.Application.Settings.Commands.UpdateAiProvider;
 using backend.jobhunter.Application.Settings.Queries.GetAiSettings;
@@ -13,6 +15,28 @@ public class Settings : IEndpointGroup
         groupBuilder.MapGet(GetAiSettings, "ai");
         groupBuilder.MapPut(UpdateAiProvider, "ai");
         groupBuilder.MapPut(UpdateAiActions, "ai/actions");
+        groupBuilder.MapPut(SetAiProviderKey, "ai/keys/{provider}");
+        groupBuilder.MapDelete(RemoveAiProviderKey, "ai/keys/{provider}");
+    }
+
+    public record SetAiProviderKeyRequest(string ApiKey);
+
+    [EndpointSummary("Save an AI provider API key")]
+    [EndpointDescription("Administrator only. Saves the API key for one provider, encrypted. It is used instead of the key in server configuration. The key is never returned.")]
+    public static async Task<NoContent> SetAiProviderKey(
+        string provider, SetAiProviderKeyRequest request, ISender sender, CancellationToken cancellationToken)
+    {
+        await sender.Send(new SetAiProviderKeyCommand(provider, request.ApiKey ?? string.Empty), cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Remove a saved AI provider API key")]
+    [EndpointDescription("Administrator only. Removes the saved key for one provider, so the key in server configuration is used again.")]
+    public static async Task<NoContent> RemoveAiProviderKey(
+        string provider, ISender sender, CancellationToken cancellationToken)
+    {
+        await sender.Send(new RemoveAiProviderKeyCommand(provider), cancellationToken);
+        return TypedResults.NoContent();
     }
 
     [EndpointSummary("Get AI settings")]

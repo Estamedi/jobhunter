@@ -14,10 +14,11 @@ namespace backend.jobhunter.Infrastructure.AiCommon;
 
 // Sends one prompt to the AI provider the administrator picked (OpenRouter, Anthropic or OpenAI; see
 // AiSettingKeys.Provider), falling back to config and then to whichever provider has a key, and returns the
-// response parsed from the provider's JSON-schema structured output. Keys live only in server config.
+// response parsed from the provider's JSON-schema structured output. A key comes from the administrator's saved
+// (encrypted) key or, without one, from server config.
 public class AiJsonClient(
     IHttpClientFactory httpClientFactory, IOptions<AiExtractionOptions> options, ILogger<AiJsonClient> logger,
-    LangfuseTelemetry telemetry, IUser? user = null, IApplicationDbContext? db = null)
+    LangfuseTelemetry telemetry, IUser? user = null, IApplicationDbContext? db = null, IAiKeyProtector? keyProtector = null)
 {
     private static readonly JsonSerializerOptions DeserializeOptions = new()
     {
@@ -41,7 +42,7 @@ public class AiJsonClient(
         string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
     {
-        var (providers, modelOverride) = await PickProvidersAsync(schemaName, cancellationToken);
+        var (providers, modelOverride, apiKeys) = await PickProvidersAsync(schemaName, cancellationToken);
         if (providers.Count == 0)
         {
             throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key.");
@@ -53,7 +54,7 @@ public class AiJsonClient(
             try
             {
                 return await CompleteWithAsync<T>(
-                    provider, systemPrompt, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel,
+                    provider, apiKeys[provider], systemPrompt, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel,
                     i == 0 ? modelOverride : null, cancellationToken);
             }
             catch (AiServiceException ex) when (i < providers.Count - 1 && CanFallBack(ex.Failure))
@@ -69,7 +70,7 @@ public class AiJsonClient(
         => failure is AiFailure.Unavailable or AiFailure.RateLimited or AiFailure.NotConfigured;
 
     private async Task<T> CompleteWithAsync<T>(
-        string provider, string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
+        string provider, string apiKey, string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, string? modelOverride, CancellationToken cancellationToken)
     {
         var call = new AiCallInfo();
@@ -89,10 +90,10 @@ public class AiJsonClient(
             return provider switch
             {
                 "OpenAI" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, modelOverride ?? openAiModel ?? _options.OpenAiModel, call,
-                    "https://api.openai.com/v1/chat/completions", _options.OpenAiApiKey, "OpenAI", cancellationToken),
+                    "https://api.openai.com/v1/chat/completions", apiKey, "OpenAI", cancellationToken),
                 "OpenRouter" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, modelOverride ?? OpenRouterModel(openAiModel), call,
-                    "https://openrouter.ai/api/v1/chat/completions", _options.OpenRouterApiKey, "OpenRouter", cancellationToken),
-                "Anthropic" => await WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, modelOverride ?? anthropicModel ?? _options.AnthropicModel, call, cancellationToken),
+                    "https://openrouter.ai/api/v1/chat/completions", apiKey, "OpenRouter", cancellationToken),
+                "Anthropic" => await WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, modelOverride ?? anthropicModel ?? _options.AnthropicModel, apiKey, call, cancellationToken),
                 _ => throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key."),
             };
         }
@@ -122,38 +123,58 @@ public class AiJsonClient(
 
     // The administrator's choices (saved in AppSettings) win over config. For an action with its own provider
     // that provider goes first (with its model, if one was set); otherwise the global provider does. The rest
-    // follow, only those that have a key, so the app keeps working when one of them is down.
-    private async Task<(List<string> Providers, string? ModelOverride)> PickProvidersAsync(
+    // follow, only those that have a key, so the app keeps working when one of them is down. A key the
+    // administrator saved wins over the one in server config; a saved key that cannot be read is skipped.
+    private async Task<(List<string> Providers, string? ModelOverride, Dictionary<string, string> ApiKeys)> PickProvidersAsync(
         string action, CancellationToken cancellationToken)
     {
         var preferred = _options.PreferredProvider;
         string? actionProvider = null, actionModel = null;
+        var apiKeys = AiExtractionOptions.Providers
+            .Where(_options.IsConfigured)
+            .ToDictionary(p => p, p => _options.ConfigKey(p)!.Trim());
+
         if (db is not null)
         {
-            var keys = new[] { AiSettingKeys.Provider, AiSettingKeys.ActionProvider(action), AiSettingKeys.ActionModel(action) };
+            var keys = new[] { AiSettingKeys.Provider, AiSettingKeys.ActionProvider(action), AiSettingKeys.ActionModel(action) }
+                .Concat(AiExtractionOptions.Providers.Select(AiSettingKeys.ApiKey))
+                .ToArray();
             var saved = await db.AppSettings.AsNoTracking()
                 .Where(s => keys.Contains(s.Key))
                 .ToDictionaryAsync(s => s.Key, s => s.Value, cancellationToken);
             if (saved.TryGetValue(keys[0], out var global) && !string.IsNullOrWhiteSpace(global)) preferred = global;
             if (saved.TryGetValue(keys[1], out var p) && !string.IsNullOrWhiteSpace(p)) actionProvider = p;
             if (saved.TryGetValue(keys[2], out var m) && !string.IsNullOrWhiteSpace(m)) actionModel = m;
+
+            if (keyProtector is not null)
+            {
+                foreach (var provider in AiExtractionOptions.Providers)
+                {
+                    if (saved.TryGetValue(AiSettingKeys.ApiKey(provider), out var protectedKey)
+                        && keyProtector.TryUnprotect(protectedKey, out var plain)
+                        && !string.IsNullOrWhiteSpace(plain))
+                    {
+                        apiKeys[provider] = plain.Trim();
+                    }
+                }
+            }
         }
 
         var first = actionProvider ?? preferred;
         var providers = AiExtractionOptions.Providers
             .OrderBy(p => string.Equals(p, first, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .Where(_options.IsConfigured)
+            .Where(apiKeys.ContainsKey)
             .ToList();
 
         // A model name only means something to the provider it was chosen for.
         var modelFor = providers.Count > 0 && actionModel is not null
             && string.Equals(providers[0], actionProvider ?? preferred, StringComparison.OrdinalIgnoreCase)
             ? actionModel : null;
-        return (providers, modelFor);
+        return (providers, modelFor, apiKeys);
     }
 
     private async Task<T> WithClaudeAsync<T>(
-        string? systemPrompt, string prompt, string schemaJson, int maxTokens, string model, AiCallInfo call, CancellationToken cancellationToken)
+        string? systemPrompt, string prompt, string schemaJson, int maxTokens, string model, string apiKey, AiCallInfo call, CancellationToken cancellationToken)
     {
         call.Model = model;
         var body = new JsonObject
@@ -173,7 +194,7 @@ public class AiJsonClient(
         {
             Content = JsonContent.Create(body),
         };
-        request.Headers.Add("x-api-key", _options.AnthropicApiKey);
+        request.Headers.Add("x-api-key", apiKey);
         request.Headers.Add("anthropic-version", "2023-06-01");
 
         var responseBody = await SendAsync(client, request, "Claude", cancellationToken);

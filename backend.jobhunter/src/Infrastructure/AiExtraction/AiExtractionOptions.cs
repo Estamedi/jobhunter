@@ -16,11 +16,14 @@ public class AiExtractionOptions
     /// <summary>Providers an administrator can pick between.</summary>
     public static readonly string[] Providers = ["OpenRouter", "Anthropic", "OpenAI"];
 
-    public bool IsConfigured(string provider) => !string.IsNullOrWhiteSpace(provider switch
+    /// <summary>The key from server config (the administrator's saved key, if any, is read separately).</summary>
+    public string? ConfigKey(string provider) => provider switch
     {
         "OpenRouter" => OpenRouterApiKey,
         "Anthropic" => AnthropicApiKey,
         "OpenAI" => OpenAiApiKey,
         _ => null,
-    });
+    };
+
+    public bool IsConfigured(string provider) => !string.IsNullOrWhiteSpace(ConfigKey(provider));
 }

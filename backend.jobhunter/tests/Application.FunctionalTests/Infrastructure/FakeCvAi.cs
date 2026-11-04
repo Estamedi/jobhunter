@@ -98,3 +98,35 @@ public sealed class FakeProfileImportAi : IProfileImportAiService
         return OnParse is null ? Task.FromResult(SampleProfile()) : OnParse(cvText);
     }
 }
+
+// Stands in for the network: records what would have been sent to an AI provider and answers with a fixed
+// reply, so a test can check which key a call carried.
+public sealed class FakeAiHttp : IHttpClientFactory
+{
+    public static readonly List<(string Host, string? Authorization, string? ApiKeyHeader)> Requests = [];
+
+    public static void Reset()
+    {
+        lock (Requests) Requests.Clear();
+    }
+
+    public HttpClient CreateClient(string name) => new(new Handler());
+
+    private sealed class Handler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            lock (Requests)
+            {
+                Requests.Add((
+                    request.RequestUri!.Host,
+                    request.Headers.Authorization?.ToString(),
+                    request.Headers.TryGetValues("x-api-key", out var values) ? values.Single() : null));
+            }
+            var reply = request.RequestUri!.Host == "api.anthropic.com"
+                ? """{"stop_reason":"end_turn","content":[{"type":"text","text":"{\"text\":\"ok\"}"}],"usage":{"input_tokens":1,"output_tokens":1}}"""
+                : """{"choices":[{"finish_reason":"stop","message":{"content":"{\"text\":\"ok\"}"}}],"usage":{"prompt_tokens":1,"completion_tokens":1}}""";
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(reply) });
+        }
+    }
+}

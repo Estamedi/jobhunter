@@ -23,6 +23,8 @@ public class WebApiFactory(string connectionString) : WebApplicationFactory<Prog
             services.RemoveAll<ICvGenerationAiService>().AddSingleton<ICvGenerationAiService, FakeCvAi>();
             services.RemoveAll<IProfileImportAiService>().AddSingleton<IProfileImportAiService, FakeProfileImportAi>();
             services.RemoveAll<ICvGenerationNotifier>().AddSingleton<ICvGenerationNotifier, CapturingNotifier>();
+            // No test ever reaches a real AI provider, whatever keys the machine has in its config.
+            services.RemoveAll<IHttpClientFactory>().AddSingleton<IHttpClientFactory, FakeAiHttp>();
 
             services
                 .RemoveAll<IUser>()
