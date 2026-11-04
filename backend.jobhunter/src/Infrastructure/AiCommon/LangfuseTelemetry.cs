@@ -53,6 +53,7 @@ public sealed class LangfuseTelemetry : IDisposable
     // anything run-specific live in attributes, not in the name.
     public static string OperationName(string schemaName) => schemaName switch
     {
+        "job_posting" => "extract-job-posting",
         "job_requirements" => "extract-job-requirements",
         "cv" => "generate-cv",
         "profile" => "import-profile",

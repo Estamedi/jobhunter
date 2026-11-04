@@ -4,15 +4,37 @@ import { toast } from 'sonner'
 import { http } from '@/lib/http'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ContentSection } from '../components/content-section'
+
+interface AiAction {
+  action: string
+  label: string
+  description: string
+  provider: string | null
+  model: string | null
+  defaultModels: Record<string, string>
+}
 
 interface AiSettings {
   provider: string
   providers: { name: string; configured: boolean }[]
+  actions: AiAction[]
 }
+
+type ActionChoice = { provider: string | null; model: string }
+
+const USE_DEFAULT = '__default__'
 
 const DESCRIPTIONS: Record<string, string> = {
   OpenRouter: 'One key for many models, with a live credit balance on OpenRouter.',
@@ -23,6 +45,8 @@ const DESCRIPTIONS: Record<string, string> = {
 const aiSettingsApi = {
   get: () => http.get<AiSettings>('/api/Settings/ai').then((r) => r.data),
   update: (provider: string) => http.put('/api/Settings/ai', { provider }),
+  updateActions: (actions: { action: string; provider: string | null; model: string | null }[]) =>
+    http.put('/api/Settings/ai/actions', { actions }),
 }
 
 export function SettingsAiProvider() {
@@ -77,8 +101,92 @@ export function SettingsAiProvider() {
           <Button disabled={save.isPending || value === data.provider} onClick={() => save.mutate(value)}>
             Save
           </Button>
+          <ActionOverrides data={data} defaultProvider={data.provider} />
         </div>
       )}
     </ContentSection>
+  )
+}
+
+function ActionOverrides({ data, defaultProvider }: { data: AiSettings; defaultProvider: string }) {
+  const qc = useQueryClient()
+  const [edits, setEdits] = useState<Record<string, ActionChoice>>({})
+  const current = (a: AiAction): ActionChoice => edits[a.action] ?? { provider: a.provider, model: a.model ?? '' }
+  const dirty = data.actions.some((a) => {
+    const c = current(a)
+    return c.provider !== a.provider || (c.provider ? c.model.trim() : '') !== (a.model ?? '')
+  })
+
+  const save = useMutation({
+    mutationFn: () =>
+      aiSettingsApi.updateActions(
+        data.actions.map((a) => {
+          const c = current(a)
+          return { action: a.action, provider: c.provider, model: c.provider ? c.model.trim() || null : null }
+        })
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ai-settings'] })
+      setEdits({})
+      toast.success('AI actions updated')
+    },
+  })
+
+  return (
+    <div className='space-y-3 pt-4'>
+      <div>
+        <h4 className='font-medium'>Provider and model per action</h4>
+        <p className='text-sm text-muted-foreground'>
+          Override the provider and model for a single action. Leave it on the default to use {defaultProvider} with
+          the server&apos;s configured model. If the chosen provider has no key or is down, another provider with a
+          key is used instead.
+        </p>
+      </div>
+      {data.actions.map((a) => {
+        const c = current(a)
+        const shownProvider = c.provider ?? defaultProvider
+        return (
+          <div key={a.action} className='space-y-2 rounded-lg border p-4'>
+            <div>
+              <div className='font-medium'>{a.label}</div>
+              <p className='text-sm text-muted-foreground'>{a.description}</p>
+            </div>
+            <div className='grid gap-2 sm:grid-cols-2'>
+              <Select
+                value={c.provider ?? USE_DEFAULT}
+                onValueChange={(v) =>
+                  setEdits((e) => ({ ...e, [a.action]: { provider: v === USE_DEFAULT ? null : v, model: '' } }))
+                }
+              >
+                <SelectTrigger aria-label={`${a.label} provider`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={USE_DEFAULT}>Default ({defaultProvider})</SelectItem>
+                  {data.providers.map((p) => (
+                    <SelectItem key={p.name} value={p.name}>
+                      {p.name}
+                      {p.configured ? '' : ' (no key)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                aria-label={`${a.label} model`}
+                disabled={!c.provider}
+                value={c.model}
+                placeholder={a.defaultModels[shownProvider] ?? 'Model'}
+                onChange={(e) =>
+                  setEdits((prev) => ({ ...prev, [a.action]: { provider: c.provider, model: e.target.value } }))
+                }
+              />
+            </div>
+          </div>
+        )
+      })}
+      <Button disabled={save.isPending || !dirty} onClick={() => save.mutate()}>
+        Save actions
+      </Button>
+    </div>
   )
 }

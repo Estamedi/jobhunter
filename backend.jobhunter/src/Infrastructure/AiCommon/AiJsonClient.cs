@@ -41,7 +41,7 @@ public class AiJsonClient(
         string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
         string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
     {
-        var providers = await PickProvidersAsync(cancellationToken);
+        var (providers, modelOverride) = await PickProvidersAsync(schemaName, cancellationToken);
         if (providers.Count == 0)
         {
             throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key.");
@@ -53,7 +53,8 @@ public class AiJsonClient(
             try
             {
                 return await CompleteWithAsync<T>(
-                    provider, systemPrompt, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel, cancellationToken);
+                    provider, systemPrompt, prompt, schemaJson, schemaName, maxTokens, anthropicModel, openAiModel,
+                    i == 0 ? modelOverride : null, cancellationToken);
             }
             catch (AiServiceException ex) when (i < providers.Count - 1 && CanFallBack(ex.Failure))
             {
@@ -69,7 +70,7 @@ public class AiJsonClient(
 
     private async Task<T> CompleteWithAsync<T>(
         string provider, string? systemPrompt, string prompt, string schemaJson, string schemaName, int maxTokens,
-        string? anthropicModel, string? openAiModel, CancellationToken cancellationToken)
+        string? anthropicModel, string? openAiModel, string? modelOverride, CancellationToken cancellationToken)
     {
         var call = new AiCallInfo();
         var timer = Stopwatch.StartNew();
@@ -78,20 +79,20 @@ public class AiJsonClient(
             LangfuseTelemetry.OperationName(schemaName), provider,
             provider switch
             {
-                "OpenAI" => openAiModel ?? _options.OpenAiModel,
-                "OpenRouter" => OpenRouterModel(openAiModel),
-                _ => anthropicModel ?? _options.AnthropicModel,
+                "OpenAI" => modelOverride ?? openAiModel ?? _options.OpenAiModel,
+                "OpenRouter" => modelOverride ?? OpenRouterModel(openAiModel),
+                _ => modelOverride ?? anthropicModel ?? _options.AnthropicModel,
             },
             maxTokens, user?.Id);
         try
         {
             return provider switch
             {
-                "OpenAI" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, openAiModel ?? _options.OpenAiModel, call,
+                "OpenAI" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, modelOverride ?? openAiModel ?? _options.OpenAiModel, call,
                     "https://api.openai.com/v1/chat/completions", _options.OpenAiApiKey, "OpenAI", cancellationToken),
-                "OpenRouter" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, OpenRouterModel(openAiModel), call,
+                "OpenRouter" => await WithOpenAiCompatibleAsync<T>(systemPrompt, prompt, schemaJson, schemaName, modelOverride ?? OpenRouterModel(openAiModel), call,
                     "https://openrouter.ai/api/v1/chat/completions", _options.OpenRouterApiKey, "OpenRouter", cancellationToken),
-                "Anthropic" => await WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, anthropicModel ?? _options.AnthropicModel, call, cancellationToken),
+                "Anthropic" => await WithClaudeAsync<T>(systemPrompt, prompt, schemaJson, maxTokens, modelOverride ?? anthropicModel ?? _options.AnthropicModel, call, cancellationToken),
                 _ => throw new AiServiceException(AiFailure.NotConfigured, "AI is not set up on the server. Ask the administrator to add an API key."),
             };
         }
@@ -119,24 +120,36 @@ public class AiJsonClient(
     private string OpenRouterModel(string? openAiModel)
         => openAiModel is null ? _options.OpenRouterModel : _options.OpenRouterCvModel ?? _options.OpenRouterModel;
 
-    // The administrator's choice (saved in AppSettings) wins over config. The providers that have a key,
-    // the preferred one first, so the app keeps working when one of them is down.
-    private async Task<List<string>> PickProvidersAsync(CancellationToken cancellationToken)
+    // The administrator's choices (saved in AppSettings) win over config. For an action with its own provider
+    // that provider goes first (with its model, if one was set); otherwise the global provider does. The rest
+    // follow, only those that have a key, so the app keeps working when one of them is down.
+    private async Task<(List<string> Providers, string? ModelOverride)> PickProvidersAsync(
+        string action, CancellationToken cancellationToken)
     {
         var preferred = _options.PreferredProvider;
+        string? actionProvider = null, actionModel = null;
         if (db is not null)
         {
+            var keys = new[] { AiSettingKeys.Provider, AiSettingKeys.ActionProvider(action), AiSettingKeys.ActionModel(action) };
             var saved = await db.AppSettings.AsNoTracking()
-                .Where(s => s.Key == AiSettingKeys.Provider)
-                .Select(s => s.Value)
-                .FirstOrDefaultAsync(cancellationToken);
-            if (!string.IsNullOrWhiteSpace(saved)) preferred = saved;
+                .Where(s => keys.Contains(s.Key))
+                .ToDictionaryAsync(s => s.Key, s => s.Value, cancellationToken);
+            if (saved.TryGetValue(keys[0], out var global) && !string.IsNullOrWhiteSpace(global)) preferred = global;
+            if (saved.TryGetValue(keys[1], out var p) && !string.IsNullOrWhiteSpace(p)) actionProvider = p;
+            if (saved.TryGetValue(keys[2], out var m) && !string.IsNullOrWhiteSpace(m)) actionModel = m;
         }
 
-        return AiExtractionOptions.Providers
-            .OrderBy(p => string.Equals(p, preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+        var first = actionProvider ?? preferred;
+        var providers = AiExtractionOptions.Providers
+            .OrderBy(p => string.Equals(p, first, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
             .Where(_options.IsConfigured)
             .ToList();
+
+        // A model name only means something to the provider it was chosen for.
+        var modelFor = providers.Count > 0 && actionModel is not null
+            && string.Equals(providers[0], actionProvider ?? preferred, StringComparison.OrdinalIgnoreCase)
+            ? actionModel : null;
+        return (providers, modelFor);
     }
 
     private async Task<T> WithClaudeAsync<T>(

@@ -8,4 +8,7 @@ public interface IAiProviderCatalog
     string DefaultProvider { get; }
 
     IReadOnlyList<AiProviderInfo> Providers { get; }
+
+    /// <summary>The model a provider uses for an action when the administrator has not chosen one.</summary>
+    string DefaultModel(string provider, bool heavyModel);
 }

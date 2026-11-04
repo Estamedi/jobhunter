@@ -14,4 +14,11 @@ public class AiProviderCatalog(IOptions<AiExtractionOptions> options) : IAiProvi
 
     public IReadOnlyList<AiProviderInfo> Providers
         => [.. AiExtractionOptions.Providers.Select(p => new AiProviderInfo(p, _options.IsConfigured(p)))];
+
+    public string DefaultModel(string provider, bool heavyModel) => provider switch
+    {
+        "OpenAI" => (heavyModel ? _options.OpenAiCvModel : null) ?? _options.OpenAiModel,
+        "OpenRouter" => (heavyModel ? _options.OpenRouterCvModel : null) ?? _options.OpenRouterModel,
+        _ => (heavyModel ? _options.AnthropicCvModel : null) ?? _options.AnthropicModel,
+    };
 }
