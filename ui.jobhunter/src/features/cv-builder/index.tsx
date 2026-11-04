@@ -397,6 +397,7 @@ export function CvBuilder({
         const app = await applicationsApi.get(applicationId)
         return {
           jobTitle: app.jobRoleTitle ?? '',
+          company: app.companyName,
           jobDescription: jobPostingText(
             app.jobRoleDescription,
             app.jobRoleRequirements
@@ -406,6 +407,7 @@ export function CvBuilder({
       const role = await jobRolesApi.get(jobRoleId!)
       return {
         jobTitle: role.title,
+        company: role.companyName,
         jobDescription: [
           role.description,
           role.requirements && `Requirements:\n${role.requirements}`,
@@ -474,6 +476,10 @@ export function CvBuilder({
       cvBuilderApi.generate({
         candidateId: candidate!.id,
         jobTitle: data.jobTitle,
+        // Named after the job, like the drafts made by "Write all".
+        title: prefill?.company
+          ? `${data.jobTitle} - ${prefill.company}`
+          : undefined,
         jobApplicationId: applicationId,
         sourceCvId: data.sourceCvId,
         jobDescription: data.jobDescription || undefined,

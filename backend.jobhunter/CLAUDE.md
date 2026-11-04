@@ -94,6 +94,10 @@ All package versions are centrally managed in `Directory.Packages.props`. Do not
 
 `POST /api/CvGeneration` only queues a `CvDraft` (status Pending). `CvGenerationWorker` (Infrastructure/CvGeneration) writes it with `CvDraftGenerationService`, running as the draft's owner through `UserOverride` because there is no HTTP request. The owner is told over the SignalR hub `/hubs/cv-generation` through `ICvGenerationNotifier`; the UI also polls, so the hub is only a speed-up. Edit, export, regenerate, match, score and restore refuse a draft that is not Completed (`CvDraftGuard`). Functional tests replace the AI with `FakeCvAi` and still run the real worker and hub.
 
+## CV writing checks run in code
+
+The prompt asks for clean writing, and code enforces what the model still ignores. `CvProfileMerger.Merge` runs on every AI result (generate and section rewrite, never on hand edits): facts come from profile rows, skills are deduplicated and cut to 20 (a "Currently learning" group is kept whole), and the headline is cut at the first `|`. `CvDraftImprover` asks once more when grounding, copied job text, pronouns, keyword use above 6 times (`CvKeywordRepeatCheck`) or writing checks fail. A section rewrite has no retry and reports the problems as warnings. Before writing, `CvDraftGenerationService` reads the job's skills (`ExtractRequirementsAsync`), saves them on the draft and passes them as `<job_requirements>`; if that call fails the CV is still written.
+
 ## CV import is a background job
 
 `POST /api/CandidateProfiles/import-jobs` only queues a `ProfileImportJob` (one per CV). `ProfileImportWorker` (Infrastructure/ProfileImport) reads it with `ProfileImportService`, running as the CV's owner through `UserOverride`. The UI polls the job (`GET .../import-jobs/{id}`) and resumes an unfinished one through `GET .../import-jobs/latest`. Functional tests replace the AI with `FakeProfileImportAi` and run the real worker, file storage and text extractor.

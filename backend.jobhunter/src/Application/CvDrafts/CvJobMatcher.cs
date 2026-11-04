@@ -86,19 +86,23 @@ public static class CvJobMatcher
 
     // A whole-term, case-insensitive match. The characters on either side must not be letters or digits,
     // so "Go" does not match inside "Google", while terms such as "C#", ".NET" and "C++" still match.
-    public static bool ContainsTerm(string text, string term)
-    {
-        if (term.Length == 0) return false;
+    public static bool ContainsTerm(string text, string term) => CountTerm(text, term) > 0;
 
+    // How many times the whole term appears, by the same rule as ContainsTerm.
+    public static int CountTerm(string text, string term)
+    {
+        if (term.Length == 0) return 0;
+
+        var count = 0;
         var index = 0;
         while ((index = text.IndexOf(term, index, StringComparison.OrdinalIgnoreCase)) >= 0)
         {
             var before = index == 0 || !char.IsLetterOrDigit(text[index - 1]);
             var end = index + term.Length;
             var after = end >= text.Length || !char.IsLetterOrDigit(text[end]);
-            if (before && after) return true;
+            if (before && after) count++;
             index++;
         }
-        return false;
+        return count;
     }
 }

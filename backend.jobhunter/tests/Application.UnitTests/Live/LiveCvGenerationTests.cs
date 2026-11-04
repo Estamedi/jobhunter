@@ -138,7 +138,9 @@ public class LiveCvGenerationTests
         // 5. Generate for the target job.
         var request = CvGenerationPipeline.BuildRequest(
             "Saber Motamedi", "sabermotamed@gmail.com", "+968 9221 8568", "Muscat, Oman",
-            new CvGenerationInputs(title, description), background, DateOnly.FromDateTime(DateTime.UtcNow));
+            new CvGenerationInputs(
+                title, description, Requirements: await CvGenerationPipeline.ReadRequirementsAsync(cvAi, description, default)),
+            background, DateOnly.FromDateTime(DateTime.UtcNow));
         Step($"5/7 AI generation for \"{title}\" (target {request.TargetPages} page(s))");
         var first = await cvAi.GenerateAsync(request, default);
         File.WriteAllText(Path.Combine(outDir, "04-first-draft.json"), CvDraftContent.Serialize(first));

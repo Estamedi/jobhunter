@@ -33,10 +33,13 @@ public class CvDraftGenerationService(
             context, draft.CandidateId, draft.GenerationNotes, sourceCvText, cancellationToken);
         warnings.AddRange(background.Warnings);
 
+        var requirements = await ReadRequirementsAsync(draft, cancellationToken);
+
         var generationRequest = CvGenerationPipeline.BuildRequest(
             candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation,
             new CvGenerationInputs(
-                draft.JobTitle, draft.JobDescription, draft.Instructions, draft.Tone, draft.Language, draft.LanguageLevel),
+                draft.JobTitle, draft.JobDescription, draft.Instructions, draft.Tone, draft.Language, draft.LanguageLevel,
+                requirements),
             background, DateOnly.FromDateTime(DateTime.UtcNow));
 
         // The prompt asks for clean, grounded writing, but the model still slips (vague "-ing" endings,
@@ -50,5 +53,26 @@ public class CvDraftGenerationService(
         draft.GenerationError = null;
         draft.Status = CvDraftStatus.Completed;
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    // The skills the job asks for, read once and kept on the draft, so the match report reuses them. Without
+    // them the CV is still written, just without the extra hint, so a failure here never fails the draft.
+    private async Task<JobRequirementsDto?> ReadRequirementsAsync(CvDraft draft, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(draft.JobDescription)) return null;
+
+        var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        if (!string.IsNullOrWhiteSpace(draft.JobRequirementsJson))
+        {
+            return JsonSerializer.Deserialize<JobRequirementsDto>(draft.JobRequirementsJson, json);
+        }
+
+        var requirements = await CvGenerationPipeline.ReadRequirementsAsync(aiService, draft.JobDescription, cancellationToken);
+        if (requirements is null) return null;
+
+        draft.JobRequirementsJson = JsonSerializer.Serialize(requirements, json);
+        // Saved now, so a retry after a failed writing does not pay for the reading again.
+        await context.SaveChangesAsync(cancellationToken);
+        return requirements;
     }
 }

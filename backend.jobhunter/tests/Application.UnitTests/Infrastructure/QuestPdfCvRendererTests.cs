@@ -94,6 +94,24 @@ public class QuestPdfCvRendererTests
         text.IndexOf("Acme", StringComparison.Ordinal).ShouldBeLessThan(text.IndexOf("Globex", StringComparison.Ordinal));
     }
 
+    // A role that says "Present" is still going, so it gets a length like a role with no end date does.
+    [TestCase("Present")]
+    [TestCase("")]
+    public async Task ShouldShowHowLongACurrentRoleHasLastedLikeAnEndedOne(string end)
+    {
+        var start = DateTime.Today.AddMonths(-13);
+        var cv = new GeneratedCvDto
+        {
+            Experience = [new CvExperienceDto { Role = "Lead", Company = "Acme", StartDate = start.ToString("MMM yyyy", System.Globalization.CultureInfo.InvariantCulture), EndDate = end, Bullets = ["Cut costs by 30%."] }],
+        };
+
+        var pdf = new QuestPdfCvRenderer().Render("classic", Header, cv);
+        using var stream = new MemoryStream(pdf);
+        var text = await new CvTextExtractor().ExtractTextAsync(stream, "cv.pdf", default);
+
+        text.ShouldContain("1 yr 2 mos");
+    }
+
     private static readonly string[] LongSentences =
     [
         "Senior engineer with 13 years of experience delivering production systems across payments, healthcare and government, with a focus on architecture, reliable delivery and clear communication with business owners.",

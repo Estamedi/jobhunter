@@ -168,4 +168,71 @@ public class CvDraftImproverTests
 
         result.Warnings.ShouldContain(w => w.Contains("copied from the job description"));
     }
+
+    private static GeneratedCvDto Stuffed(int times) => new()
+    {
+        Summary = "Lead engineer.",
+        Experience =
+        [
+            new CvExperienceDto
+            {
+                Role = "Technical Lead", Company = "Acme", StartDate = "Jan 2022", EndDate = "Present",
+                Bullets = Enumerable.Range(0, times).Select(i => $"Cut cloud costs by 30% across 12 services using Terraform module {i}.").ToList(),
+            },
+        ],
+    };
+
+    private static CvGenerationRequest RequestNeeding(string keyword) => Request() with
+    {
+        Requirements = new JobRequirementsDto { MustHave = [new JobRequirementDto { Name = keyword }] },
+    };
+
+    [Test]
+    public async Task ShouldRetryWhenAJobKeywordIsUsedMoreOftenThanTheCapAndKeepTheDraftThatUsesItLess()
+    {
+        var ai = new FakeAi(Stuffed(4));
+
+        var result = await CvDraftImprover.ImproveAsync(ai, RequestNeeding("Terraform"), Stuffed(9), BackgroundWithNoProfile(), default);
+
+        ai.Calls.ShouldBe(1);
+        ai.LastInstructions!.ShouldContain("The keyword \"Terraform\" is used 9 times");
+        result.KeywordRepeats.ShouldBe(0);
+        result.Cv.Experience[0].Bullets.Count.ShouldBe(4);
+    }
+
+    [Test]
+    public async Task ShouldNotLetAKeywordFixBeatAnInventedFact()
+    {
+        var invented = Stuffed(4) with
+        {
+            Experience = [Stuffed(4).Experience[0] with { Company = "Initech" }],
+        };
+        var ai = new FakeAi(invented);
+
+        var result = await CvDraftImprover.ImproveAsync(ai, RequestNeeding("Terraform"), Stuffed(9), BackgroundWithNoProfile(), default);
+
+        ai.Calls.ShouldBe(1);
+        result.Cv.Experience[0].Bullets.Count.ShouldBe(9);
+    }
+
+    [Test]
+    public async Task ShouldNotRetryForKeywordsWhenThereAreNoRequirements()
+    {
+        var ai = new FakeAi();
+        var clean = Stuffed(3) with
+        {
+            Experience =
+            [
+                Stuffed(3).Experience[0] with
+                {
+                    Bullets = ["Cut cloud costs by 30% across 12 services.", "Led the platform team through two cloud migrations and kept every release on schedule.", "Wrote the release checklist that the whole engineering group still follows for each deploy."],
+                },
+            ],
+        };
+
+        var result = await CvDraftImprover.ImproveAsync(ai, Request(), clean, BackgroundWithNoProfile(), default);
+
+        ai.Calls.ShouldBe(0);
+        result.KeywordRepeats.ShouldBe(0);
+    }
 }

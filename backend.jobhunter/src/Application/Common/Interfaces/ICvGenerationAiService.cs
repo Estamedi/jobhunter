@@ -16,6 +16,9 @@ public record CvGenerationRequest
     public string? LanguageLevel { get; init; }
     // Printed A4 pages to aim for (see CvLengthGuide); null when there is nothing to judge from.
     public int? TargetPages { get; init; }
+    // The skills the job description asks for (see ExtractRequirementsAsync); null when there is no job description
+    // or reading it failed. Tells the model which skills to put forward, and the checks which keywords to count.
+    public JobRequirementsDto? Requirements { get; init; }
 }
 
 public record CvExperienceDto

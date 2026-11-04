@@ -15,8 +15,46 @@ public static class CvProfileMerger
         {
             Experience = MergeExperience(cv.Experience, profile, warnings),
             Education = MergeEducation(cv.Education, profile, warnings),
-            Skills = DedupeSkills(cv.Skills),
+            Skills = CapSkills(DedupeSkills(cv.Skills), CvLimits.MaxSkillItems),
+            Headline = HeadlineTitle(cv.Headline),
         };
+
+    // The headline is the job title and nothing else. The model sometimes adds skills after it ("Senior
+    // Engineer | React | CI/CD"), so everything from the first pipe on is cut. Hand edits are never passed
+    // through here, so a user can still write what they like.
+    public static string HeadlineTitle(string headline)
+    {
+        var cut = headline.IndexOf('|');
+        if (cut < 0) return headline;
+        var title = headline[..cut].Trim();
+        return title.Length > 0 ? title : headline.Replace("|", " ").Trim();
+    }
+
+    // The prompt asks for at most 20 items but the model does not always keep to it. Extra items are cut from
+    // the end, so the order the model chose (most relevant first) is kept. A "Currently learning" group is kept
+    // whole: the candidate put those skills there on purpose and it is the only place that tells the reader
+    // they are not used at work yet.
+    public static List<CvSkillGroupDto> CapSkills(List<CvSkillGroupDto> groups, int max)
+    {
+        var protectedItems = groups.Where(IsLearning).Sum(g => g.Items.Count);
+        var room = Math.Max(0, max - protectedItems);
+        var result = new List<CvSkillGroupDto>();
+        foreach (var group in groups)
+        {
+            if (IsLearning(group))
+            {
+                result.Add(group);
+                continue;
+            }
+            var items = group.Items.Take(room).ToList();
+            room -= items.Count;
+            if (items.Count > 0) result.Add(group with { Items = items });
+        }
+        return result;
+    }
+
+    private static bool IsLearning(CvSkillGroupDto group)
+        => group.Category.Trim().Equals("Currently learning", StringComparison.OrdinalIgnoreCase);
 
     // The same skill listed in two groups (or twice in one) shows up as padding. Keep the first one,
     // ignoring case and bold markers, and drop any group left empty. Different items such as "React" and

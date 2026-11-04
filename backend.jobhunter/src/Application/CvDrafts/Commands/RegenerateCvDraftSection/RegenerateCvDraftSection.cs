@@ -1,3 +1,4 @@
+using System.Text.Json;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.Common.Security;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraft;
@@ -94,6 +95,18 @@ public class RegenerateCvDraftSectionCommandHandler(
         await context.SaveChangesAsync(cancellationToken);
 
         warnings.AddRange(CvGroundingValidator.Validate(updated, background.Text));
+        warnings.AddRange(CvJobCopyCheck.FindCopiedRuns(updated, draft.JobDescription, background.Text)
+            .Select(c => $"A sentence was copied from the job description: \"{c}\"."));
+        warnings.AddRange(KeywordWarnings(updated, draft.JobRequirementsJson));
         return draft.ToDetailDto(warnings, previous?.Id);
+    }
+
+    // A keyword used more than the cap after a rewrite is reported, like the other checks. There is no retry here.
+    private static IEnumerable<string> KeywordWarnings(GeneratedCvDto cv, string? requirementsJson)
+    {
+        if (string.IsNullOrWhiteSpace(requirementsJson)) return [];
+        var requirements = JsonSerializer.Deserialize<JobRequirementsDto>(requirementsJson, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        return CvKeywordRepeatCheck.Find(cv, requirements)
+            .Select(r => $"The keyword \"{r.Keyword}\" is used {r.Count} times. Use it at most {CvKeywordRepeatCheck.MaxUses} times.");
     }
 }

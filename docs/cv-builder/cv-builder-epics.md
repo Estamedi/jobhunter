@@ -71,10 +71,11 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 9.1 Section regenerate keeps language, tone and instructions (**P0**, in E1)
 - ✅ 9.2 Fill in the job description from the linked application
 - ✅ 9.3 Warn when there is no job description
-- ✅ 9.4 Target the job title and level
+- ✅ 9.4 Target the job title and level (the headline is the job title only, no skills; code cuts anything after a "|")
+- ✅ 9.4b CV title (a new draft is named "Job title - Company", like "Write all"; existing drafts keep their names)
 - ✅ 9.5 Order bullets by relevance inside each role
 - ✅ 9.6 Use the job's own wording (checked on a live run: the job's own wording is kept and no acronyms were spelled out)
-- 🟡 9.7 No copying and no keyword stuffing (copied-sentence check done in code; keyword cap is still a prompt rule; not run on section regenerate)
+- ✅ 9.7 No copying and no keyword stuffing (copied sentences and keywords used more than 6 times are checked in code; generation retries once and keeps the better draft, a section rewrite reports them as warnings)
 - ✅ 9.8 Keywords in context, not only in Skills (the eval reports must-have keywords in the text and in the skills list only)
 - ✅ 9.9 Gap loop (most important for fit) (note: the rewrite covers the Skills section only)
 - ✅ 9.11 Section order by job type (**P2**)
@@ -87,7 +88,7 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 4.2 Standard headings
 - ✅ 4.3 Plain contact info (LinkedIn or the first link now sits in the header)
 - ✅ 4.4 Embed fonts and set metadata (author, subject and keywords added to PDF and DOCX)
-- 🟡 4.5 Consistent dates (dates of entries not linked to the profile are normalised; education stays year-only, hand edits are untouched)
+- ✅ 4.5 Consistent dates (dates of entries not linked to the profile are normalised; a current role now shows its length like an ended one; education stays year-only and hand edits are untouched on purpose)
 - ✅ 4.6 No decorative bullets or justified text (PDF and DOCX)
 - ✅ 4.7 Safe file name
 
@@ -96,8 +97,8 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 
 - ✅ 2.1 Use the uploaded CV
 - ✅ 2.2 Length and style guidance
-- 🟡 2.3 Extract the job description first (the extraction runs for the match report only; generation does not use it yet)
-- 🟡 2.4 Select, do not dump (prompt only; live runs: 20 and 28 skills on the real profile, at most 14 on the fixtures, so the cap of 20 is not always followed)
+- ✅ 2.3 Extract the job description first (generation reads the job's skills first, keeps them on the draft, and gives the names to the writer; the match report reuses them; if reading fails the CV is still written)
+- ✅ 2.4 Select, do not dump (the prompt asks for 12 to 18 skills; code cuts anything over 20 from the end, in the writer's order, and never cuts a "Currently learning" group; hand edits are untouched)
 - 2.5 Respect the language in headings
 - 2.6 Version the prompt (later)
 - 2.7 Tune the model call (later)

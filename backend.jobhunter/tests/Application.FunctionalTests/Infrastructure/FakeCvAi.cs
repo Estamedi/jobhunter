@@ -9,10 +9,16 @@ public sealed class FakeCvAi : ICvGenerationAiService
     public static Func<CvGenerationRequest, Task<GeneratedCvDto>>? OnGenerate { get; set; }
     public static int Calls;
     public static CvGenerationRequest? LastRequest;
+    public static Func<string, Task<JobRequirementsDto>>? OnExtract { get; set; }
+    public static int ExtractCalls;
+    public static Func<CvSectionRefineRequest, GeneratedCvDto>? OnRefine { get; set; }
 
     public static void Reset()
     {
         OnGenerate = null;
+        OnExtract = null;
+        OnRefine = null;
+        Interlocked.Exchange(ref ExtractCalls, 0);
         LastRequest = null;
         Interlocked.Exchange(ref Calls, 0);
     }
@@ -39,10 +45,13 @@ public sealed class FakeCvAi : ICvGenerationAiService
     }
 
     public Task<JobRequirementsDto> ExtractRequirementsAsync(string jobDescription, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+    {
+        Interlocked.Increment(ref ExtractCalls);
+        return OnExtract is null ? Task.FromResult(new JobRequirementsDto()) : OnExtract(jobDescription);
+    }
 
     public Task<GeneratedCvDto> RefineSectionAsync(CvSectionRefineRequest request, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => OnRefine is null ? throw new NotSupportedException() : Task.FromResult(OnRefine(request));
 }
 
 // Records what the worker announces and still passes it on to the real SignalR notifier, so the live hub

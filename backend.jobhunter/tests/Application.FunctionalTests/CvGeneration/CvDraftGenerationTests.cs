@@ -3,6 +3,7 @@ using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.CvDrafts;
 using backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
 using backend.jobhunter.Application.CvDrafts.Commands.GenerateCvDraft;
+using backend.jobhunter.Application.CvDrafts.Commands.RegenerateCvDraftSection;
 using backend.jobhunter.Application.CvDrafts.Commands.RetryCvDraftGeneration;
 using backend.jobhunter.Application.CvDrafts.Commands.UpdateCvDraft;
 using backend.jobhunter.Application.CvDrafts.Queries.GetCvDraft;
@@ -275,5 +276,127 @@ public class CvDraftGenerationTests : TestBase
 
         await WaitForAsync(draftId, CvDraftStatus.Completed);
         FakeCvAi.LastRequest!.BackgroundText.ShouldNotBeNull().ShouldContain("OwnerAOnlyCompany");
+    }
+
+    [Test]
+    public async Task ShouldReadTheJobRequirementsFirstKeepThemOnTheDraftAndGiveThemToTheWriter()
+    {
+        var candidateId = await CreateCandidateAsync();
+        FakeCvAi.OnExtract = _ => Task.FromResult(new JobRequirementsDto
+        {
+            MustHave = [new JobRequirementDto { Name = "Terraform" }],
+            NiceToHave = [new JobRequirementDto { Name = "Go" }],
+        });
+
+        var created = await TestApp.SendAsync(Request(candidateId));
+        var draft = await WaitForAsync(created.Id, CvDraftStatus.Completed);
+
+        FakeCvAi.LastRequest!.Requirements!.MustHave.Select(r => r.Name).ShouldBe(["Terraform"]);
+        FakeCvAi.LastRequest.Requirements.NiceToHave.Select(r => r.Name).ShouldBe(["Go"]);
+        draft.JobRequirementsJson!.ShouldContain("Terraform");
+    }
+
+    [Test]
+    public async Task ShouldNotReadTheJobRequirementsAgainWhenTheDraftAlreadyHasThem()
+    {
+        var candidateId = await CreateCandidateAsync();
+        FakeCvAi.OnExtract = _ => Task.FromResult(new JobRequirementsDto { MustHave = [new JobRequirementDto { Name = "Terraform" }] });
+        FakeCvAi.OnGenerate = _ => throw new AiServiceException(AiFailure.Unavailable, "The AI service is down.");
+        var created = await TestApp.SendAsync(Request(candidateId));
+        await WaitForAsync(created.Id, CvDraftStatus.Failed);
+        FakeCvAi.ExtractCalls.ShouldBe(1);
+
+        FakeCvAi.OnGenerate = null;
+        await TestApp.SendAsync(new RetryCvDraftGenerationCommand(created.Id));
+        await WaitForAsync(created.Id, CvDraftStatus.Completed);
+
+        FakeCvAi.ExtractCalls.ShouldBe(1);
+    }
+
+    [Test]
+    public async Task ShouldStillWriteTheCvWhenTheJobRequirementsCannotBeRead()
+    {
+        var candidateId = await CreateCandidateAsync();
+        FakeCvAi.OnExtract = _ => throw new InvalidOperationException("extraction failed");
+
+        var created = await TestApp.SendAsync(Request(candidateId));
+        var draft = await WaitForAsync(created.Id, CvDraftStatus.Completed);
+
+        FakeCvAi.LastRequest!.Requirements.ShouldBeNull();
+        draft.JobRequirementsJson.ShouldBeNull();
+    }
+
+    [Test]
+    public async Task ShouldNotReadRequirementsForACvWithoutAJobDescription()
+    {
+        var candidateId = await CreateCandidateAsync();
+
+        var created = await TestApp.SendAsync(Request(candidateId, jobDescription: null));
+        await WaitForAsync(created.Id, CvDraftStatus.Completed);
+
+        FakeCvAi.ExtractCalls.ShouldBe(0);
+        FakeCvAi.LastRequest!.Requirements.ShouldBeNull();
+    }
+
+    [Test]
+    public async Task ShouldNameTheDraftAfterTheJobAndTheCompanyOfItsApplication()
+    {
+        var candidateId = await CreateCandidateAsync();
+        int applicationId;
+        using (var scope = FunctionalTestSetup.ScopeFactory.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var company = new JobCompany { Name = "Globex" };
+            var role = new JobRole { Title = "DevOps Engineer", Company = company };
+            var application = new JobApplication { CandidateId = candidateId, JobRole = role, Company = company };
+            db.Applications.Add(application);
+            await db.SaveChangesAsync();
+            applicationId = application.Id;
+        }
+
+        var fromApplication = await TestApp.SendAsync(Request(candidateId) with { JobApplicationId = applicationId });
+        var general = await TestApp.SendAsync(Request(candidateId));
+        var named = await TestApp.SendAsync(Request(candidateId) with { Title = "My own name" });
+
+        fromApplication.Title.ShouldBe("DevOps Engineer - Globex");
+        general.Title.ShouldBe("DevOps Engineer");
+        named.Title.ShouldBe("My own name");
+    }
+
+    [Test]
+    public async Task ShouldRunTheHeadlineSkillsCopyAndKeywordChecksWhenASectionIsRewritten()
+    {
+        var candidateId = await CreateCandidateAsync();
+        const string job = "We need someone who writes Terraform every day and keeps the platform running smoothly for all teams.";
+        int id;
+        using (var scope = FunctionalTestSetup.ScopeFactory.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var draft = new CvDraft
+            {
+                CandidateId = candidateId, Title = "CV", JobTitle = "Engineer", JobDescription = job,
+                ContentJson = CvDraftContent.Serialize(new GeneratedCvDto { Headline = "Engineer", Summary = "Old." }),
+                JobRequirementsJson = """{"mustHave":[{"name":"Terraform","aliases":[]}],"niceToHave":[],"otherRequirements":[]}""",
+                Status = CvDraftStatus.Completed,
+            };
+            db.CvDrafts.Add(draft);
+            await db.SaveChangesAsync();
+            id = draft.Id;
+        }
+        FakeCvAi.OnRefine = _ => new GeneratedCvDto
+        {
+            Headline = "Platform Engineer | Terraform | Go",
+            Summary = string.Join(' ', Enumerable.Repeat("Writes Terraform.", 8)) + " We need someone who writes Terraform every day and keeps the platform running smoothly for all teams.",
+            Skills = [new CvSkillGroupDto { Category = "Cloud", Items = Enumerable.Range(1, 30).Select(i => $"Tool {i}").ToList() }],
+        };
+
+        var headline = await TestApp.SendAsync(new RegenerateCvDraftSectionCommand { Id = id, Section = "headline", Instruction = "x" });
+        var summary = await TestApp.SendAsync(new RegenerateCvDraftSectionCommand { Id = id, Section = "summary", Instruction = "x" });
+        var skills = await TestApp.SendAsync(new RegenerateCvDraftSectionCommand { Id = id, Section = "skills", Instruction = "x" });
+
+        headline.Content.Headline.ShouldBe("Platform Engineer");
+        summary.Warnings!.ShouldContain(w => w.Contains("copied from the job description"));
+        summary.Warnings!.ShouldContain(w => w.Contains("\"Terraform\" is used"));
+        skills.Content.Skills.Sum(g => g.Items.Count).ShouldBe(20);
     }
 }

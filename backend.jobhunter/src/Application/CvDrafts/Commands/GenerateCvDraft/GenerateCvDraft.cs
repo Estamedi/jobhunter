@@ -43,13 +43,16 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
         }
 
         var jobDescription = request.JobDescription;
+        string? company = null;
         if (request.JobApplicationId.HasValue)
         {
             var role = await context.Applications.AsNoTracking()
                 .Where(a => a.Id == request.JobApplicationId)
-                .Select(a => new { a.JobRole.Description, a.JobRole.Requirements })
+                .Select(a => new { a.JobRole.Description, a.JobRole.Requirements, CompanyName = a.Company.Name })
                 .FirstOrDefaultAsync(cancellationToken)
                 ?? throw new NotFoundException(nameof(JobApplication), request.JobApplicationId.Value);
+
+            company = role.CompanyName;
 
             // A draft made from an application is tailored to that job even if the form sent no description.
             if (string.IsNullOrWhiteSpace(jobDescription))
@@ -77,7 +80,7 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
             CandidateId = request.CandidateId,
             SourceCvId = request.SourceCvId,
             JobApplicationId = request.JobApplicationId,
-            Title = string.IsNullOrWhiteSpace(request.Title) ? $"{request.JobTitle} CV" : request.Title,
+            Title = DraftTitle(request.Title, request.JobTitle, company),
             JobTitle = request.JobTitle,
             JobDescription = jobDescription is { Length: > CvLimits.MaxFieldLength }
                 ? jobDescription[..CvLimits.MaxFieldLength]
@@ -103,4 +106,12 @@ public class GenerateCvDraftCommandHandler(IApplicationDbContext context, ICvGen
 
         return draft.ToDetailDto(warnings);
     }
+
+    // Named after the job so drafts for different jobs are easy to tell apart: "Job title - Company",
+    // the same shape "Write all" uses.
+    public static string DraftTitle(string? given, string jobTitle, string? company)
+        => !string.IsNullOrWhiteSpace(given) ? given
+            : string.IsNullOrWhiteSpace(company) ? jobTitle.Trim()
+            : $"{jobTitle.Trim()} - {company.Trim()}";
 }
+

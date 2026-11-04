@@ -70,9 +70,11 @@ function monthIndex(value: string) {
 function duration(start?: string | null, end?: string | null) {
   const from = start?.trim() ? monthIndex(start) : null
   if (from === null) return ''
-  const to = end?.trim()
-    ? monthIndex(end)
-    : new Date().getFullYear() * 12 + new Date().getMonth()
+  // A role with no end date, or one that says "Present", is still going, so it runs to this month.
+  const open = !end?.trim() || /^present$/i.test(end.trim())
+  const to = open
+    ? new Date().getFullYear() * 12 + new Date().getMonth()
+    : monthIndex(end!)
   if (to === null) return ''
   const months = Math.max(1, to - from + 1)
   const years = Math.floor(months / 12)

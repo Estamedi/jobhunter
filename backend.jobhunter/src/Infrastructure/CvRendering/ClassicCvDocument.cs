@@ -318,7 +318,9 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv, CvStyle? s
     {
         var range = DateRange(start, end);
         var from = MonthIndex(start);
-        var to = string.IsNullOrWhiteSpace(end) ? DateTime.Today.Year * 12 + DateTime.Today.Month - 1 : MonthIndex(end);
+        // A role with no end date, or one that says "Present", is still going, so it runs to this month.
+        var open = string.IsNullOrWhiteSpace(end) || end.Trim().Equals("Present", StringComparison.OrdinalIgnoreCase);
+        var to = open ? DateTime.Today.Year * 12 + DateTime.Today.Month - 1 : MonthIndex(end);
         if (from is null || to is null) return range;
 
         var months = Math.Max(1, to.Value - from.Value + 1);

@@ -75,7 +75,10 @@ public class CvEvalRunTests
         var h = fixture.Header;
         var request = CvGenerationPipeline.BuildRequest(
             h.FullName, h.Email, h.Phone, h.Location,
-            new CvGenerationInputs(fixture.Job.Title, fixture.Job.Description), background, DateOnly.FromDateTime(DateTime.UtcNow));
+            new CvGenerationInputs(
+                fixture.Job.Title, fixture.Job.Description,
+                Requirements: await CvGenerationPipeline.ReadRequirementsAsync(cvAi, fixture.Job.Description, default)),
+            background, DateOnly.FromDateTime(DateTime.UtcNow));
 
         var result = await CvGenerationPipeline.RunAsync(cvAi, request, background, default);
 

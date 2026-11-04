@@ -153,4 +153,80 @@ public class CvProfileMergerTests
         merged.Experience[0].StartDate.ShouldBe(expected);
         merged.Experience[0].EndDate.ShouldBe(expected);
     }
+
+    [TestCase("Senior Software Engineer | React | CI/CD", "Senior Software Engineer")]
+    [TestCase("Senior Software Engineer|React", "Senior Software Engineer")]
+    [TestCase("Senior Software Engineer", "Senior Software Engineer")]
+    [TestCase("| React | CI/CD", "React   CI/CD")]
+    public void ShouldKeepOnlyTheJobTitleInTheHeadline(string headline, string expected)
+    {
+        var merged = CvProfileMerger.Merge(new GeneratedCvDto { Headline = headline }, null, []);
+
+        merged.Headline.ShouldBe(expected);
+    }
+
+    private static List<CvSkillGroupDto> Groups(params (string Category, int Items)[] groups)
+        => groups.Select(g => new CvSkillGroupDto
+        {
+            Category = g.Category,
+            Items = Enumerable.Range(1, g.Items).Select(i => $"{g.Category} {i}").ToList(),
+        }).ToList();
+
+    [Test]
+    public void ShouldCutSkillsOverTheCapFromTheEndAndKeepTheModelsOrder()
+    {
+        var cut = CvProfileMerger.CapSkills(Groups(("Backend", 12), ("Cloud", 10), ("Tools", 6)), 20);
+
+        cut.Select(g => g.Items.Count).ShouldBe([12, 8]);
+        cut[1].Items[0].ShouldBe("Cloud 1");
+        cut.Sum(g => g.Items.Count).ShouldBe(20);
+    }
+
+    [Test]
+    public void ShouldLeaveSkillsAloneWhenUnderTheCap()
+    {
+        var groups = Groups(("Backend", 5), ("Cloud", 4));
+
+        CvProfileMerger.CapSkills(groups, 20).Select(g => g.Items.Count).ShouldBe([5, 4]);
+    }
+
+    [Test]
+    public void ShouldKeepTheCurrentlyLearningGroupWholeAndCutOthersToMakeRoom()
+    {
+        var cut = CvProfileMerger.CapSkills(Groups(("Backend", 15), ("Currently learning", 3), ("Cloud", 10)), 20);
+
+        cut.Select(g => g.Category).ShouldBe(["Backend", "Currently learning", "Cloud"]);
+        cut.Select(g => g.Items.Count).ShouldBe([15, 3, 2]);
+    }
+
+    [Test]
+    public void ShouldNeverCutTheCurrentlyLearningGroupEvenWhenItIsAloneOverTheCap()
+    {
+        var cut = CvProfileMerger.CapSkills(Groups(("Backend", 4), ("Currently learning", 22)), 20);
+
+        cut.ShouldHaveSingleItem().Items.Count.ShouldBe(22);
+    }
+
+    [Test]
+    public void ShouldApplyBothCleanUpsWhenMergingAGeneratedCv()
+    {
+        var cv = new GeneratedCvDto { Headline = "Engineer | Go", Skills = Groups(("Backend", 30)) };
+
+        var merged = CvProfileMerger.Merge(cv, null, []);
+
+        merged.Headline.ShouldBe("Engineer");
+        merged.Skills.Sum(g => g.Items.Count).ShouldBe(20);
+    }
+
+    [Test]
+    public void ShouldCutAnOrdinarySkillGroupThatHasLearningInItsName()
+    {
+        var cut = CvProfileMerger.CapSkills(Groups(("Machine Learning", 10), ("Backend", 15)), 20);
+
+        cut.Sum(g => g.Items.Count).ShouldBe(20);
+        cut.Select(g => g.Items.Count).ShouldBe([10, 10]);
+
+        var big = CvProfileMerger.CapSkills(Groups(("Machine Learning", 25), ("Backend", 10)), 20);
+        big.Sum(g => g.Items.Count).ShouldBe(20);
+    }
 }
