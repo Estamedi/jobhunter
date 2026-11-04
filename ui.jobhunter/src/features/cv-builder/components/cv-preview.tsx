@@ -7,6 +7,11 @@ import {
 } from 'react'
 import { Pencil, Plus, Sparkles } from 'lucide-react'
 import { type CvContent, type CvScoreLocation, type CvSection } from '../api'
+import {
+  headerLinkLabel,
+  headerLinkText,
+  pickHeaderLink,
+} from '../lib/header-link'
 import { templateLook } from '../lib/templates'
 
 // Mirrors the backend PDF templates: the colours and spacing come from CSS variables that the page sets
@@ -172,12 +177,14 @@ export function CvPreview({
   onRefine,
   highlights,
   templateId,
+  photoUrl,
 }: {
   header: {
     fullName: string
     email?: string
     phone?: string
     location?: string
+    availability?: string
   }
   content: CvContent
   onEdit?: (section: CvSection) => void
@@ -186,8 +193,13 @@ export function CvPreview({
   highlights?: CvScoreLocation[]
   // Which server template to draw; the colours and spacing follow it.
   templateId?: string
+  // The candidate's photo, drawn by the photo template.
+  photoUrl?: string | null
 }) {
   const look = templateLook(templateId)
+  // The photo template shows this link as a QR code and as text, so it is not repeated further down.
+  const headerLink = look.photoHeader ? pickHeaderLink(content.links) : null
+  const otherLinks = content.links.filter((l) => l !== headerLink)
   const page = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -263,36 +275,101 @@ export function CvPreview({
           } as CSSProperties
         }
       >
-        <header className='group relative text-center'>
-          <div className='text-[22px]' style={{ color: NAME }}>
-            {header.fullName}
-          </div>
-          {content.headline && (
-            <div
-              className={`text-[17px] font-bold ${hit('headline') ? HIT : ''}`}
-              data-hit={hit('headline') || undefined}
-              style={{ color: NAME }}
-            >
-              {content.headline}
+        {look.photoHeader ? (
+          <header className='group relative flex items-start gap-4'>
+            {photoUrl ? (
+              <img
+                src={photoUrl}
+                alt='Your photo'
+                className='h-[120px] w-[90px] shrink-0 object-cover'
+              />
+            ) : (
+              <div className='flex h-[120px] w-[90px] shrink-0 items-center justify-center border border-dashed p-1 text-center text-[10px] text-gray-400'>
+                Add your photo on the profile page
+              </div>
+            )}
+            <div className='min-w-0 flex-1'>
+              <div className='text-[17px]' style={{ color: NAME }}>
+                {header.fullName}
+              </div>
+              {content.headline && (
+                <div
+                  className={`text-[17px] font-bold text-black ${hit('headline') ? HIT : ''}`}
+                  data-hit={hit('headline') || undefined}
+                >
+                  {content.headline}
+                </div>
+              )}
+              <div style={{ color: MUTED }}>
+                {[
+                  ['Residence', header.location],
+                  ['Phone', header.phone],
+                  ['Email', header.email],
+                  ['Availability', header.availability],
+                ]
+                  .filter(([, value]) => value)
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      {label}: <strong>{value}</strong>
+                    </div>
+                  ))}
+                {headerLink && (
+                  <div>
+                    {headerLinkLabel(headerLink)}:{' '}
+                    <strong>{headerLinkText(headerLink)}</strong>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-          <div className='mt-0.5 text-[12px]' style={{ color: MUTED }}>
-            {contact.map((c, i) => (
-              <Fragment key={c.label}>
-                {i > 0 && ' |  '}
-                {c.label}: <strong>{c.value}</strong>
-              </Fragment>
-            ))}
-          </div>
-          <div className='absolute top-0 right-0'>
-            <SectionActions
-              title='headline'
-              section='headline'
-              onEdit={onEdit}
-              onRefine={onRefine}
-            />
-          </div>
-        </header>
+            {headerLink && (
+              <div
+                className='flex h-[82px] w-[82px] shrink-0 items-center justify-center border text-center text-[10px] text-gray-500'
+                title='The PDF and Word file show a scannable QR code of this link here'
+              >
+                QR code
+              </div>
+            )}
+            <div className='absolute top-0 right-0'>
+              <SectionActions
+                title='headline'
+                section='headline'
+                onEdit={onEdit}
+                onRefine={onRefine}
+              />
+            </div>
+          </header>
+        ) : (
+          <header className='group relative text-center'>
+            <div className='text-[22px]' style={{ color: NAME }}>
+              {header.fullName}
+            </div>
+            {content.headline && (
+              <div
+                className={`text-[17px] font-bold ${hit('headline') ? HIT : ''}`}
+                data-hit={hit('headline') || undefined}
+                style={{ color: NAME }}
+              >
+                {content.headline}
+              </div>
+            )}
+            <div className='mt-0.5 text-[12px]' style={{ color: MUTED }}>
+              {contact.map((c, i) => (
+                <Fragment key={c.label}>
+                  {i > 0 && ' |  '}
+                  {c.label}: <strong>{c.value}</strong>
+                </Fragment>
+              ))}
+            </div>
+            <div className='absolute top-0 right-0'>
+              <SectionActions
+                title='headline'
+                section='headline'
+                onEdit={onEdit}
+                onRefine={onRefine}
+              />
+            </div>
+          </header>
+        )}
 
         {content.summary && (
           <Section
@@ -455,14 +532,14 @@ export function CvPreview({
           </Section>
         )}
 
-        {content.links.length > 0 && (
+        {otherLinks.length > 0 && (
           <Section
             title='Additional Information'
             section='links'
             onEdit={onEdit}
             onRefine={onRefine}
           >
-            {content.links.map((l, i) => (
+            {otherLinks.map((l, i) => (
               <div key={i}>
                 <a
                   href={l.startsWith('http') ? l : `https://${l}`}
@@ -483,7 +560,7 @@ export function CvPreview({
             )}
           </Section>
         )}
-        {content.links.length === 0 && content.languages.length > 0 && (
+        {otherLinks.length === 0 && content.languages.length > 0 && (
           <Section
             title='Additional Information'
             section='languages'

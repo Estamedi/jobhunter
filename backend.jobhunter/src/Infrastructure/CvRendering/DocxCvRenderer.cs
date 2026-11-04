@@ -1,7 +1,11 @@
 using backend.jobhunter.Application.Common.Interfaces;
+using backend.jobhunter.Application.CandidateProfiles;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using A = DocumentFormat.OpenXml.Drawing;
+using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
+using WP = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
 namespace backend.jobhunter.Infrastructure.CvRendering;
 
@@ -147,8 +151,103 @@ public class DocxCvRenderer : ICvDocxRenderer
             }
         }
 
+        // Photo on the left and a QR code on the right, both as floating pictures that the text wraps around,
+        // so the name and contact lines stay in ordinary paragraphs an ATS can read. A missing photo or link
+        // leaves its picture out.
+        private void PhotoHeader(CvHeaderDto header, GeneratedCvDto cv)
+        {
+            const float photoWidth = 90, photoHeight = 120, qrSize = 82;
+            var photo = CvImages.UsablePhoto(header.Photo);
+            var link = ClassicCvDocument.HeaderLink(cv);
+
+            var name = Paragraph();
+            if (photo is not null)
+            {
+                var type = CandidatePhotoRules.ContentTypeOf(photo) == "image/png" ? ImagePartType.Png : ImagePartType.Jpeg;
+                name.Append(new Run(AnchoredImage(photo, type, photoWidth, photoHeight, right: false, id: 1, name: "Photo")));
+            }
+            if (link is not null)
+            {
+                name.Append(new Run(AnchoredImage(CvImages.QrCodePng(ClassicCvDocument.LinkUrl(link)), ImagePartType.Png, qrSize, qrSize, right: true, id: 2, name: "QR code")));
+            }
+            name.Append(Run(header.FullName, size: 17, color: style.NameColor));
+
+            if (!string.IsNullOrWhiteSpace(cv.Headline))
+            {
+                Paragraph().Append(Run(cv.Headline.Replace("**", string.Empty), bold: true, size: 17, color: style.BodyColor));
+            }
+
+            void Line(string label, string? value, bool mailto = false)
+            {
+                if (string.IsNullOrWhiteSpace(value)) return;
+                var p = Paragraph();
+                p.Append(Run($"{label}: ", color: style.MutedColor));
+                p.Append(mailto
+                    ? Link($"mailto:{value.Trim()}", value.Trim(), bold: true, color: style.MutedColor, underline: false)
+                    : Run(value.Trim(), bold: true, color: style.MutedColor));
+            }
+
+            Line("Residence", header.Location);
+            Line("Phone", header.Phone);
+            Line("Email", header.Email, mailto: true);
+            Line("Availability", header.Availability);
+            if (link is not null)
+            {
+                var p = Paragraph();
+                p.Append(Run(link.Contains("linkedin.com", StringComparison.OrdinalIgnoreCase) ? "LinkedIn: " : "Link: ", color: style.MutedColor));
+                p.Append(Link(ClassicCvDocument.LinkUrl(link), ClassicCvDocument.LinkText(link), bold: true, color: style.MutedColor, underline: false));
+            }
+
+            // Ends the text wrapping, so the Summary heading starts below the photo and not beside it.
+            if (photo is not null || link is not null)
+            {
+                Paragraph().Append(new Run(new Break { Type = BreakValues.TextWrapping, Clear = BreakTextRestartLocationValues.All }));
+            }
+        }
+
+        private Drawing AnchoredImage(byte[] bytes, PartTypeInfo type, float widthPt, float heightPt, bool right, int id, string name)
+        {
+            var part = main.AddImagePart(type);
+            using (var stream = new MemoryStream(bytes)) part.FeedData(stream);
+            var relationshipId = main.GetIdOfPart(part);
+
+            long cx = (long)(widthPt * 12700), cy = (long)(heightPt * 12700);
+
+            return new Drawing(
+                new WP.Anchor(
+                    new WP.SimplePosition { X = 0, Y = 0 },
+                    new WP.HorizontalPosition(new WP.HorizontalAlignment(right ? "right" : "left")) { RelativeFrom = WP.HorizontalRelativePositionValues.Margin },
+                    new WP.VerticalPosition(new WP.PositionOffset("0")) { RelativeFrom = WP.VerticalRelativePositionValues.Paragraph },
+                    new WP.Extent { Cx = cx, Cy = cy },
+                    new WP.EffectExtent { LeftEdge = 0, TopEdge = 0, RightEdge = 0, BottomEdge = 0 },
+                    new WP.WrapSquare { WrapText = WP.WrapTextValues.BothSides },
+                    new WP.DocProperties { Id = (uint)id, Name = name, Description = name },
+                    new WP.NonVisualGraphicFrameDrawingProperties(new A.GraphicFrameLocks { NoChangeAspect = true }),
+                    new A.Graphic(
+                        new A.GraphicData(
+                            new PIC.Picture(
+                                new PIC.NonVisualPictureProperties(
+                                    new PIC.NonVisualDrawingProperties { Id = 0, Name = name },
+                                    new PIC.NonVisualPictureDrawingProperties()),
+                                new PIC.BlipFill(new A.Blip { Embed = relationshipId }, new A.Stretch(new A.FillRectangle())),
+                                new PIC.ShapeProperties(
+                                    new A.Transform2D(new A.Offset { X = 0, Y = 0 }, new A.Extents { Cx = cx, Cy = cy }),
+                                    new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle })))
+                        { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
+                {
+                    DistanceFromTop = 0U, DistanceFromBottom = 0U, DistanceFromLeft = 114300U, DistanceFromRight = 114300U,
+                    SimplePos = false, RelativeHeight = 251658240U, BehindDoc = false, Locked = false, LayoutInCell = true, AllowOverlap = true,
+                });
+        }
+
         private void Header(CvHeaderDto header, GeneratedCvDto cv)
         {
+            if (style.PhotoHeader)
+            {
+                PhotoHeader(header, cv);
+                return;
+            }
+
             var name = Paragraph(center: true);
             name.Append(Run(header.FullName, size: 16, color: style.NameColor));
 

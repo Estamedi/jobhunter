@@ -2,15 +2,18 @@ using backend.jobhunter.Application.CandidateProfiles;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileSkill;
+using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteCandidatePhoto;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileSkill;
 using backend.jobhunter.Application.CandidateProfiles.Commands.ImportProfile;
+using backend.jobhunter.Application.CandidateProfiles.Commands.SaveCandidatePhoto;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateContact;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateCandidateProfile;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileEducation;
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileExperience;
+using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidatePhoto;
 using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidateProfile;
 using backend.jobhunter.Application.CandidateProfiles.Queries.PreviewProfileImport;
 using backend.jobhunter.Application.Common.Interfaces;
@@ -39,6 +42,10 @@ public class CandidateProfiles : IEndpointGroup
         group.MapGet(GetProfile);
         group.MapPut(UpdateProfile, "about");
         group.MapPut(UpdateCandidateContact, "contact");
+        group.MapPut(SavePhoto, "photo").DisableAntiforgery()
+            .WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(3 * 1024 * 1024));
+        group.MapGet(GetPhoto, "photo");
+        group.MapDelete(DeletePhoto, "photo");
         group.MapPost(PreviewImport, "import-preview");
         group.MapPost(Import, "import");
         group.MapPost(AddExperience, "experiences");
@@ -134,6 +141,43 @@ public class CandidateProfiles : IEndpointGroup
     public static async Task<NoContent> DeleteEducation(ISender sender, int id, CancellationToken ct = default)
     {
         await sender.Send(new DeleteProfileEducationCommand(id), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Set the CV photo")]
+    [EndpointDescription("Uploads the photo shown on the photo CV template. JPEG or PNG, up to 2 MB; the browser scales it to 3:4 first.")]
+    public static async Task<NoContent> SavePhoto(
+        ISender sender,
+        [Microsoft.AspNetCore.Mvc.FromForm] int candidateId,
+        IFormFile file,
+        CancellationToken ct = default)
+    {
+        if (file.Length > CandidatePhotoRules.MaxBytes)
+        {
+            throw new Application.Common.Exceptions.ValidationException(
+                [new FluentValidation.Results.ValidationFailure("file", "The photo is too large.")]);
+        }
+
+        using var memory = new MemoryStream();
+        await file.CopyToAsync(memory, ct);
+        await sender.Send(new SaveCandidatePhotoCommand(candidateId, memory.ToArray()), ct);
+        return TypedResults.NoContent();
+    }
+
+    [EndpointSummary("Get the CV photo")]
+    public static async Task<FileContentHttpResult> GetPhoto(
+        ISender sender, HttpContext http, int candidateId, CancellationToken ct = default)
+    {
+        var photo = await sender.Send(new GetCandidatePhotoQuery(candidateId), ct);
+        // The photo can change, so a browser must ask again before reusing it.
+        http.Response.Headers.CacheControl = "private, no-cache";
+        return TypedResults.File(photo.Data, photo.ContentType);
+    }
+
+    [EndpointSummary("Remove the CV photo")]
+    public static async Task<NoContent> DeletePhoto(ISender sender, int candidateId, CancellationToken ct = default)
+    {
+        await sender.Send(new DeleteCandidatePhotoCommand(candidateId), ct);
         return TypedResults.NoContent();
     }
 

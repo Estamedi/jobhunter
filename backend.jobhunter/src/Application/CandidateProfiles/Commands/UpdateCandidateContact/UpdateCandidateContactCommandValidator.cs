@@ -9,5 +9,6 @@ public class UpdateCandidateContactCommandValidator : AbstractValidator<UpdateCa
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(200);
         RuleFor(x => x.Phone).MaximumLength(50);
         RuleFor(x => x.CurrentLocation).MaximumLength(200);
+        RuleFor(x => x.Availability).MaximumLength(60);
     }
 }

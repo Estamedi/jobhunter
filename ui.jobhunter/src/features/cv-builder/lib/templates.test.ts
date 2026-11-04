@@ -23,6 +23,14 @@ describe('templateLook', () => {
     )
   })
 
+  it('draws the photo header only for the photo template, with the classic colours', () => {
+    expect(templateLook('photo').photoHeader).toBe(true)
+    expect(templateLook('photo').vars).toEqual(templateLook('classic').vars)
+    for (const id of ['classic', 'neutral', 'compact', 'nope', undefined]) {
+      expect(templateLook(id).photoHeader).toBe(false)
+    }
+  })
+
   it('has a look for every template in the list', () => {
     for (const t of CV_TEMPLATES) {
       expect(Object.keys(templateLook(t.id).vars).length).toBeGreaterThan(0)
@@ -34,6 +42,7 @@ describe('templateLabel', () => {
   it('names a template and falls back to the first one', () => {
     expect(templateLabel('neutral')).toBe('Classic for print')
     expect(templateLabel('compact')).toBe('Compact')
+    expect(templateLabel('photo')).toBe('With photo')
     expect(templateLabel('nope')).toBe('Classic')
   })
 })

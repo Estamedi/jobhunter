@@ -23,7 +23,7 @@ public class GetMyCandidateQueryHandler(IApplicationDbContext context)
             .Select(c => new CandidateDetailDto(
                 c.Id, c.FullName, c.Email, c.Phone, c.CurrentLocation,
                 c.TargetCountries, c.PreferredWorkType, c.TargetRoles,
-                c.IsActive, c.Notes, c.Created, c.LastModified))
+                c.IsActive, c.Notes, c.Created, c.LastModified, c.Availability))
             .FirstOrDefaultAsync(cancellationToken);
 
         return c ?? throw new NotFoundException("Candidate", "me");

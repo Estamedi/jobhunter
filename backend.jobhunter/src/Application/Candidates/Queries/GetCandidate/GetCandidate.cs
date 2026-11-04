@@ -16,7 +16,8 @@ public record CandidateDetailDto(
     bool IsActive,
     string? Notes,
     DateTimeOffset Created,
-    DateTimeOffset LastModified
+    DateTimeOffset LastModified,
+    string? Availability = null
 );
 
 [Authorize]
@@ -33,7 +34,7 @@ public class GetCandidateQueryHandler(IApplicationDbContext context)
             .Select(c => new CandidateDetailDto(
                 c.Id, c.FullName, c.Email, c.Phone, c.CurrentLocation,
                 c.TargetCountries, c.PreferredWorkType, c.TargetRoles,
-                c.IsActive, c.Notes, c.Created, c.LastModified))
+                c.IsActive, c.Notes, c.Created, c.LastModified, c.Availability))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (c is null) throw new NotFoundException("Candidate", request.Id);

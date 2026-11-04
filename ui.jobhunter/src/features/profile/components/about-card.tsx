@@ -85,7 +85,11 @@ function AboutForm({
         <Button variant='outline' onClick={onClose}>
           Cancel
         </Button>
-        <Button type='submit' form='about-form' disabled={isSaving || !n.trim()}>
+        <Button
+          type='submit'
+          form='about-form'
+          disabled={isSaving || !n.trim()}
+        >
           Save
         </Button>
       </DialogFooter>

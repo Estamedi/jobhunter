@@ -17,7 +17,9 @@ public sealed record CvStyle(
     float MarginInches,
     float LineHeight,
     float BlockSpacing,
-    float ExperienceSpacing);
+    float ExperienceSpacing,
+    // Header with a photo on the left, labelled contact lines and a QR code on the right.
+    bool PhotoHeader = false);
 
 public static class CvStyles
 {
@@ -40,8 +42,12 @@ public static class CvStyles
         MarginInches = 0.6f, LineHeight = 1.18f, BlockSpacing = 4f, ExperienceSpacing = 5f,
     };
 
+    // The classic colours and spacing with the photo header.
+    public static readonly CvStyle Photo = Classic with { Id = CvTemplates.Photo, PhotoHeader = true };
+
     public static CvStyle For(string? templateId) => templateId switch
     {
+        CvTemplates.Photo => Photo,
         CvTemplates.Neutral => Neutral,
         CvTemplates.Compact => Compact,
         _ => Classic,

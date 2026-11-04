@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mail, MapPin, Pencil, Phone } from 'lucide-react'
+import { Clock, Mail, MapPin, Pencil, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,6 +17,7 @@ export interface ContactValues {
   email: string
   phone: string
   currentLocation: string
+  availability: string
 }
 
 function ContactForm({
@@ -74,6 +75,19 @@ function ContactForm({
             onChange={(e) => set('currentLocation', e.target.value)}
             placeholder='Ex: Muscat, Oman'
           />
+        </div>
+        <div className='space-y-1'>
+          <Label htmlFor='contact-availability'>Availability</Label>
+          <Input
+            id='contact-availability'
+            maxLength={60}
+            value={values.availability}
+            onChange={(e) => set('availability', e.target.value)}
+            placeholder='Ex: Immediately, or 1 month notice'
+          />
+          <p className='text-xs text-muted-foreground'>
+            Shown on the &ldquo;With photo&rdquo; CV template.
+          </p>
         </div>
       </form>
       <DialogFooter>
@@ -135,6 +149,12 @@ export function ContactCard({
           <MapPin className='h-4 w-4 text-muted-foreground' />
           {values.currentLocation || (
             <span className='text-muted-foreground'>No location yet</span>
+          )}
+        </p>
+        <p className='flex items-center gap-2'>
+          <Clock className='h-4 w-4 text-muted-foreground' />
+          {values.availability || (
+            <span className='text-muted-foreground'>No availability yet</span>
           )}
         </p>
       </div>

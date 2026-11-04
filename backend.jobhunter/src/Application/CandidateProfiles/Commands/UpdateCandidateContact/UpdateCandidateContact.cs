@@ -14,6 +14,7 @@ public record UpdateCandidateContactCommand : IRequest
     public required string Email { get; init; }
     public string? Phone { get; init; }
     public string? CurrentLocation { get; init; }
+    public string? Availability { get; init; }
 }
 
 public class UpdateCandidateContactCommandHandler(IApplicationDbContext context)
@@ -28,6 +29,7 @@ public class UpdateCandidateContactCommandHandler(IApplicationDbContext context)
         candidate.Email = request.Email.Trim();
         candidate.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         candidate.CurrentLocation = string.IsNullOrWhiteSpace(request.CurrentLocation) ? null : request.CurrentLocation.Trim();
+        candidate.Availability = string.IsNullOrWhiteSpace(request.Availability) ? null : request.Availability.Trim();
 
         await context.SaveChangesAsync(cancellationToken);
     }

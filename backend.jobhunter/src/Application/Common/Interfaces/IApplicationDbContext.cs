@@ -16,6 +16,7 @@ public interface IApplicationDbContext
     DbSet<CvDraft> CvDrafts { get; }
     DbSet<CvDraftVersion> CvDraftVersions { get; }
     DbSet<CandidateProfile> CandidateProfiles { get; }
+    DbSet<CandidatePhoto> CandidatePhotos { get; }
     DbSet<CandidatePreferences> CandidatePreferences { get; }
     DbSet<ProfileLink> ProfileLinks { get; }
     DbSet<ProfileExperience> ProfileExperiences { get; }

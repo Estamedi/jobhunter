@@ -38,6 +38,7 @@ import { cvsApi, type Cv } from '@/features/cvs/api'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 import { jobRolesApi } from '@/features/job-roles/api'
 import { profileApi } from '@/features/profile/api'
+import { useCandidatePhoto } from '@/features/profile/lib/use-candidate-photo'
 import {
   cvBuilderApi,
   isWriting,
@@ -594,6 +595,12 @@ export function CvBuilder({
       toast.error(serverDetail(error, 'Failed to restore the version')),
   })
 
+  // Only the photo template needs the picture, so it is downloaded only for a draft that uses it.
+  const { url: photoUrl, isLoading: photoLoading } = useCandidatePhoto(
+    candidate?.id,
+    draft?.templateId === 'photo'
+  )
+
   // The template only changes colours and spacing, so the content and title are sent back as they are.
   const changeTemplate = useMutation({
     mutationFn: (templateId: string) =>
@@ -1020,9 +1027,22 @@ export function CvBuilder({
             ) : (
               <div className='rounded-md bg-muted/40 p-4'>
                 <p className='mb-3 text-center text-xs text-muted-foreground'>
-                  Preview and exported PDF use A4 page size (210 × 297 mm). The
-                  CV has no photo; if an employer asks for one, add it in the
-                  Word file.
+                  Preview and exported PDF use A4 page size (210 × 297 mm).{' '}
+                  {draft.templateId === 'photo' ? (
+                    photoUrl || photoLoading ? (
+                      'The photo comes from your profile.'
+                    ) : (
+                      <>
+                        This template has no photo yet.{' '}
+                        <Link to='/profile' className='underline'>
+                          Add one on your profile
+                        </Link>
+                        .
+                      </>
+                    )
+                  ) : (
+                    'This template has no photo; choose “With photo” to add yours.'
+                  )}
                 </p>
                 <CvPreview
                   header={{
@@ -1030,12 +1050,14 @@ export function CvBuilder({
                     email: candidate.email,
                     phone: candidate.phone,
                     location: candidate.currentLocation,
+                    availability: candidate.availability,
                   }}
                   content={draft.content}
                   onEdit={(section) => setEditingSection(section)}
                   onRefine={(section) => setRefining(section)}
                   highlights={highlights}
                   templateId={draft.templateId}
+                  photoUrl={photoUrl}
                 />
               </div>
             )}

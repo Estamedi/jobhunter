@@ -20,7 +20,7 @@ Farsi CVs (section 8 and task 9.10 of the source file) are out of scope for now.
 | E6 ✅ | User experience | P1 | 8 | 3 |
 | E7 ✅ | Quality evaluation | P1 | 3 | 7 |
 | E8 | Business rules | P1 and P2 | 5 | 6 |
-| E9 | Professional look | P2 | 4 | 5 |
+| E9 | Professional look | P2 | 5 | 5 |
 | E10 | AI chat via LibreChat (achievement interview) | P1 | 9 | new (L.x) |
 | E11 | Mock interview | P2 | 7 | new (M.x) |
 | E12 ✅ | Background CV generation (worker and live updates) | P0 | 8 | new (B.x) |
@@ -193,7 +193,12 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ 5.1 Second template: "Classic for print" and "Compact" were added next to "Classic", chosen in the draft header, with the preview following the choice (one layout and three styles in `CvStyle`; every template goes through the ATS round-trip tests; the page itself was not tested in a browser)
 - 🟡 5.2 Tone the colours down: the "Classic for print" and "Compact" styles are near-black and all their text colours pass 4.5:1 contrast (tested), and the DOCX follows the template's colours. The classic blue heading is 3.56:1 on white, below 4.5:1; it was left as the owner's reference look
 - ✅ 5.3 Page-break rules: a section moves to the next page rather than leave its heading alone at the bottom, and a role line stays with its first bullet. Tested on long CVs for every template, and the test fails when either rule is removed. DOCX already keeps headings and role lines with the next line
-- ✅ 5.4 Photo-free: the preview says the CV has no photo and that one can be added in the Word file
+- ✅ 5.4 Photo-free by default: the classic, print and compact templates have no photo, and the preview says so
+- ✅ 5.5 "With photo" template (new, asked for by the owner): the user uploads a photo on the profile page and picks "With photo" for a CV with the photo on the left, the name, a bold headline and labelled lines (Residence, Phone, Email, Availability, LinkedIn), and a QR code of the profile link on the right. Parts:
+  - Profile: a Photo card (upload, change, remove) and a new Availability field. The browser crops the picture to 3:4, scales it to 600 x 800 and turns it upright, so the server gets a small JPEG. The server accepts only JPEG or PNG (checked from the file's bytes) up to 2 MB, keeps one photo per candidate in the database (not in file storage, which would lose it when the container is replaced), and only the owner can read, change or remove it.
+  - PDF and Word: the photo and the QR code are pictures only. The name, contact lines and the link stay as text before "Summary", so an ATS reads the same text as for the other templates. A photo that cannot be read, or a missing photo or link, is left out and the export still works. The Word file uses floating pictures; its structure and schema were checked, but it was not opened in Word or LibreOffice.
+  - The photo is read only when the draft uses the photo template, and it is never sent to the AI.
+  - Tested: photo upload and rules, owner-only access, PDF and Word with and without photo and link, the ATS round trip and page-break tests for the new template, the full export from the database, the crop helper and the photo card. The PDF was also rendered and checked against the owner's screenshot. The preview shows a labelled box where the QR code goes, not a scannable one. The page itself was not tested in a browser.
 
 ### E11. Mock interview
 **Goal:** Let users practise interviews for a specific application, using the same LibreChat chat engine and chat panel as E10.

@@ -4,6 +4,7 @@ export const CV_TEMPLATES = [
   { id: 'classic', label: 'Classic' },
   { id: 'neutral', label: 'Classic for print' },
   { id: 'compact', label: 'Compact' },
+  { id: 'photo', label: 'With photo' },
 ] as const
 
 interface TemplateLook {
@@ -11,6 +12,8 @@ interface TemplateLook {
   fontSize: string
   lineHeight: string
   padding: string
+  // Header with the photo on the left, labelled contact lines and a QR code of the profile link.
+  photoHeader: boolean
 }
 
 const CLASSIC: TemplateLook = {
@@ -24,6 +27,7 @@ const CLASSIC: TemplateLook = {
   fontSize: '12px',
   lineHeight: '1.35',
   padding: '40px 48px',
+  photoHeader: false,
 }
 
 const NEUTRAL: TemplateLook = {
@@ -45,7 +49,10 @@ const COMPACT: TemplateLook = {
   padding: '32px 38px',
 }
 
+const PHOTO: TemplateLook = { ...CLASSIC, photoHeader: true }
+
 export function templateLook(id?: string | null): TemplateLook {
+  if (id === 'photo') return PHOTO
   if (id === 'neutral') return NEUTRAL
   if (id === 'compact') return COMPACT
   return CLASSIC

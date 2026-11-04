@@ -28,7 +28,18 @@ public class ExportCvDraftCommandHandler(
         CvDraftGuard.EnsureCompleted(draft);
 
         var candidate = draft.Candidate;
-        var header = new CvHeaderDto(candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation);
+        // Only the photo template shows the photo, so only then is it read from the database.
+        byte[]? photo = null;
+        if (string.Equals(draft.TemplateId, CvTemplateIds.Photo, StringComparison.OrdinalIgnoreCase))
+        {
+            photo = await context.CandidatePhotos.AsNoTracking()
+                .Where(p => p.CandidateId == draft.CandidateId)
+                .Select(p => p.Data)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        var header = new CvHeaderDto(
+            candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation, photo, candidate.Availability);
         var content = CvDraftContent.Deserialize(draft.ContentJson);
         var isDocx = string.Equals(request.Format, "docx", StringComparison.OrdinalIgnoreCase);
         var pdf = isDocx ? docxRenderer.Render(header, content, draft.TemplateId) : renderer.Render(draft.TemplateId, header, content);

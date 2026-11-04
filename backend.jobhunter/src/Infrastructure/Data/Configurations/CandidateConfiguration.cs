@@ -11,6 +11,7 @@ public class CandidateConfiguration : IEntityTypeConfiguration<Candidate>
         builder.Property(c => c.FullName).HasMaxLength(200).IsRequired();
         builder.Property(c => c.Email).HasMaxLength(200).IsRequired();
         builder.Property(c => c.Phone).HasMaxLength(50);
+        builder.Property(c => c.Availability).HasMaxLength(60);
         builder.Property(c => c.CurrentLocation).HasMaxLength(200);
         builder.Property(c => c.PreferredWorkType).HasMaxLength(50).IsRequired();
 

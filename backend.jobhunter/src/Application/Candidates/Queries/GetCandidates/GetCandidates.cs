@@ -16,7 +16,8 @@ public record CandidateDto(
     string? Notes,
     int ApplicationCount,
     DateTimeOffset Created,
-    DateTimeOffset LastModified
+    DateTimeOffset LastModified,
+    string? Availability = null
 );
 
 [Authorize]
@@ -56,7 +57,7 @@ public class GetCandidatesQueryHandler(IApplicationDbContext context)
                 c.TargetCountries, c.PreferredWorkType, c.TargetRoles,
                 c.IsActive, c.Notes,
                 c.Applications.Count,
-                c.Created, c.LastModified))
+                c.Created, c.LastModified, c.Availability))
             .ToListAsync(cancellationToken);
 
         return new GetCandidatesResult(items, total);

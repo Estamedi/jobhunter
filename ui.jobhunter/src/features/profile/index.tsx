@@ -26,7 +26,10 @@ import {
   ProjectsSection,
 } from './components/extra-sections'
 import { ImportDialog } from './components/import-dialog'
+import { PhotoCard } from './components/photo-card'
 import { SkillsSection } from './components/skills-section'
+import { isPhotoFile, MAX_PHOTO_INPUT_BYTES, preparePhoto } from './lib/photo'
+import { useCandidatePhoto } from './lib/use-candidate-photo'
 
 export function Profile() {
   const qc = useQueryClient()
@@ -106,6 +109,39 @@ export function Profile() {
     onError: () => toast.error('Failed to delete experience'),
   })
 
+  const { url: photoUrl, isLoading: photoLoading } = useCandidatePhoto(
+    candidate?.id
+  )
+
+  const savePhoto = useMutation({
+    mutationFn: async (file: File) => {
+      if (!isPhotoFile(file))
+        throw new Error('Choose a JPEG, PNG or WebP picture.')
+      if (file.size > MAX_PHOTO_INPUT_BYTES)
+        throw new Error('That picture is too large (15 MB at most).')
+      await profileApi.savePhoto(candidate!.id, await preparePhoto(file))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidate-photo', candidate?.id] })
+      toast.success('Photo saved')
+    },
+    onError: (error) =>
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to save the photo'
+      ),
+  })
+
+  const removePhoto = useMutation({
+    mutationFn: () => profileApi.deletePhoto(candidate!.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidate-photo', candidate?.id] })
+      toast.success('Photo removed')
+    },
+    onError: () => toast.error('Failed to remove the photo'),
+  })
+
   const saveContact = useMutation({
     mutationFn: (v: ContactValues) =>
       profileApi.updateContact({
@@ -114,6 +150,7 @@ export function Profile() {
         email: v.email.trim(),
         phone: v.phone.trim() || null,
         currentLocation: v.currentLocation.trim() || null,
+        availability: v.availability.trim() || null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidates'] })
@@ -212,9 +249,18 @@ export function Profile() {
           email: candidate.email,
           phone: candidate.phone ?? '',
           currentLocation: candidate.currentLocation ?? '',
+          availability: candidate.availability ?? '',
         }}
         isSaving={saveContact.isPending}
         onSave={(v, done) => saveContact.mutate(v, { onSuccess: done })}
+      />
+
+      <PhotoCard
+        photoUrl={photoUrl}
+        isLoading={photoLoading}
+        isBusy={savePhoto.isPending || removePhoto.isPending}
+        onPick={(file) => savePhoto.mutate(file)}
+        onRemove={() => removePhoto.mutate()}
       />
 
       <ExperienceSection

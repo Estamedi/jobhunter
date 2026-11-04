@@ -6,6 +6,7 @@ export interface Candidate {
   email: string
   phone?: string
   currentLocation?: string
+  availability?: string
   targetCountries?: string
   preferredWorkType: string
   targetRoles?: string

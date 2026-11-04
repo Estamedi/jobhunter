@@ -6,6 +6,8 @@ public class Candidate : OwnedEntity
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? CurrentLocation { get; set; }
+    // When the candidate can start, in their own words ("Immediately", "2 weeks notice"). Shown on the photo CV.
+    public string? Availability { get; set; }
     public string? TargetCountries { get; set; }
     public string PreferredWorkType { get; set; } = "Any";
     public string? TargetRoles { get; set; }
@@ -17,6 +19,7 @@ public class Candidate : OwnedEntity
     public ICollection<JobInterview> Interviews { get; set; } = new List<JobInterview>();
     public CandidateProfile? Profile { get; set; }
     public CandidatePreferences? Preferences { get; set; }
+    public CandidatePhoto? Photo { get; set; }
     public ICollection<Cv> Cvs { get; set; } = new List<Cv>();
     public ICollection<CvDraft> CvDrafts { get; set; } = new List<CvDraft>();
 }

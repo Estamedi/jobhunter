@@ -203,6 +203,7 @@ export interface UpdateContactDto {
   email: string
   phone?: string | null
   currentLocation?: string | null
+  availability?: string | null
 }
 
 export interface UpdateAboutDto {
@@ -224,6 +225,25 @@ export const profileApi = {
 
   updateContact: (dto: UpdateContactDto) =>
     http.put('/api/CandidateProfiles/contact', dto),
+
+  // The CV photo, as the browser prepared it (a 3:4 JPEG). A missing photo is a 404.
+  getPhoto: (candidateId: number) =>
+    http
+      .get<Blob>('/api/CandidateProfiles/photo', {
+        params: { candidateId },
+        responseType: 'blob',
+      })
+      .then((r) => r.data),
+
+  savePhoto: (candidateId: number, photo: Blob) => {
+    const form = new FormData()
+    form.append('candidateId', String(candidateId))
+    form.append('file', photo, 'photo.jpg')
+    return http.put('/api/CandidateProfiles/photo', form)
+  },
+
+  deletePhoto: (candidateId: number) =>
+    http.delete('/api/CandidateProfiles/photo', { params: { candidateId } }),
 
   previewImport: (cvId: number) =>
     http

@@ -7,9 +7,24 @@ import {
 } from '@/components/ui/collapsible'
 
 const STEPS = [
-  <>Open your profile on <a className='underline' href='https://www.linkedin.com/in/me/' target='_blank' rel='noopener noreferrer'>linkedin.com</a> (click <b>Me</b> → <b>View profile</b>) on a computer.</>,
-  <>Under your name and headline, click the <b>Resources</b> button.</>,
-  <>Choose <b>Save to PDF</b>. LinkedIn downloads the file to your computer.</>,
+  <>
+    Open your profile on{' '}
+    <a
+      className='underline'
+      href='https://www.linkedin.com/in/me/'
+      target='_blank'
+      rel='noopener noreferrer'
+    >
+      linkedin.com
+    </a>{' '}
+    (click <b>Me</b> → <b>View profile</b>) on a computer.
+  </>,
+  <>
+    Under your name and headline, click the <b>Resources</b> button.
+  </>,
+  <>
+    Choose <b>Save to PDF</b>. LinkedIn downloads the file to your computer.
+  </>,
   <>Upload that PDF here. Check the sections it finds before importing.</>,
 ]
 
@@ -35,8 +50,8 @@ export function LinkedinPdfGuide() {
           loading='lazy'
         />
         <p className='text-xs text-muted-foreground'>
-          On the LinkedIn mobile app this option is not available. Open linkedin.com in a browser
-          and use the desktop site.
+          On the LinkedIn mobile app this option is not available. Open
+          linkedin.com in a browser and use the desktop site.
         </p>
       </CollapsibleContent>
     </Collapsible>

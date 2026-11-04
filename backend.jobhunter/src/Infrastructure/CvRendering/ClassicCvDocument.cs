@@ -63,7 +63,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv, CvStyle? s
             page.Content().Column(col =>
             {
                 col.Spacing(_s.BlockSpacing);
-                col.Item().Element(Header);
+                col.Item().Element(_s.PhotoHeader ? PhotoHeader : Header);
 
                 if (!string.IsNullOrWhiteSpace(cv.Summary))
                 {
@@ -161,6 +161,60 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv, CvStyle? s
                     }));
                 }
             });
+        });
+    }
+
+    // The photo on the left, then the name, the headline and labelled contact lines, then a QR code of the
+    // profile link. A missing photo or link just leaves its place out. The link is also written as text,
+    // because an ATS cannot read a QR code.
+    private void PhotoHeader(IContainer container)
+    {
+        const float photoWidth = 90, photoHeight = 120, qrSize = 82;
+        var photo = CvImages.UsablePhoto(header.Photo);
+        var link = HeaderLink(cv);
+        var qr = link is null ? null : CvImages.QrCodePng(LinkUrl(link));
+
+        container.Row(row =>
+        {
+            row.Spacing(14);
+
+            if (photo is not null) row.ConstantItem(photoWidth).Height(photoHeight).Image(photo).FitArea();
+
+            row.RelativeItem().Column(col =>
+            {
+                col.Item().Text(header.FullName).FontSize(17).FontColor(_s.NameColor);
+                if (!string.IsNullOrWhiteSpace(CleanText(cv.Headline)))
+                {
+                    col.Item().Text(CleanText(cv.Headline)).FontSize(17).Bold().FontColor(_s.BodyColor);
+                }
+
+                void Line(string label, string? value)
+                {
+                    if (string.IsNullOrWhiteSpace(value)) return;
+                    col.Item().Text(t =>
+                    {
+                        t.DefaultTextStyle(x => x.FontColor(_s.MutedColor));
+                        t.Span($"{label}: ");
+                        t.Span(value.Trim()).Bold();
+                    });
+                }
+
+                Line("Residence", header.Location);
+                Line("Phone", header.Phone);
+                Line("Email", header.Email);
+                Line("Availability", header.Availability);
+                if (link is not null)
+                {
+                    col.Item().Text(t =>
+                    {
+                        t.DefaultTextStyle(x => x.FontColor(_s.MutedColor));
+                        t.Span(link.Contains("linkedin.com", StringComparison.OrdinalIgnoreCase) ? "LinkedIn: " : "Link: ");
+                        t.Hyperlink(LinkText(link), LinkUrl(link)).Bold();
+                    });
+                }
+            });
+
+            if (qr is not null) row.ConstantItem(qrSize).Height(qrSize).AlignTop().Image(qr).FitArea();
         });
     }
 

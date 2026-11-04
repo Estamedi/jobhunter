@@ -179,6 +179,10 @@ namespace backend.jobhunter.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Availability")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -236,6 +240,49 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.HasIndex("IsActive");
 
                     b.ToTable("Candidates");
+                });
+
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CandidatePhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId")
+                        .IsUnique();
+
+                    b.ToTable("CandidatePhotos");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.CandidatePreferences", b =>
@@ -1648,6 +1695,17 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.CandidatePhoto", b =>
+                {
+                    b.HasOne("backend.jobhunter.Domain.Entities.Candidate", "Candidate")
+                        .WithOne("Photo")
+                        .HasForeignKey("backend.jobhunter.Domain.Entities.CandidatePhoto", "CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidate");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.CandidatePreferences", b =>
                 {
                     b.HasOne("backend.jobhunter.Domain.Entities.Candidate", "Candidate")
@@ -1951,6 +2009,8 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Navigation("Cvs");
 
                     b.Navigation("Interviews");
+
+                    b.Navigation("Photo");
 
                     b.Navigation("Preferences");
 

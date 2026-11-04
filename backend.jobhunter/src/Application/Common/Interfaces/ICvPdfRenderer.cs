@@ -1,6 +1,10 @@
 namespace backend.jobhunter.Application.Common.Interfaces;
 
-public record CvHeaderDto(string FullName, string? Email, string? Phone, string? Location);
+// Photo and Availability are only drawn by the photo template. Photo holds the image bytes (JPEG or PNG);
+// a photo that cannot be read is left out rather than failing the export.
+public record CvHeaderDto(
+    string FullName, string? Email, string? Phone, string? Location,
+    byte[]? Photo = null, string? Availability = null);
 
 public interface ICvDocxRenderer
 {

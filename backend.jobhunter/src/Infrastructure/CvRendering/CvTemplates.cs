@@ -9,5 +9,9 @@ public static class CvTemplates
     // Tighter spacing and slightly smaller type in neutral colours.
     public const string Compact = "compact";
 
-    public static readonly string[] All = [Classic, Neutral, Compact];
+    // The classic look with a header that has the candidate's photo, labelled contact lines and a QR code of
+    // their profile link. Without a photo or a link, those parts are left out.
+    public const string Photo = Application.CvDrafts.CvTemplateIds.Photo;
+
+    public static readonly string[] All = [Classic, Neutral, Compact, Photo];
 }
