@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '@/styles/index.css'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import {
@@ -8,12 +9,17 @@ import {
 } from '@/features/profile/api'
 import { Onboarding } from '.'
 
+const navigate = vi.fn()
+
 vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@tanstack/react-router')>()),
-  useNavigate: () => vi.fn(),
+  useNavigate: () => navigate,
 }))
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+}))
+vi.mock('@/features/auth/api', () => ({
+  authApi: { updateOnboardingStatus: vi.fn() },
 }))
 vi.mock('@/features/candidates/api', () => ({
   candidatesApi: { mine: vi.fn(), update: vi.fn() },
@@ -28,6 +34,7 @@ vi.mock('@/features/profile/api', () => ({
   },
 }))
 
+const { authApi } = await import('@/features/auth/api')
 const { candidatesApi } = await import('@/features/candidates/api')
 const { profileApi } = await import('@/features/profile/api')
 
@@ -125,5 +132,68 @@ describe('Onboarding CV step when the user comes back', () => {
 
     await expect.element(screen.getByText('Set up your profile')).toBeVisible()
     expect(profileApi.getImportJob).not.toHaveBeenCalled()
+  })
+})
+
+describe('Onboarding ends after the CV step', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(candidatesApi.mine).mockResolvedValue({
+      items: [me],
+      total: 1,
+    } as never)
+    vi.mocked(candidatesApi.update).mockResolvedValue(undefined as never)
+    vi.mocked(profileApi.importProfile).mockResolvedValue(undefined as never)
+    vi.mocked(authApi.updateOnboardingStatus).mockResolvedValue(
+      undefined as never
+    )
+  })
+
+  it('completes onboarding after the profile is saved and goes to the extension, with no questions', async () => {
+    vi.mocked(profileApi.latestImport).mockResolvedValue(job())
+    const screen = await renderPage()
+    await expect.element(screen.getByText('Review your profile')).toBeVisible()
+
+    await screen.getByRole('button', { name: 'Confirm and continue' }).click()
+
+    await vi.waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({
+        to: '/onboarding/extension',
+        replace: true,
+      })
+    )
+    expect(profileApi.importProfile).toHaveBeenCalled()
+    expect(authApi.updateOnboardingStatus).toHaveBeenCalledWith('Completed')
+    expect(navigate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ to: '/onboarding/questions' })
+    )
+  })
+
+  it('stays on the page and says so when onboarding cannot be completed', async () => {
+    vi.mocked(profileApi.latestImport).mockResolvedValue(job())
+    vi.mocked(authApi.updateOnboardingStatus).mockRejectedValue(new Error('x'))
+    const screen = await renderPage()
+    await expect.element(screen.getByText('Review your profile')).toBeVisible()
+
+    await screen.getByRole('button', { name: 'Confirm and continue' }).click()
+
+    await vi.waitFor(() => expect(toast.error).toHaveBeenCalled())
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('marks onboarding as skipped and still offers the extension', async () => {
+    vi.mocked(profileApi.latestImport).mockResolvedValue(null)
+    const screen = await renderPage()
+    await expect.element(screen.getByText('Set up your profile')).toBeVisible()
+
+    await screen.getByRole('button', { name: 'Skip for now' }).click()
+
+    await vi.waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({
+        to: '/onboarding/extension',
+        replace: true,
+      })
+    )
+    expect(authApi.updateOnboardingStatus).toHaveBeenCalledWith('Skipped')
   })
 })

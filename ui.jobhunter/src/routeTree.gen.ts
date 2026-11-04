@@ -57,7 +57,6 @@ import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/_authenticated/settings/password'
 import { Route as AuthenticatedSettingsAiProviderRouteImport } from './routes/_authenticated/settings/ai-provider'
-import { Route as AuthenticatedOnboardingQuestionsRouteImport } from './routes/_authenticated/onboarding/questions'
 import { Route as AuthenticatedOnboardingExtensionRouteImport } from './routes/_authenticated/onboarding/extension'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 
@@ -318,12 +317,6 @@ const AuthenticatedSettingsAiProviderRoute =
     path: '/ai-provider',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const AuthenticatedOnboardingQuestionsRoute =
-  AuthenticatedOnboardingQuestionsRouteImport.update({
-    id: '/onboarding/questions',
-    path: '/onboarding/questions',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedOnboardingExtensionRoute =
   AuthenticatedOnboardingExtensionRouteImport.update({
     id: '/onboarding/extension',
@@ -358,7 +351,6 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/onboarding/extension': typeof AuthenticatedOnboardingExtensionRoute
-  '/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
   '/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
@@ -407,7 +399,6 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/onboarding/extension': typeof AuthenticatedOnboardingExtensionRoute
-  '/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
   '/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
@@ -461,7 +452,6 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/onboarding/extension': typeof AuthenticatedOnboardingExtensionRoute
-  '/_authenticated/onboarding/questions': typeof AuthenticatedOnboardingQuestionsRoute
   '/_authenticated/settings/ai-provider': typeof AuthenticatedSettingsAiProviderRoute
   '/_authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
@@ -513,7 +503,6 @@ export interface FileRouteTypes {
     | '/503'
     | '/errors/$error'
     | '/onboarding/extension'
-    | '/onboarding/questions'
     | '/settings/ai-provider'
     | '/settings/password'
     | '/clerk/sign-in'
@@ -562,7 +551,6 @@ export interface FileRouteTypes {
     | '/'
     | '/errors/$error'
     | '/onboarding/extension'
-    | '/onboarding/questions'
     | '/settings/ai-provider'
     | '/settings/password'
     | '/clerk/sign-in'
@@ -615,7 +603,6 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/onboarding/extension'
-    | '/_authenticated/onboarding/questions'
     | '/_authenticated/settings/ai-provider'
     | '/_authenticated/settings/password'
     | '/clerk/(auth)/sign-in'
@@ -1003,13 +990,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAiProviderRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
-    '/_authenticated/onboarding/questions': {
-      id: '/_authenticated/onboarding/questions'
-      path: '/onboarding/questions'
-      fullPath: '/onboarding/questions'
-      preLoaderRoute: typeof AuthenticatedOnboardingQuestionsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/onboarding/extension': {
       id: '/_authenticated/onboarding/extension'
       path: '/onboarding/extension'
@@ -1050,7 +1030,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedOnboardingExtensionRoute: typeof AuthenticatedOnboardingExtensionRoute
-  AuthenticatedOnboardingQuestionsRoute: typeof AuthenticatedOnboardingQuestionsRoute
   AuthenticatedActivitiesIndexRoute: typeof AuthenticatedActivitiesIndexRoute
   AuthenticatedApplicationsIndexRoute: typeof AuthenticatedApplicationsIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -1079,7 +1058,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedOnboardingExtensionRoute: AuthenticatedOnboardingExtensionRoute,
-  AuthenticatedOnboardingQuestionsRoute: AuthenticatedOnboardingQuestionsRoute,
   AuthenticatedActivitiesIndexRoute: AuthenticatedActivitiesIndexRoute,
   AuthenticatedApplicationsIndexRoute: AuthenticatedApplicationsIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,

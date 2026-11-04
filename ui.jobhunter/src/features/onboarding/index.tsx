@@ -35,6 +35,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { authApi } from '@/features/auth/api'
 import { candidatesApi, type Candidate } from '@/features/candidates/api'
 import { cvsApi } from '@/features/cvs/api'
 import {
@@ -119,7 +120,7 @@ export function Onboarding() {
   // The name of a CV that was already uploaded when the page opened (the user came back to it).
   const [resumedName, setResumedName] = useState<string | null>(null)
   const [candidate, setCandidate] = useState<Candidate | null>(null)
-  const isSkipping = false
+  const [isSkipping, setIsSkipping] = useState(false)
 
   function handleFile(file?: File) {
     if (!file) return
@@ -294,7 +295,9 @@ export function Onboarding() {
           links: parsed.links,
         })
       }
-      navigate({ to: '/onboarding/questions', replace: true })
+      await authApi.updateOnboardingStatus('Completed')
+      auth.setOnboardingStatus('Completed')
+      navigate({ to: '/onboarding/extension', replace: true })
     } catch {
       toast.error('Failed to save your profile. Please try again.')
     } finally {
@@ -302,9 +305,18 @@ export function Onboarding() {
     }
   }
 
-  // Skipping the CV step still continues to the questions; onboarding completes after those.
-  function skipOnboarding() {
-    navigate({ to: '/onboarding/questions', replace: true })
+  // Skipping the CV step ends onboarding too, and still offers the extension.
+  async function skipOnboarding() {
+    setIsSkipping(true)
+    try {
+      await authApi.updateOnboardingStatus('Skipped')
+      auth.setOnboardingStatus('Skipped')
+      navigate({ to: '/onboarding/extension', replace: true })
+    } catch {
+      toast.error('Failed to skip onboarding. Please try again.')
+    } finally {
+      setIsSkipping(false)
+    }
   }
 
   if (view === 'review' && fileName) {
@@ -337,7 +349,7 @@ export function Onboarding() {
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 2 of 4
+              Step 2 of 3
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
               Review your profile
@@ -499,7 +511,7 @@ export function Onboarding() {
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 1 of 4
+              Step 1 of 3
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
               Build your profile
@@ -608,7 +620,7 @@ export function Onboarding() {
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 1 of 4
+              Step 1 of 3
             </div>
             <SkipOnboardingButton
               onSkip={skipOnboarding}

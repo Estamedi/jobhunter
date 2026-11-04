@@ -34,7 +34,7 @@ export function OnboardingExtension() {
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 4 of 4
+              Step 3 of 3
             </div>
             <button
               type='button'
