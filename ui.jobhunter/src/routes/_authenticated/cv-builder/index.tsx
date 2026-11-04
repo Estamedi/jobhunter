@@ -9,6 +9,7 @@ import { CvBuilder } from '@/features/cv-builder'
 const searchSchema = z.object({
   applicationId: z.coerce.number().int().positive().optional().catch(undefined),
   jobRoleId: z.coerce.number().int().positive().optional().catch(undefined),
+  draftId: z.coerce.number().int().positive().optional().catch(undefined),
 })
 
 function CvBuilderPage() {
