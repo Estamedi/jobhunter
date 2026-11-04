@@ -4,7 +4,8 @@ public record CvHeaderDto(string FullName, string? Email, string? Phone, string?
 
 public interface ICvDocxRenderer
 {
-    byte[] Render(CvHeaderDto header, GeneratedCvDto content);
+    // The template id picks the palette; an unknown id means the classic look.
+    byte[] Render(CvHeaderDto header, GeneratedCvDto content, string? templateId = null);
 }
 
 public interface ICvPdfRenderer

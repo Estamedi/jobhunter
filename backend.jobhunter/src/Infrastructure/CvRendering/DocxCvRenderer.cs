@@ -16,10 +16,10 @@ public class DocxCvRenderer : ICvDocxRenderer
     private const int ContentWidth = PageWidth - 2 * Margin;
     private const int BulletIndent = 360;
 
-    private static readonly string BodySize = HalfPoints(ClassicCvDocument.BodySize);
-
-    public byte[] Render(CvHeaderDto header, GeneratedCvDto cv)
+    // The palette follows the template; the layout and density stay classic. An unknown id means classic.
+    public byte[] Render(CvHeaderDto header, GeneratedCvDto cv, string? templateId = null)
     {
+        var style = CvStyles.For(templateId);
         using var memory = new MemoryStream();
         using (var document = WordprocessingDocument.Create(memory, WordprocessingDocumentType.Document))
         {
@@ -27,8 +27,8 @@ public class DocxCvRenderer : ICvDocxRenderer
             main.Document = new Document();
             var body = main.Document.AppendChild(new Body());
 
-            AddStyles(main);
-            new Builder(main, body).Build(header, cv);
+            AddStyles(main, style);
+            new Builder(main, body, style).Build(header, cv);
 
             body.AppendChild(new SectionProperties(
                 new PageSize { Width = PageWidth, Height = PageHeight },
@@ -48,15 +48,16 @@ public class DocxCvRenderer : ICvDocxRenderer
         return memory.ToArray();
     }
 
-    private static void AddStyles(MainDocumentPart main)
+    private static void AddStyles(MainDocumentPart main, CvStyle style)
     {
+        var bodySize = HalfPoints(style.BodySize);
         var styles = main.AddNewPart<StyleDefinitionsPart>();
         styles.Styles = new Styles(new DocDefaults(
             new RunPropertiesDefault(new RunPropertiesBaseStyle(
                 new RunFonts { Ascii = FontName, HighAnsi = FontName, EastAsia = FontName, ComplexScript = FontName },
-                new Color { Val = ClassicCvDocument.BodyColor.TrimStart('#') },
-                new FontSize { Val = BodySize },
-                new FontSizeComplexScript { Val = BodySize })),
+                new Color { Val = style.BodyColor.TrimStart('#') },
+                new FontSize { Val = bodySize },
+                new FontSizeComplexScript { Val = bodySize })),
             // About 13pt line spacing, growing for the larger name and headings.
             new ParagraphPropertiesDefault(new ParagraphPropertiesBaseStyle(
                 new SpacingBetweenLines { After = "0", Line = "260", LineRule = LineSpacingRuleValues.AtLeast }))));
@@ -65,7 +66,7 @@ public class DocxCvRenderer : ICvDocxRenderer
 
     private static string HalfPoints(float points) => ((int)Math.Round(points * 2)).ToString();
 
-    private sealed class Builder(MainDocumentPart main, Body body)
+    private sealed class Builder(MainDocumentPart main, Body body, CvStyle style)
     {
         public void Build(CvHeaderDto header, GeneratedCvDto cv)
         {
@@ -149,12 +150,12 @@ public class DocxCvRenderer : ICvDocxRenderer
         private void Header(CvHeaderDto header, GeneratedCvDto cv)
         {
             var name = Paragraph(center: true);
-            name.Append(Run(header.FullName, size: 16, color: ClassicCvDocument.NameColor));
+            name.Append(Run(header.FullName, size: 16, color: style.NameColor));
 
             if (!string.IsNullOrWhiteSpace(cv.Headline))
             {
                 var headline = Paragraph(center: true);
-                headline.Append(Run(cv.Headline, bold: true, size: 11.5f, color: ClassicCvDocument.NameColor));
+                headline.Append(Run(cv.Headline, bold: true, size: 11.5f, color: style.NameColor));
             }
 
             var contact = new[] { ("Location", header.Location), ("Phone", header.Phone), ("Email", header.Email) }
@@ -166,41 +167,41 @@ public class DocxCvRenderer : ICvDocxRenderer
             var line = Paragraph(center: true, before: 40);
             for (var i = 0; i < contact.Count; i++)
             {
-                if (i > 0) line.Append(Run(" |  ", color: ClassicCvDocument.MutedColor));
+                if (i > 0) line.Append(Run(" |  ", color: style.MutedColor));
                 var value = contact[i].Item2!.Trim();
                 // Email is a real mailto link so ATS parsers and recruiters can click it.
                 line.Append(contact[i].Item1 == "Email"
-                    ? Link($"mailto:{value}", value, bold: true, color: ClassicCvDocument.MutedColor, underline: false)
-                    : Run(value, bold: true, color: ClassicCvDocument.MutedColor));
+                    ? Link($"mailto:{value}", value, bold: true, color: style.MutedColor, underline: false)
+                    : Run(value, bold: true, color: style.MutedColor));
             }
 
             if (headerLink is not null)
             {
-                if (contact.Count > 0) line.Append(Run(" |  ", color: ClassicCvDocument.MutedColor));
+                if (contact.Count > 0) line.Append(Run(" |  ", color: style.MutedColor));
                 line.Append(Link(ClassicCvDocument.LinkUrl(headerLink), ClassicCvDocument.LinkText(headerLink),
-                    bold: true, color: ClassicCvDocument.MutedColor, underline: false));
+                    bold: true, color: style.MutedColor, underline: false));
             }
         }
 
         private void Section(string title)
         {
             var p = Paragraph(before: 120, after: 20, keepNext: true);
-            p.Append(Run(title, bold: true, size: 11.5f, color: ClassicCvDocument.HeadingColor));
+            p.Append(Run(title, bold: true, size: 11.5f, color: style.HeadingColor));
         }
 
         private void Experience(CvExperienceDto job)
         {
             var title = Paragraph(before: 80, keepNext: true, rightTab: true);
             title.Append(Run(string.IsNullOrWhiteSpace(job.Location) ? job.Company : $"{job.Company}, {job.Location}",
-                bold: true, color: ClassicCvDocument.CompanyColor));
+                bold: true, color: style.CompanyColor));
             if (!string.IsNullOrWhiteSpace(job.Role))
-                title.Append(Run($", {job.Role}", italic: true, color: ClassicCvDocument.MutedColor));
+                title.Append(Run($", {job.Role}", italic: true, color: style.MutedColor));
 
             var dates = ClassicCvDocument.ExperienceRange(job.StartDate, job.EndDate);
             if (dates.Length > 0)
             {
                 title.Append(new Run(new TabChar()));
-                title.Append(Run(dates, size: 9, color: ClassicCvDocument.MutedColor));
+                title.Append(Run(dates, size: 9, color: style.MutedColor));
             }
 
             foreach (var bullet in job.Bullets)
@@ -263,7 +264,7 @@ public class DocxCvRenderer : ICvDocxRenderer
             }
 
             var relationship = main.AddHyperlinkRelationship(uri, true);
-            return new Hyperlink(Run(text, bold: bold, color: color ?? ClassicCvDocument.CompanyColor, underline: underline))
+            return new Hyperlink(Run(text, bold: bold, color: color ?? style.CompanyColor, underline: underline))
             {
                 Id = relationship.Id,
             };

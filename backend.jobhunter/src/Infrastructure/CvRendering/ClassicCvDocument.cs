@@ -7,14 +7,9 @@ namespace backend.jobhunter.Infrastructure.CvRendering;
 
 // Single-column CV: centred header, blue section headings, bulleted skills and experience with
 // dates right-aligned. Layout and palette follow the owner's reference CV (A4, Carlito (Calibri-metric) 10.5pt, 0.75in margins, single column per resume-builder-skill).
-public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocument
+public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv, CvStyle? style = null) : IDocument
 {
-    internal const string HeadingColor = "#4285F4";
-    internal const string CompanyColor = "#1155CC";
-    internal const string NameColor = "#353744";
-    internal const string MutedColor = "#404040";
-    internal const string BodyColor = "#000000";
-    internal const float BodySize = 10.5f;
+    private readonly CvStyle _s = style ?? CvStyles.Classic;
 
     public DocumentMetadata GetMetadata() => new()
     {
@@ -62,12 +57,12 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         container.Page(page =>
         {
             page.Size(PageSizes.A4);
-            page.Margin(0.75f, Unit.Inch);
-            page.DefaultTextStyle(t => t.FontFamily("Carlito", "Noto Sans Arabic").FontSize(BodySize).FontColor(BodyColor).LineHeight(1.24f));
+            page.Margin(_s.MarginInches, Unit.Inch);
+            page.DefaultTextStyle(t => t.FontFamily("Carlito", "Noto Sans Arabic").FontSize(_s.BodySize).FontColor(_s.BodyColor).LineHeight(_s.LineHeight));
 
             page.Content().Column(col =>
             {
-                col.Spacing(6);
+                col.Spacing(_s.BlockSpacing);
                 col.Item().Element(Header);
 
                 if (!string.IsNullOrWhiteSpace(cv.Summary))
@@ -95,7 +90,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                 {
                     col.Item().Element(c => Section(c, "Professional Experience", s =>
                     {
-                        s.Spacing(8);
+                        s.Spacing(_s.ExperienceSpacing);
                         foreach (var job in cv.Experience) s.Item().Element(e => Experience(e, job));
                     }));
                 }
@@ -110,7 +105,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                             {
                                 t.Span(project.Name).Bold();
                                 if (!string.IsNullOrWhiteSpace(project.Description)) t.AppendRich($" - {project.Description}");
-                                if (!string.IsNullOrWhiteSpace(project.Url)) t.Hyperlink($" {project.Url}", project.Url).FontColor(CompanyColor).Underline();
+                                if (!string.IsNullOrWhiteSpace(project.Url)) t.Hyperlink($" {project.Url}", project.Url).FontColor(_s.CompanyColor).Underline();
                             });
                         }
                     }));
@@ -153,7 +148,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
                         foreach (var link in otherLinks)
                         {
                             s.Item().Text(t => t.Hyperlink(link, LinkUrl(link))
-                                .FontColor(CompanyColor).Underline());
+                                .FontColor(_s.CompanyColor).Underline());
                         }
                         if (cv.Languages.Count > 0)
                         {
@@ -173,10 +168,10 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
     {
         container.AlignCenter().Column(col =>
         {
-            col.Item().AlignCenter().Text(header.FullName).FontSize(16).FontColor(NameColor);
+            col.Item().AlignCenter().Text(header.FullName).FontSize(_s.NameSize).FontColor(_s.NameColor);
             if (!string.IsNullOrWhiteSpace(cv.Headline))
             {
-                col.Item().AlignCenter().Text(cv.Headline).FontSize(11.5f).Bold().FontColor(NameColor);
+                col.Item().AlignCenter().Text(cv.Headline).FontSize(_s.HeadlineSize).Bold().FontColor(_s.NameColor);
             }
 
             // "Muscat, Oman | (+968) ... | email" with bold values and no labels (ATS friendly).
@@ -188,7 +183,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
             {
                 col.Item().PaddingTop(2).AlignCenter().Text(t =>
                 {
-                    t.DefaultTextStyle(x => x.FontSize(BodySize).FontColor(MutedColor));
+                    t.DefaultTextStyle(x => x.FontSize(_s.BodySize).FontColor(_s.MutedColor));
                     for (var i = 0; i < contact.Count; i++)
                     {
                         if (i > 0) t.Span(" |  ");
@@ -204,12 +199,16 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         });
     }
 
-    private static void Section(IContainer container, string title, Action<ColumnDescriptor> body)
+    private void Section(IContainer container, string title, Action<ColumnDescriptor> body)
     {
-        container.Column(col =>
+        // A section that does not fit whole on the page starts there only if there is room for its heading and
+        // the first lines (70 pt). Otherwise it moves to the next page, so a heading is never left alone at the
+        // bottom. (QuestPDF applies the minimum only to an element that has to split, so it is set on the whole
+        // section and not on the heading, which always fits.)
+        container.EnsureSpace(70).Column(col =>
         {
             col.Spacing(2);
-            col.Item().PaddingTop(2).Text(title).FontSize(11.5f).Bold().FontColor(HeadingColor);
+            col.Item().PaddingTop(2).Text(title).FontSize(_s.SectionTitleSize).Bold().FontColor(_s.HeadingColor);
             col.Item().Column(body);
         });
     }
@@ -223,23 +222,30 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv) : IDocumen
         });
     }
 
-    private static void Experience(IContainer container, CvExperienceDto job)
+    private void Experience(IContainer container, CvExperienceDto job)
     {
         container.Column(col =>
         {
-            col.Item().Row(row =>
+            // The role line and its first bullet stay together, so a role never starts alone at the bottom of a
+            // page. Only this small block is kept whole; a long role may still continue on the next page.
+            col.Item().ShowEntire().Column(first =>
             {
-                row.RelativeItem().Text(t =>
+                first.Item().Row(row =>
                 {
-                    t.Span(string.IsNullOrWhiteSpace(job.Location) ? job.Company : $"{job.Company}, {job.Location}")
-                        .Bold().FontColor(CompanyColor);
-                    if (!string.IsNullOrWhiteSpace(job.Role)) t.Span($", {job.Role}").Italic().FontColor(MutedColor);
+                    row.RelativeItem().Text(t =>
+                    {
+                        t.Span(string.IsNullOrWhiteSpace(job.Location) ? job.Company : $"{job.Company}, {job.Location}")
+                            .Bold().FontColor(_s.CompanyColor);
+                        if (!string.IsNullOrWhiteSpace(job.Role)) t.Span($", {job.Role}").Italic().FontColor(_s.MutedColor);
+                    });
+                    var dates = ExperienceRange(job.StartDate, job.EndDate);
+                    if (dates.Length > 0) row.AutoItem().Text(dates).FontColor(_s.MutedColor).FontSize(_s.DateSize);
                 });
-                var dates = ExperienceRange(job.StartDate, job.EndDate);
-                if (dates.Length > 0) row.AutoItem().Text(dates).FontColor(MutedColor).FontSize(9);
+
+                if (job.Bullets.Count > 0) first.Item().Element(b => Bullet(b, t => t.AppendRich(job.Bullets[0])));
             });
 
-            foreach (var bullet in job.Bullets)
+            foreach (var bullet in job.Bullets.Skip(1))
             {
                 col.Item().Element(b => Bullet(b, t => t.AppendRich(bullet)));
             }

@@ -190,7 +190,10 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 ### E9. Professional look
 **Goal:** Cleaner templates and design polish.
 
-- 5.1 to 5.4 (see section 5 of the source file)
+- ✅ 5.1 Second template: "Classic for print" and "Compact" were added next to "Classic", chosen in the draft header, with the preview following the choice (one layout and three styles in `CvStyle`; every template goes through the ATS round-trip tests; the page itself was not tested in a browser)
+- 🟡 5.2 Tone the colours down: the "Classic for print" and "Compact" styles are near-black and all their text colours pass 4.5:1 contrast (tested), and the DOCX follows the template's colours. The classic blue heading is 3.56:1 on white, below 4.5:1; it was left as the owner's reference look
+- ✅ 5.3 Page-break rules: a section moves to the next page rather than leave its heading alone at the bottom, and a role line stays with its first bullet. Tested on long CVs for every template, and the test fails when either rule is removed. DOCX already keeps headings and role lines with the next line
+- ✅ 5.4 Photo-free: the preview says the CV has no photo and that one can be added in the Word file
 
 ### E11. Mock interview
 **Goal:** Let users practise interviews for a specific application, using the same LibreChat chat engine and chat panel as E10.

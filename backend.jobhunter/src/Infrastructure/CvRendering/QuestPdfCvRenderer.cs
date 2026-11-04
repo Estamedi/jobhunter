@@ -22,11 +22,8 @@ public class QuestPdfCvRenderer : ICvPdfRenderer
 
     public byte[] Render(string templateId, CvHeaderDto header, GeneratedCvDto content)
     {
-        IDocument document = templateId switch
-        {
-            CvTemplates.Classic => new ClassicCvDocument(header, content),
-            _ => new ClassicCvDocument(header, content),
-        };
+        // Every template shares one layout; an unknown id falls back to the classic look.
+        IDocument document = new ClassicCvDocument(header, content, CvStyles.For(templateId));
 
         return document.GeneratePdf();
     }

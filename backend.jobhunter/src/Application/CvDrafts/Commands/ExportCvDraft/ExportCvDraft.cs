@@ -31,7 +31,7 @@ public class ExportCvDraftCommandHandler(
         var header = new CvHeaderDto(candidate.FullName, candidate.Email, candidate.Phone, candidate.CurrentLocation);
         var content = CvDraftContent.Deserialize(draft.ContentJson);
         var isDocx = string.Equals(request.Format, "docx", StringComparison.OrdinalIgnoreCase);
-        var pdf = isDocx ? docxRenderer.Render(header, content) : renderer.Render(draft.TemplateId, header, content);
+        var pdf = isDocx ? docxRenderer.Render(header, content, draft.TemplateId) : renderer.Render(draft.TemplateId, header, content);
 
         var fileName = BuildFileName(candidate.FullName, string.IsNullOrWhiteSpace(draft.JobTitle) ? draft.Title : draft.JobTitle, isDocx ? "docx" : "pdf");
         await using var stream = new MemoryStream(pdf);

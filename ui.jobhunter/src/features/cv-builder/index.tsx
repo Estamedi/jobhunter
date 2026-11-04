@@ -69,6 +69,7 @@ import {
 } from './lib/fix-issues'
 import { jobPostingText } from './lib/job-text'
 import { profileGaps, type ProfileGap } from './lib/profile-check'
+import { CV_TEMPLATES, templateLabel } from './lib/templates'
 import { useCvGenerationHub } from './lib/use-cv-hub'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
@@ -593,6 +594,21 @@ export function CvBuilder({
       toast.error(serverDetail(error, 'Failed to restore the version')),
   })
 
+  // The template only changes colours and spacing, so the content and title are sent back as they are.
+  const changeTemplate = useMutation({
+    mutationFn: (templateId: string) =>
+      cvBuilderApi.update(draft!.id, {
+        title: draft!.title,
+        templateId,
+        content: draft!.content,
+      }),
+    onSuccess: (updated) => {
+      applyDraft(updated)
+      toast.success(`Template: ${templateLabel(updated.templateId)}`)
+    },
+    onError: () => toast.error('Failed to change the template'),
+  })
+
   const save = useMutation({
     mutationFn: (content: CvContent) =>
       cvBuilderApi.update(draft!.id, {
@@ -922,6 +938,26 @@ export function CvBuilder({
                 </p>
               </div>
               <div className='flex gap-2'>
+                <Select
+                  value={draft.templateId || 'classic'}
+                  onValueChange={(v) => changeTemplate.mutate(v)}
+                  disabled={changeTemplate.isPending}
+                >
+                  <SelectTrigger
+                    className='h-8 w-40'
+                    aria-label='CV template'
+                    title='Colours and spacing of the CV. The layout is the same for all.'
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CV_TEMPLATES.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   variant='outline'
                   size='sm'
@@ -984,7 +1020,9 @@ export function CvBuilder({
             ) : (
               <div className='rounded-md bg-muted/40 p-4'>
                 <p className='mb-3 text-center text-xs text-muted-foreground'>
-                  Preview and exported PDF use A4 page size (210 × 297 mm).
+                  Preview and exported PDF use A4 page size (210 × 297 mm). The
+                  CV has no photo; if an employer asks for one, add it in the
+                  Word file.
                 </p>
                 <CvPreview
                   header={{
@@ -997,6 +1035,7 @@ export function CvBuilder({
                   onEdit={(section) => setEditingSection(section)}
                   onRefine={(section) => setRefining(section)}
                   highlights={highlights}
+                  templateId={draft.templateId}
                 />
               </div>
             )}

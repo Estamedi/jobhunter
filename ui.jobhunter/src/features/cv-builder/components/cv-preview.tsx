@@ -1,12 +1,20 @@
-import { Fragment, useEffect, useRef, type ReactNode } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { Pencil, Plus, Sparkles } from 'lucide-react'
 import { type CvContent, type CvScoreLocation, type CvSection } from '../api'
+import { templateLook } from '../lib/templates'
 
-// Mirrors the backend "classic" PDF template (same palette and section order).
-const HEADING = '#4285F4'
-const COMPANY = '#1155CC'
-const NAME = '#353744'
-const MUTED = '#666666'
+// Mirrors the backend PDF templates: the colours and spacing come from CSS variables that the page sets
+// for the chosen template (see lib/templates.ts), and the section order is the same for all of them.
+const HEADING = 'var(--cv-heading)'
+const COMPANY = 'var(--cv-company)'
+const NAME = 'var(--cv-name)'
+const MUTED = 'var(--cv-muted)'
 
 function Rich({ text }: { text?: string | null }) {
   if (!text) return null
@@ -134,7 +142,10 @@ function Section({
   children: ReactNode
 }) {
   return (
-    <section className='group relative mt-3'>
+    <section
+      className='group relative'
+      style={{ marginTop: 'var(--cv-block)' }}
+    >
       <div className='flex items-center justify-between gap-2'>
         <h2 className='text-[13px] font-bold' style={{ color: HEADING }}>
           {title}
@@ -160,6 +171,7 @@ export function CvPreview({
   onEdit,
   onRefine,
   highlights,
+  templateId,
 }: {
   header: {
     fullName: string
@@ -172,7 +184,10 @@ export function CvPreview({
   onRefine?: (section: CvSection) => void
   // Lines to mark and scroll to, from a score issue.
   highlights?: CvScoreLocation[]
+  // Which server template to draw; the colours and spacing follow it.
+  templateId?: string
 }) {
+  const look = templateLook(templateId)
   const page = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -238,7 +253,15 @@ export function CvPreview({
     <>
       <article
         ref={page}
-        className='mx-auto w-full max-w-[794px] bg-white px-12 py-10 text-[12px] leading-[1.35] text-[#202124] shadow-sm'
+        className='mx-auto w-full max-w-[794px] bg-white text-[#202124] shadow-sm'
+        style={
+          {
+            ...look.vars,
+            fontSize: look.fontSize,
+            lineHeight: look.lineHeight,
+            padding: look.padding,
+          } as CSSProperties
+        }
       >
         <header className='group relative text-center'>
           <div className='text-[22px]' style={{ color: NAME }}>
@@ -279,7 +302,7 @@ export function CvPreview({
             onRefine={onRefine}
           >
             <p
-              className={`text-justify ${hit('summary') ? HIT : ''}`}
+              className={hit('summary') ? HIT : undefined}
               data-hit={hit('summary') || undefined}
             >
               <Rich text={content.summary} />
@@ -376,7 +399,7 @@ export function CvPreview({
                     </span>
                   </div>
                   {job.bullets.length > 0 && (
-                    <ul className='list-disc pl-5 text-justify'>
+                    <ul className='list-disc pl-5'>
                       {job.bullets.map((b, j) => (
                         <li
                           key={j}

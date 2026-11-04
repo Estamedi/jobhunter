@@ -50,8 +50,8 @@ public class QuestPdfCvRendererTests
 
     // ATS round trip: an applicant tracking system reads the PDF as text, so render a full CV and read
     // it back the same way we read uploaded CVs.
-    [Test]
-    public async Task ShouldKeepEverythingAnAtsNeedsWhenThePdfIsReadBackAsText()
+    [TestCaseSource(typeof(CvTemplates), nameof(CvTemplates.All))]
+    public async Task ShouldKeepEverythingAnAtsNeedsWhenThePdfIsReadBackAsText(string templateId)
     {
         var cv = new GeneratedCvDto
         {
@@ -70,7 +70,7 @@ public class QuestPdfCvRendererTests
             Links = ["https://github.com/example"],
         };
 
-        var pdf = new QuestPdfCvRenderer().Render("classic", Header, cv);
+        var pdf = new QuestPdfCvRenderer().Render(templateId, Header, cv);
         using var stream = new MemoryStream(pdf);
         var text = await new CvTextExtractor().ExtractTextAsync(stream, "cv.pdf", default);
 
@@ -99,8 +99,8 @@ public class QuestPdfCvRendererTests
         "Senior engineer with 13 years of experience delivering production systems across payments, healthcare and government, with a focus on architecture, reliable delivery and clear communication with business owners.",
     ];
 
-    [Test]
-    public async Task ShouldNotMergeWordsInALongWrappedSummaryNowThatTextIsNotJustified()
+    [TestCaseSource(typeof(CvTemplates), nameof(CvTemplates.All))]
+    public async Task ShouldNotMergeWordsInALongWrappedSummaryNowThatTextIsNotJustified(string templateId)
     {
         var cv = new GeneratedCvDto
         {
@@ -108,7 +108,7 @@ public class QuestPdfCvRendererTests
             Experience = [new CvExperienceDto { Role = "Lead", Company = "Acme", StartDate = "Jan 2025", Bullets = [LongSentences[0]] }],
         };
 
-        var pdf = new QuestPdfCvRenderer().Render("classic", Header, cv);
+        var pdf = new QuestPdfCvRenderer().Render(templateId, Header, cv);
         using var stream = new MemoryStream(pdf);
         var text = await new CvTextExtractor().ExtractTextAsync(stream, "cv.pdf", default);
         var collapsed = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
@@ -195,5 +195,28 @@ public class QuestPdfCvRendererTests
         document.MainDocumentPart!.Document!.Body!.Descendants<DocumentFormat.OpenXml.Wordprocessing.Justification>()
             .ShouldNotContain(j => j.Val!.Value == DocumentFormat.OpenXml.Wordprocessing.JustificationValues.Both);
         document.MainDocumentPart!.Document!.Body!.InnerText.ShouldContain("linkedin.com/in/example");
+    }
+
+    [TestCase(null, "4285F4", "1F1F1F")]
+    [TestCase("classic", "4285F4", "1F1F1F")]
+    [TestCase("unknown-template", "4285F4", "1F1F1F")]
+    [TestCase("neutral", "1F1F1F", "4285F4")]
+    [TestCase("compact", "1F1F1F", "4285F4")]
+    public void ShouldColourTheDocxHeadingsLikeTheChosenTemplate(string? templateId, string expected, string notExpected)
+    {
+        var cv = new GeneratedCvDto
+        {
+            Summary = "Engineer.",
+            Experience = [new CvExperienceDto { Role = "Lead", Company = "Acme", Bullets = ["Cut costs by 30%."] }],
+        };
+
+        var docx = new DocxCvRenderer().Render(Header, cv, templateId);
+        using var stream = new MemoryStream(docx);
+        using var document = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        var colours = document.MainDocumentPart!.Document!.Body!
+            .Descendants<DocumentFormat.OpenXml.Wordprocessing.Color>().Select(c => c.Val!.Value).ToList();
+
+        colours.ShouldContain(expected);
+        colours.ShouldNotContain(notExpected);
     }
 }
