@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
@@ -20,8 +20,15 @@ import {
   profileApi,
   type ImportMode,
   type ParsedProfile,
+  type ProfileImportJob,
   type SaveExperienceDto,
 } from '../api'
+import {
+  analyzeCv,
+  ImportFailedError,
+  isImportRunning,
+  waitForImport,
+} from '../lib/analyze-cv'
 import { educationRange, formatMonthYear } from '../lib/experience'
 import { ImportProgress } from './import-progress'
 import { LinkedinPdfGuide } from './linkedin-pdf-guide'
@@ -61,36 +68,74 @@ export function ImportDialog({
     queryFn: () => cvsApi.list({ candidateId, pageSize: 50 }),
   })
 
+  // Shows a finished reading for review: ticks everything that can be saved.
+  const showResult = (id: number, result: ParsedProfile) => {
+    setCvId(id)
+    setParsed(result)
+    setSelected(
+      new Set(
+        result.experiences
+          .map((e, i) => (isImportable(e) ? i : -1))
+          .filter((i) => i >= 0)
+      )
+    )
+    setSelectedEdu(new Set(result.educations.map((_, i) => i)))
+    setImportSkills(result.skills.length > 0)
+    setSelectedProjects(new Set(result.projects.map((_, i) => i)))
+    setSelectedCerts(new Set(result.certifications.map((_, i) => i)))
+    setImportLanguages(result.languages.length > 0)
+    setImportLinks(result.links.length > 0)
+    setStep('review')
+  }
+
+  const failed = (error: unknown) =>
+    toast.error(
+      error instanceof ImportFailedError
+        ? error.message
+        : 'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+    )
+
+  // The CV is read in the background on the server, so this only starts the job and waits for it.
   const analyze = useMutation({
     mutationFn: async () => {
       const id = file ? await cvsApi.upload({ candidateId, file }) : cvId
       if (!id) throw new Error('No CV selected')
-      const result = await profileApi.previewImport(id)
+      const result = await analyzeCv(id)
       return { id, result }
     },
-    onSuccess: ({ id, result }) => {
-      setCvId(id)
-      setParsed(result)
-      setSelected(
-        new Set(
-          result.experiences
-            .map((e, i) => (isImportable(e) ? i : -1))
-            .filter((i) => i >= 0)
-        )
-      )
-      setSelectedEdu(new Set(result.educations.map((_, i) => i)))
-      setImportSkills(result.skills.length > 0)
-      setSelectedProjects(new Set(result.projects.map((_, i) => i)))
-      setSelectedCerts(new Set(result.certifications.map((_, i) => i)))
-      setImportLanguages(result.languages.length > 0)
-      setImportLinks(result.links.length > 0)
-      setStep('review')
-    },
-    onError: () =>
-      toast.error(
-        'Could not read this CV. Use a text-based PDF or DOCX and try again.'
-      ),
+    onSuccess: ({ id, result }) => showResult(id, result),
+    onError: failed,
   })
+
+  // An import that was left unfinished (the window was closed, the page reloaded) is picked up here: one still
+  // reading carries on, and one that finished is offered for review.
+  const { data: latest } = useQuery({
+    queryKey: ['profile-import-latest', candidateId],
+    queryFn: () => profileApi.latestImport(candidateId),
+    staleTime: 0,
+    gcTime: 0,
+  })
+
+  const resume = useMutation({
+    mutationFn: async (job: ProfileImportJob) => ({
+      id: job.cvId,
+      result: await waitForImport(job),
+    }),
+    onSuccess: ({ id, result }) => showResult(id, result),
+    onError: failed,
+  })
+
+  const { mutate: resumeImport, isIdle: resumeIdle } = resume
+  const analyzeIdle = analyze.isIdle
+  useEffect(() => {
+    if (latest && isImportRunning(latest.status) && resumeIdle && analyzeIdle) {
+      resumeImport(latest)
+    }
+  }, [latest, resumeIdle, analyzeIdle, resumeImport])
+
+  const reading = analyze.isPending || resume.isPending
+  const finished =
+    latest?.status === 'Completed' && latest.result ? latest : null
 
   const save = useMutation({
     mutationFn: () => {
@@ -179,16 +224,33 @@ export function ImportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {step === 'choose' && analyze.isPending && (
+        {step === 'choose' && reading && (
           <ImportProgress
             fileName={
-              file?.name ?? cvs?.items.find((c) => c.id === cvId)?.fileName
+              file?.name ??
+              (resume.isPending ? latest?.fileName : undefined) ??
+              cvs?.items.find((c) => c.id === cvId)?.fileName
             }
           />
         )}
 
-        {step === 'choose' && !analyze.isPending && (
+        {step === 'choose' && !reading && (
           <div className='space-y-4'>
+            {finished && (
+              <div className='flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 p-3 text-sm'>
+                <p>
+                  We already read <strong>{finished.fileName}</strong>. Pick up
+                  where you left off.
+                </p>
+                <Button
+                  type='button'
+                  size='sm'
+                  onClick={() => showResult(finished.cvId, finished.result!)}
+                >
+                  Continue
+                </Button>
+              </div>
+            )}
             <LinkedinPdfGuide />
             <div className='space-y-1'>
               <Label htmlFor='import-file'>Upload a new CV</Label>
@@ -482,7 +544,7 @@ export function ImportDialog({
           </Button>
           {step === 'choose' ? (
             <Button
-              disabled={(!file && !cvId) || analyze.isPending}
+              disabled={(!file && !cvId) || reading}
               onClick={() => analyze.mutate()}
             >
               {analyze.isPending ? (

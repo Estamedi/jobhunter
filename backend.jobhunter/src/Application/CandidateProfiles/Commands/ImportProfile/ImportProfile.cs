@@ -280,6 +280,13 @@ public class ImportProfileCommandHandler(IApplicationDbContext context)
         profile.ImportedFromCvId = request.CvId;
         profile.LastImportedAt = DateTimeOffset.UtcNow;
 
+        // The reviewed result is saved, so the finished job is not offered again as an import to resume.
+        if (request.CvId.HasValue)
+        {
+            var job = await context.ProfileImportJobs.FirstOrDefaultAsync(j => j.CvId == request.CvId, cancellationToken);
+            if (job is not null) job.AppliedAt = DateTimeOffset.UtcNow;
+        }
+
         await context.SaveChangesAsync(cancellationToken);
         return added;
     }

@@ -21,6 +21,7 @@ public class WebApiFactory(string connectionString) : WebApplicationFactory<Prog
         {
             // The CV worker runs for real, but against a fake AI and a capturing notifier.
             services.RemoveAll<ICvGenerationAiService>().AddSingleton<ICvGenerationAiService, FakeCvAi>();
+            services.RemoveAll<IProfileImportAiService>().AddSingleton<IProfileImportAiService, FakeProfileImportAi>();
             services.RemoveAll<ICvGenerationNotifier>().AddSingleton<ICvGenerationNotifier, CapturingNotifier>();
 
             services

@@ -21,7 +21,9 @@ export interface CandidatePreferences {
 export const preferencesApi = {
   get: (candidateId: number) =>
     http
-      .get<CandidatePreferences>('/api/CandidatePreferences', { params: { candidateId } })
+      .get<CandidatePreferences>('/api/CandidatePreferences', {
+        params: { candidateId },
+      })
       .then((r) => r.data),
 
   save: (candidateId: number, answers: Answers) =>

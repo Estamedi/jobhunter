@@ -59,8 +59,9 @@ export function ImportProgress({ fileName }: { fileName?: string }) {
       <div className='text-center'>
         <p className='font-semibold'>Analyzing your CV…</p>
         <p className='text-sm text-muted-foreground'>
-          {fileName ? `${fileName} · ` : ''}This can take up to a minute. Please
-          keep this window open.
+          {fileName ? `${fileName} · ` : ''}This usually takes about half a
+          minute. It is read in the background, so you can close this window and
+          pick it up again later.
         </p>
       </div>
 

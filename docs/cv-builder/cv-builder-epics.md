@@ -24,6 +24,7 @@ Farsi CVs (section 8 and task 9.10 of the source file) are out of scope for now.
 | E10 | AI chat via LibreChat (achievement interview) | P1 | 9 | new (L.x) |
 | E11 | Mock interview | P2 | 7 | new (M.x) |
 | E12 ✅ | Background CV generation (worker and live updates) | P0 | 8 | new (B.x) |
+| E13 ✅ | Background CV import (reading an uploaded CV) | P0 | 7 | new (I.x) |
 
 Epics E10 and E11 are new. Their tasks use the prefixes L (LibreChat) and M (mock interview) and are defined only in this file.
 
@@ -182,6 +183,19 @@ Reference only: section 10, "Architecture decision: technology choice" (plain pi
 - ✅ B.8 (page not tested in a browser; only build, lint and helper tests ran) The CV builder shows a writing panel from the draft's status, polls every 4 seconds while a draft is being written (so it works without the hub), and tells the user when it finishes or fails
 
 **Server setup (not part of the code):** to use WebSockets, `api.applyladder.com` needs a `location /hubs/` block with `proxy_http_version 1.1`, `Upgrade` and `Connection "upgrade"` headers and a long `proxy_read_timeout`. Without it the hub uses long polling, which works behind the default proxy. Other long calls (section regenerate, profile import) are still single requests of about a minute and can hit the 60-second limit until `proxy_read_timeout` is raised.
+
+### E13. Background CV import (reading an uploaded CV) ✅
+**Goal:** The AI reading of an uploaded CV (onboarding and the profile's Import from CV) runs in a background worker, like CV generation. It was one request that waited for the AI (31 seconds for a normal CV, up to about 80 for a long one), so a long CV could hit the 60-second proxy limit and fail.
+
+- ✅ I.1 `ProfileImportJob` table (one job per CV, status, stored result, error, applied time). Migration `AddProfileImportJobs`
+- ✅ I.2 `POST /api/CandidateProfiles/import-jobs` queues the reading and answers at once. Starting twice for one CV returns the same job (one AI call), and a failed job is put back in the queue
+- ✅ I.3 `ProfileImportWorker` reads Pending jobs one at a time, as the CV's owner. A restart mid-read retries once, then fails. A scanned PDF fails at once, before any AI call, with "No readable text was found..."
+- ✅ I.4 `GET .../import-jobs/{id}` to poll, and `GET .../import-jobs/latest` for the import to resume (the newest one not yet saved, less than a day old). Saving the reviewed result marks the job applied
+- ✅ I.5 The old synchronous `import-preview` endpoint was removed. The AI request limit now counts the start request
+- ✅ I.6 Both screens (onboarding and the import dialog) start the job and poll every 2 seconds, with a 5-minute limit. There is no live push for this: it takes about half a minute, so a push would save at most 2 seconds
+- ✅ I.7 Resume: reopening the import dialog, or reloading onboarding, carries on with a reading still in progress, or goes to the review of one that finished. The dialog offers "Continue" for a finished one. A failed earlier try is not resumed
+
+Tested against the real database and file storage with only the AI replaced: 13 server tests (including the owner's CV being read while another user is signed in, the same job on a double start, and the resume rules) and unit tests of the polling helper and of both screens' resume. Not tried against production.
 
 ---
 

@@ -1,4 +1,5 @@
-﻿using backend.jobhunter.Application.Common;
+﻿using backend.jobhunter.Application.CandidateProfiles;
+using backend.jobhunter.Application.Common;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.CvDrafts;
 using backend.jobhunter.Infrastructure.AiCommon;
@@ -7,6 +8,7 @@ using backend.jobhunter.Infrastructure.AiProfileImport;
 using backend.jobhunter.Infrastructure.AiExtraction;
 using backend.jobhunter.Infrastructure.CvGeneration;
 using backend.jobhunter.Infrastructure.CvImport;
+using backend.jobhunter.Infrastructure.ProfileImport;
 using backend.jobhunter.Infrastructure.CvRendering;
 using backend.jobhunter.Infrastructure.Data;
 using backend.jobhunter.Infrastructure.Data.Interceptors;
@@ -121,6 +123,11 @@ public static class DependencyInjection
         builder.Services.AddScoped<UserOverride>();
         builder.Services.AddScoped<CvDraftGenerationService>();
         builder.Services.AddHostedService<CvGenerationWorker>();
+
+        builder.Services.AddSingleton<ProfileImportSignal>();
+        builder.Services.AddSingleton<IProfileImportSignal>(sp => sp.GetRequiredService<ProfileImportSignal>());
+        builder.Services.AddScoped<ProfileImportService>();
+        builder.Services.AddHostedService<ProfileImportWorker>();
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();

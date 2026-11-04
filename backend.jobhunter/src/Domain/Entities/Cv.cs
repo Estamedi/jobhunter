@@ -18,6 +18,7 @@ public class Cv : OwnedEntity
     public string? LastUploadError { get; set; }
 
     public Candidate Candidate { get; set; } = null!;
+    public ProfileImportJob? ImportJob { get; set; }
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
 
     // Call right after creating the Cv. When the storage needs a remote copy the Cv is queued

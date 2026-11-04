@@ -1,12 +1,13 @@
 import {
+  useEffect,
   useRef,
   useState,
   type ChangeEvent,
   type DragEvent,
   type FormEvent,
 } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { toast } from 'sonner'
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,11 +22,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { candidatesApi, type Candidate } from '@/features/candidates/api'
-import { cvsApi } from '@/features/cvs/api'
-import { profileApi, type ParsedProfile } from '@/features/profile/api'
-import { ImportProgress } from '@/features/profile/components/import-progress'
-import { LinkedinPdfGuide } from '@/features/profile/components/linkedin-pdf-guide'
+import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,6 +35,21 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { candidatesApi, type Candidate } from '@/features/candidates/api'
+import { cvsApi } from '@/features/cvs/api'
+import {
+  profileApi,
+  type ParsedProfile,
+  type ProfileImportJob,
+} from '@/features/profile/api'
+import { ImportProgress } from '@/features/profile/components/import-progress'
+import { LinkedinPdfGuide } from '@/features/profile/components/linkedin-pdf-guide'
+import {
+  analyzeCv,
+  ImportFailedError,
+  isImportRunning,
+  waitForImport,
+} from '@/features/profile/lib/analyze-cv'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 // The backend CV reader (and AI import) supports PDF and DOCX only.
@@ -104,6 +116,8 @@ export function Onboarding() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [parsed, setParsed] = useState<ParsedProfile | null>(null)
   const [cvId, setCvId] = useState<number | null>(null)
+  // The name of a CV that was already uploaded when the page opened (the user came back to it).
+  const [resumedName, setResumedName] = useState<string | null>(null)
   const [candidate, setCandidate] = useState<Candidate | null>(null)
   const isSkipping = false
 
@@ -137,7 +151,8 @@ export function Onboarding() {
     if (inputRef.current) inputRef.current.value = ''
   }
 
-  // Uploads the CV and lets the AI read it, then shows the result for review.
+  // Uploads the CV and lets the AI read it, then shows the result for review. The reading runs in the
+  // background on the server; this only starts it and waits for the result.
   async function analyzeResume() {
     if (!selectedFile) return
     setIsAnalyzing(true)
@@ -145,19 +160,72 @@ export function Onboarding() {
       const { items } = await candidatesApi.mine()
       const me = items[0]
       const id = await cvsApi.upload({ candidateId: me.id, file: selectedFile })
-      const result = await profileApi.previewImport(id)
+      const result = await analyzeCv(id)
       setCandidate(me)
       setCvId(id)
       setParsed(result)
       setView('review')
-    } catch {
+    } catch (error) {
       toast.error(
-        'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+        error instanceof ImportFailedError
+          ? error.message
+          : 'Could not read this CV. Use a text-based PDF or DOCX and try again.'
       )
     } finally {
       setIsAnalyzing(false)
     }
   }
+
+  // The user came back (the window was closed, the page reloaded) after uploading a CV: pick up the reading
+  // where it stopped. One still reading carries on, and one that finished goes straight to the review.
+  const { data: resumable } = useQuery({
+    queryKey: ['onboarding-resume'],
+    queryFn: async () => {
+      const { items } = await candidatesApi.mine()
+      const me = items[0]
+      const job = me ? await profileApi.latestImport(me.id) : null
+      return me && job ? { me, job } : null
+    },
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+  })
+
+  const resume = useMutation({
+    mutationFn: async ({ job }: { me: Candidate; job: ProfileImportJob }) =>
+      waitForImport(job),
+    onSuccess: (result, { me, job }) => {
+      setCandidate(me)
+      setCvId(job.cvId)
+      setResumedName(job.fileName)
+      setParsed(result)
+      setView('review')
+    },
+    onError: (error) =>
+      toast.error(
+        error instanceof ImportFailedError
+          ? error.message
+          : 'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+      ),
+  })
+
+  const { mutate: resumeImport, isIdle: resumeIdle } = resume
+  useEffect(() => {
+    if (
+      resumable &&
+      resumable.job.status !== 'Failed' &&
+      resumeIdle &&
+      !selectedFile &&
+      !isAnalyzing
+    ) {
+      resumeImport(resumable)
+    }
+  }, [resumable, resumeIdle, selectedFile, isAnalyzing, resumeImport])
+
+  const fileName = selectedFile?.name ?? resumedName
+  const resumingNow =
+    resume.isPending && !!resumable && isImportRunning(resumable.job.status)
 
   async function submitManualProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -239,8 +307,8 @@ export function Onboarding() {
     navigate({ to: '/onboarding/questions', replace: true })
   }
 
-  if (view === 'review' && selectedFile) {
-    const initialName = candidate?.fullName || nameFromResume(selectedFile.name)
+  if (view === 'review' && fileName) {
+    const initialName = candidate?.fullName || nameFromResume(fileName)
     const initialEmail = candidate?.email || auth.user?.email || ''
     const initialTitle = parsed?.headline || parsed?.experiences[0]?.title || ''
     const initialPhone = candidate?.phone || parsed?.phone || ''
@@ -262,7 +330,10 @@ export function Onboarding() {
                 <ArrowLeft className='size-4' />
                 Back to CV upload
               </button>
-              <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
+              <SkipOnboardingButton
+                onSkip={skipOnboarding}
+                isSkipping={isSkipping}
+              />
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
@@ -285,7 +356,7 @@ export function Onboarding() {
               <div className='min-w-0 flex-1'>
                 <p className='font-semibold'>Resume processed successfully</p>
                 <p className='truncate text-sm text-muted-foreground'>
-                  {selectedFile.name}
+                  {fileName}
                 </p>
               </div>
             </div>
@@ -421,7 +492,10 @@ export function Onboarding() {
                 <ArrowLeft className='size-4' />
                 Back to CV upload
               </button>
-              <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
+              <SkipOnboardingButton
+                onSkip={skipOnboarding}
+                isSkipping={isSkipping}
+              />
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
@@ -515,12 +589,12 @@ export function Onboarding() {
     )
   }
 
-  if (isAnalyzing) {
+  if (isAnalyzing || resumingNow) {
     return (
       <main className='flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10'>
         <Card className='w-full max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 shadow-lg'>
           <CardContent className='px-8 py-10'>
-            <ImportProgress fileName={selectedFile?.name} />
+            <ImportProgress fileName={fileName ?? resumable?.job.fileName} />
           </CardContent>
         </Card>
       </main>
@@ -536,7 +610,10 @@ export function Onboarding() {
               <span className='size-2 rounded-full bg-primary' />
               Step 1 of 4
             </div>
-            <SkipOnboardingButton onSkip={skipOnboarding} isSkipping={isSkipping} />
+            <SkipOnboardingButton
+              onSkip={skipOnboarding}
+              isSkipping={isSkipping}
+            />
           </div>
           <CardTitle className='text-3xl font-bold tracking-tight'>
             Set up your profile

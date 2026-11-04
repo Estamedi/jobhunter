@@ -1374,6 +1374,60 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.ToTable("ProfileExperiences");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.ProfileImportJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AppliedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CvId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResultJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CvId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ProfileImportJobs");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.ProfileLanguage", b =>
                 {
                     b.Property<int>("Id")
@@ -1954,6 +2008,17 @@ namespace backend.jobhunter.Infrastructure.Migrations
                     b.Navigation("Profile");
                 });
 
+            modelBuilder.Entity("backend.jobhunter.Domain.Entities.ProfileImportJob", b =>
+                {
+                    b.HasOne("backend.jobhunter.Domain.Entities.Cv", "Cv")
+                        .WithOne("ImportJob")
+                        .HasForeignKey("backend.jobhunter.Domain.Entities.ProfileImportJob", "CvId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cv");
+                });
+
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.ProfileLanguage", b =>
                 {
                     b.HasOne("backend.jobhunter.Domain.Entities.CandidateProfile", "Profile")
@@ -2037,6 +2102,8 @@ namespace backend.jobhunter.Infrastructure.Migrations
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.Cv", b =>
                 {
                     b.Navigation("Applications");
+
+                    b.Navigation("ImportJob");
                 });
 
             modelBuilder.Entity("backend.jobhunter.Domain.Entities.CvDraft", b =>

@@ -60,3 +60,32 @@ public sealed class CapturingNotifier(Microsoft.AspNetCore.SignalR.IHubContext<b
         return _real.NotifyAsync(ownerId, draftId, status, cancellationToken);
     }
 }
+
+// Stands in for the AI that reads an uploaded CV into a profile. Tests set OnParse to control it.
+public sealed class FakeProfileImportAi : IProfileImportAiService
+{
+    public static Func<string, Task<ParsedProfileDto>>? OnParse { get; set; }
+    public static int Calls;
+    public static string? LastText;
+
+    public static void Reset()
+    {
+        OnParse = null;
+        LastText = null;
+        Interlocked.Exchange(ref Calls, 0);
+    }
+
+    public static ParsedProfileDto SampleProfile() => new()
+    {
+        Headline = "Senior engineer",
+        Summary = "Engineer with 12 years of experience.",
+        Experiences = [new ParsedExperienceDto { Title = "Lead", Company = "Acme", StartDate = new DateOnly(2022, 1, 1), IsCurrent = true }],
+    };
+
+    public Task<ParsedProfileDto> ParseAsync(string cvText, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref Calls);
+        LastText = cvText;
+        return OnParse is null ? Task.FromResult(SampleProfile()) : OnParse(cvText);
+    }
+}

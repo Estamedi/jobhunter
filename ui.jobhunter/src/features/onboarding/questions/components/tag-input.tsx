@@ -64,7 +64,11 @@ export function TagInput({
       {values.length > 0 && (
         <div className='flex flex-wrap gap-2'>
           {values.map((v) => (
-            <Badge key={v} variant='secondary' className='gap-1.5 py-1 ps-2.5 pe-1.5 text-sm'>
+            <Badge
+              key={v}
+              variant='secondary'
+              className='gap-1.5 py-1 ps-2.5 pe-1.5 text-sm'
+            >
               {v}
               <button
                 type='button'

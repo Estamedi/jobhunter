@@ -116,7 +116,7 @@ public static class RateLimiting
             && (path.StartsWithSegments("/api/JobExtraction", StringComparison.OrdinalIgnoreCase)
                 || path.StartsWithSegments("/api/CvGeneration", StringComparison.OrdinalIgnoreCase)
                 || path.StartsWithSegments("/api/CandidateProfiles/import", StringComparison.OrdinalIgnoreCase)
-                || path.StartsWithSegments("/api/CandidateProfiles/import-preview", StringComparison.OrdinalIgnoreCase));
+                || path.StartsWithSegments("/api/CandidateProfiles/import-jobs", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string ClientIp(HttpContext context) =>

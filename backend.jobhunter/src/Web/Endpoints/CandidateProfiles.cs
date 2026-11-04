@@ -15,7 +15,8 @@ using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileEduc
 using backend.jobhunter.Application.CandidateProfiles.Commands.UpdateProfileExperience;
 using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidatePhoto;
 using backend.jobhunter.Application.CandidateProfiles.Queries.GetCandidateProfile;
-using backend.jobhunter.Application.CandidateProfiles.Queries.PreviewProfileImport;
+using backend.jobhunter.Application.CandidateProfiles.Commands.StartProfileImport;
+using backend.jobhunter.Application.CandidateProfiles.Queries.GetProfileImportJob;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.CandidateProfiles.Commands.AddProfileProject;
 using backend.jobhunter.Application.CandidateProfiles.Commands.DeleteProfileProject;
@@ -46,7 +47,9 @@ public class CandidateProfiles : IEndpointGroup
             .WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(3 * 1024 * 1024));
         group.MapGet(GetPhoto, "photo");
         group.MapDelete(DeletePhoto, "photo");
-        group.MapPost(PreviewImport, "import-preview");
+        group.MapPost(StartImport, "import-jobs");
+        group.MapGet(GetLatestImport, "import-jobs/latest");
+        group.MapGet(GetImportJob, "import-jobs/{id}");
         group.MapPost(Import, "import");
         group.MapPost(AddExperience, "experiences");
         group.MapPut(UpdateExperience, "experiences/{id}");
@@ -91,11 +94,27 @@ public class CandidateProfiles : IEndpointGroup
         return TypedResults.NoContent();
     }
 
-    [EndpointSummary("Preview a profile import from an uploaded CV")]
-    [EndpointDescription("Reads the text of an uploaded CV (PDF or DOCX) and has the AI extract the headline, summary and experiences. Nothing is saved.")]
-    public static async Task<Ok<ParsedProfileDto>> PreviewImport(
-        ISender sender, PreviewProfileImportQuery query, CancellationToken ct = default)
-        => TypedResults.Ok(await sender.Send(query, ct));
+    [EndpointSummary("Start reading an uploaded CV")]
+    [EndpointDescription("Queues the AI reading of an uploaded CV (PDF or DOCX) and answers at once with the job. A background worker reads it; poll the job until it is Completed (the result holds the headline, summary, experiences and more) or Failed. Starting again for the same CV returns the same job, and puts a failed one back in the queue. Nothing is saved until the reviewed result is imported.")]
+    public static async Task<Accepted<ProfileImportJobDto>> StartImport(
+        ISender sender, StartProfileImportCommand command, CancellationToken ct = default)
+    {
+        var job = await sender.Send(command, ct);
+        return TypedResults.Accepted($"/api/CandidateProfiles/import-jobs/{job.Id}", job);
+    }
+
+    [EndpointSummary("Get a CV import job")]
+    public static async Task<Ok<ProfileImportJobDto>> GetImportJob(ISender sender, int id, CancellationToken ct = default)
+        => TypedResults.Ok(await sender.Send(new GetProfileImportJobQuery(id), ct));
+
+    [EndpointSummary("Get the CV import to resume")]
+    [EndpointDescription("The newest import for a candidate that is still reading, waiting for review or failed, and less than a day old. No content when there is none.")]
+    public static async Task<Results<Ok<ProfileImportJobDto>, NoContent>> GetLatestImport(
+        ISender sender, int candidateId, CancellationToken ct = default)
+    {
+        var job = await sender.Send(new GetLatestProfileImportJobQuery(candidateId), ct);
+        return job is null ? TypedResults.NoContent() : TypedResults.Ok(job);
+    }
 
     [EndpointSummary("Save a reviewed profile import")]
     [EndpointDescription("Merges or replaces the profile with the reviewed import result; returns how many experiences were added.")]

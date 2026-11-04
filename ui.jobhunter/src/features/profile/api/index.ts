@@ -163,6 +163,21 @@ export interface ParsedLanguage {
   proficiency?: LanguageProficiency | null
 }
 
+export type ProfileImportStatus = 'Pending' | 'Running' | 'Completed' | 'Failed'
+
+// The AI reading of one uploaded CV. It runs in the background, so a job exists before it has a result.
+export interface ProfileImportJob {
+  id: number
+  cvId: number
+  fileName: string
+  status: ProfileImportStatus
+  // Why reading failed; only set when status is Failed.
+  error?: string | null
+  // Only set when status is Completed.
+  result?: ParsedProfile | null
+  created: string
+}
+
 export interface ParsedProfile {
   headline?: string | null
   summary?: string | null
@@ -249,10 +264,25 @@ export const profileApi = {
   deletePhoto: (candidateId: number) =>
     http.delete('/api/CandidateProfiles/photo', { params: { candidateId } }),
 
-  previewImport: (cvId: number) =>
+  // Queues the AI reading of an uploaded CV and answers at once. Starting again for the same CV returns the
+  // same job, and puts a failed one back in the queue.
+  startImport: (cvId: number) =>
     http
-      .post<ParsedProfile>('/api/CandidateProfiles/import-preview', { cvId })
+      .post<ProfileImportJob>('/api/CandidateProfiles/import-jobs', { cvId })
       .then((r) => r.data),
+
+  getImportJob: (id: number) =>
+    http
+      .get<ProfileImportJob>(`/api/CandidateProfiles/import-jobs/${id}`)
+      .then((r) => r.data),
+
+  // The newest unfinished import (still reading, waiting for review, or failed) of the last day, if any.
+  latestImport: (candidateId: number) =>
+    http
+      .get<ProfileImportJob | ''>('/api/CandidateProfiles/import-jobs/latest', {
+        params: { candidateId },
+      })
+      .then((r) => (r.status === 204 || !r.data ? null : r.data)),
 
   importProfile: (dto: ImportProfileDto) =>
     http.post<number>('/api/CandidateProfiles/import', dto).then((r) => r.data),

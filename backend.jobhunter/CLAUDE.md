@@ -93,3 +93,8 @@ All package versions are centrally managed in `Directory.Packages.props`. Do not
 ## CV drafts are written in the background
 
 `POST /api/CvGeneration` only queues a `CvDraft` (status Pending). `CvGenerationWorker` (Infrastructure/CvGeneration) writes it with `CvDraftGenerationService`, running as the draft's owner through `UserOverride` because there is no HTTP request. The owner is told over the SignalR hub `/hubs/cv-generation` through `ICvGenerationNotifier`; the UI also polls, so the hub is only a speed-up. Edit, export, regenerate, match, score and restore refuse a draft that is not Completed (`CvDraftGuard`). Functional tests replace the AI with `FakeCvAi` and still run the real worker and hub.
+
+## CV import is a background job
+
+`POST /api/CandidateProfiles/import-jobs` only queues a `ProfileImportJob` (one per CV). `ProfileImportWorker` (Infrastructure/ProfileImport) reads it with `ProfileImportService`, running as the CV's owner through `UserOverride`. The UI polls the job (`GET .../import-jobs/{id}`) and resumes an unfinished one through `GET .../import-jobs/latest`. Functional tests replace the AI with `FakeProfileImportAi` and run the real worker, file storage and text extractor.
+

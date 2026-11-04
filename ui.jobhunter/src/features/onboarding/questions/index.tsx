@@ -1,13 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { toast } from 'sonner'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { authApi } from '@/features/auth/api'
 import { candidatesApi } from '@/features/candidates/api'
-import { useAuthStore } from '@/stores/auth-store'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
 import { preferencesApi } from './api'
 import { OptionTile } from './components/option-tile'
 import { TagInput } from './components/tag-input'
@@ -33,7 +39,9 @@ const roleSuggestions = [
 ]
 
 function toggle(list: string[], value: string) {
-  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
+  return list.includes(value)
+    ? list.filter((v) => v !== value)
+    : [...list, value]
 }
 
 function labelOf(options: Option[], values: string[]) {
@@ -83,7 +91,12 @@ function MultiChoice({
       onChange(values.includes(value) ? [] : [value])
       return
     }
-    onChange(toggle(values.filter((v) => v !== exclusive), value))
+    onChange(
+      toggle(
+        values.filter((v) => v !== exclusive),
+        value
+      )
+    )
   }
 
   return (
@@ -113,9 +126,21 @@ function QuestionBody({
 }) {
   switch (question.id) {
     case 'workStatus':
-      return <SingleChoice options={workStatusOptions} value={answers.workStatus} onChange={(v) => set('workStatus', v)} />
+      return (
+        <SingleChoice
+          options={workStatusOptions}
+          value={answers.workStatus}
+          onChange={(v) => set('workStatus', v)}
+        />
+      )
     case 'primaryGoal':
-      return <SingleChoice options={goalOptions} value={answers.primaryGoal} onChange={(v) => set('primaryGoal', v)} />
+      return (
+        <SingleChoice
+          options={goalOptions}
+          value={answers.primaryGoal}
+          onChange={(v) => set('primaryGoal', v)}
+        />
+      )
     case 'targetRoles':
       return (
         <TagInput
@@ -126,11 +151,31 @@ function QuestionBody({
         />
       )
     case 'workModes':
-      return <MultiChoice columns options={workModeOptions} values={answers.workModes} onChange={(v) => set('workModes', v)} />
+      return (
+        <MultiChoice
+          columns
+          options={workModeOptions}
+          values={answers.workModes}
+          onChange={(v) => set('workModes', v)}
+        />
+      )
     case 'remoteRegions':
-      return <MultiChoice exclusive='anywhere' options={remoteRegionOptions} values={answers.remoteRegions} onChange={(v) => set('remoteRegions', v)} />
+      return (
+        <MultiChoice
+          exclusive='anywhere'
+          options={remoteRegionOptions}
+          values={answers.remoteRegions}
+          onChange={(v) => set('remoteRegions', v)}
+        />
+      )
     case 'workAuthorization':
-      return <SingleChoice options={workAuthorizationOptions} value={answers.workAuthorization} onChange={(v) => set('workAuthorization', v)} />
+      return (
+        <SingleChoice
+          options={workAuthorizationOptions}
+          value={answers.workAuthorization}
+          onChange={(v) => set('workAuthorization', v)}
+        />
+      )
   }
 }
 
@@ -177,7 +222,9 @@ export function OnboardingQuestions() {
           preferredWorkType: answers.workModes.join(', ') || undefined,
         })
       } catch {
-        toast.warning('Your answers are saved, but your profile summary could not be updated.')
+        toast.warning(
+          'Your answers are saved, but your profile summary could not be updated.'
+        )
       }
       reset()
       navigate({ to: '/onboarding/extension', replace: true })
@@ -225,13 +272,20 @@ export function OnboardingQuestions() {
             {visible.map((q, i) => (
               <span
                 key={q.id}
-                className={cn('h-1 flex-1 rounded-full bg-muted', i <= step && 'bg-primary')}
+                className={cn(
+                  'h-1 flex-1 rounded-full bg-muted',
+                  i <= step && 'bg-primary'
+                )}
               />
             ))}
           </div>
-          <CardTitle className='text-2xl font-bold tracking-tight'>{question.title}</CardTitle>
+          <CardTitle className='text-2xl font-bold tracking-tight'>
+            {question.title}
+          </CardTitle>
           {question.subtitle && (
-            <CardDescription className='text-base'>{question.subtitle}</CardDescription>
+            <CardDescription className='text-base'>
+              {question.subtitle}
+            </CardDescription>
           )}
         </CardHeader>
 

@@ -53,7 +53,11 @@ export const workModeOptions: Option[] = [
 ]
 
 export const remoteRegionOptions: Option[] = [
-  { value: 'anywhere', label: 'Anywhere in the world', description: 'Remote roles from any country' },
+  {
+    value: 'anywhere',
+    label: 'Anywhere in the world',
+    description: 'Remote roles from any country',
+  },
   { value: 'north-america', label: 'North America' },
   { value: 'south-america', label: 'South America' },
   { value: 'europe', label: 'Europe' },
@@ -125,7 +129,8 @@ export const questions: Question[] = [
   {
     id: 'workAuthorization',
     title: "What's your work authorization status?",
-    subtitle: 'Only used to match you with roles you can take. Editable anytime.',
+    subtitle:
+      'Only used to match you with roles you can take. Editable anytime.',
     key: true,
     isValid: (a) => !!a.workAuthorization,
   },
