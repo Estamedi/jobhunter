@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Clock, Mail, MapPin, Pencil, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -106,83 +105,38 @@ function ContactForm({
   )
 }
 
-export function ContactCard({
+// "Contact info", opened from the header like on LinkedIn: the details that appear in a CV header.
+export function ContactDialog({
+  open,
+  onOpenChange,
   values,
   isSaving,
   onSave,
 }: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   values: ContactValues
   isSaving: boolean
-  onSave: (values: ContactValues, done: () => void) => void
+  onSave: (values: ContactValues) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const missing = [
-    !values.phone && 'phone',
-    !values.currentLocation && 'location',
-  ].filter(Boolean)
-
   return (
-    <section className='rounded-md border p-5'>
-      <div className='mb-3 flex items-center justify-between'>
-        <h2 className='text-xl font-semibold'>Contact info</h2>
-        <Button
-          variant='ghost'
-          size='icon'
-          title='Edit contact info'
-          onClick={() => setOpen(true)}
-        >
-          <Pencil className='h-4 w-4' />
-        </Button>
-      </div>
-
-      <div className='space-y-1 text-sm'>
-        <p className='flex items-center gap-2'>
-          <Mail className='h-4 w-4 text-muted-foreground' /> {values.email}
-        </p>
-        <p className='flex items-center gap-2'>
-          <Phone className='h-4 w-4 text-muted-foreground' />
-          {values.phone || (
-            <span className='text-muted-foreground'>No phone yet</span>
-          )}
-        </p>
-        <p className='flex items-center gap-2'>
-          <MapPin className='h-4 w-4 text-muted-foreground' />
-          {values.currentLocation || (
-            <span className='text-muted-foreground'>No location yet</span>
-          )}
-        </p>
-        <p className='flex items-center gap-2'>
-          <Clock className='h-4 w-4 text-muted-foreground' />
-          {values.availability || (
-            <span className='text-muted-foreground'>No availability yet</span>
-          )}
-        </p>
-      </div>
-
-      <p className='mt-3 text-xs text-muted-foreground'>
-        {missing.length > 0
-          ? `Add your ${missing.join(' and ')} so it appears in your CV header.`
-          : 'These appear in your CV header.'}
-      </p>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className='max-w-md'>
-          <DialogHeader>
-            <DialogTitle>Edit contact info</DialogTitle>
-            <DialogDescription>
-              These details appear at the top of your CV.
-            </DialogDescription>
-          </DialogHeader>
-          {open && (
-            <ContactForm
-              initial={values}
-              isSaving={isSaving}
-              onSave={(v) => onSave(v, () => setOpen(false))}
-              onClose={() => setOpen(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </section>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className='max-w-md'>
+        <DialogHeader>
+          <DialogTitle>Contact info</DialogTitle>
+          <DialogDescription>
+            These details appear at the top of your CV.
+          </DialogDescription>
+        </DialogHeader>
+        {open && (
+          <ContactForm
+            initial={values}
+            isSaving={isSaving}
+            onSave={onSave}
+            onClose={() => onOpenChange(false)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }

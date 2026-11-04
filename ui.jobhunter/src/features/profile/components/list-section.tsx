@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { FieldDialog, type FieldDef, type FieldValues } from './field-dialog'
+import { ProfileCard } from './profile-card'
 
 // A profile section that is a simple list of items edited through a field dialog.
 export function ListSection<T extends { id: number }, Dto>({
@@ -17,6 +18,7 @@ export function ListSection<T extends { id: number }, Dto>({
   toValues,
   toDto,
   api,
+  openAddSignal = 0,
 }: {
   title: string
   itemLabel: string
@@ -32,10 +34,19 @@ export function ListSection<T extends { id: number }, Dto>({
     update: (id: number, dto: Dto) => Promise<unknown>
     remove: (id: number) => Promise<unknown>
   }
+  // Goes up when the page asks for the "add" dialog to open (the header's Add section menu).
+  openAddSignal?: number
 }) {
   const qc = useQueryClient()
   // `undefined` = closed, `null` = adding, otherwise editing that item.
   const [editing, setEditing] = useState<T | null | undefined>(undefined)
+  // Opens the "add" dialog when the page's signal goes up. Done while rendering, which is how React
+  // wants state adjusted from a changed prop; an effect would render once with the old state first.
+  const [seenSignal, setSeenSignal] = useState(openAddSignal)
+  if (seenSignal !== openAddSignal) {
+    setSeenSignal(openAddSignal)
+    setEditing(null)
+  }
 
   const done = (message: string) => {
     qc.invalidateQueries({ queryKey: ['profile'] })
@@ -59,19 +70,12 @@ export function ListSection<T extends { id: number }, Dto>({
   })
 
   return (
-    <section className='rounded-md border p-5'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h2 className='text-xl font-semibold'>{title}</h2>
-        <Button
-          variant='ghost'
-          size='icon'
-          title={`Add ${itemLabel}`}
-          onClick={() => setEditing(null)}
-        >
-          <Plus className='h-5 w-5' />
-        </Button>
-      </div>
-
+    <ProfileCard
+      id={`section-${title.toLowerCase()}`}
+      title={title}
+      addLabel={`Add ${itemLabel}`}
+      onAdd={() => setEditing(null)}
+    >
       {items.length === 0 && (
         <p className='text-sm text-muted-foreground'>{emptyText}</p>
       )}
@@ -86,7 +90,7 @@ export function ListSection<T extends { id: number }, Dto>({
             <Button
               variant='ghost'
               size='icon'
-              className='h-8 w-8 shrink-0'
+              className='h-8 w-8 shrink-0 rounded-full'
               title={`Edit ${itemLabel}`}
               onClick={() => setEditing(item)}
             >
@@ -109,6 +113,6 @@ export function ListSection<T extends { id: number }, Dto>({
           onDelete={() => editing && remove.mutate(editing.id)}
         />
       )}
-    </section>
+    </ProfileCard>
   )
 }

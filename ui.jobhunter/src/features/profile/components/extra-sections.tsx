@@ -23,9 +23,11 @@ const orNull = (v?: string) => v?.trim() || null
 export function ProjectsSection({
   candidateId,
   items,
+  openAddSignal,
 }: {
   candidateId: number
   items: ProfileProject[]
+  openAddSignal?: number
 }) {
   return (
     <ListSection<ProfileProject, SaveProjectDto>
@@ -34,6 +36,7 @@ export function ProjectsSection({
       emptyText='No projects yet. Add notable projects you want on your CV.'
       candidateId={candidateId}
       items={items}
+      openAddSignal={openAddSignal}
       fields={[
         { name: 'name', label: 'Project name', type: 'text', required: true },
         { name: 'description', label: 'Description', type: 'textarea' },
@@ -86,9 +89,11 @@ export function ProjectsSection({
 export function CertificationsSection({
   candidateId,
   items,
+  openAddSignal,
 }: {
   candidateId: number
   items: ProfileCertification[]
+  openAddSignal?: number
 }) {
   return (
     <ListSection<ProfileCertification, SaveCertificationDto>
@@ -97,6 +102,7 @@ export function CertificationsSection({
       emptyText='No certifications yet.'
       candidateId={candidateId}
       items={items}
+      openAddSignal={openAddSignal}
       fields={[
         { name: 'name', label: 'Name', type: 'text', required: true },
         { name: 'issuer', label: 'Issuing organization', type: 'text' },
@@ -147,9 +153,11 @@ export function CertificationsSection({
 export function LanguagesSection({
   candidateId,
   items,
+  openAddSignal,
 }: {
   candidateId: number
   items: ProfileLanguage[]
+  openAddSignal?: number
 }) {
   return (
     <ListSection<ProfileLanguage, SaveLanguageDto>
@@ -158,6 +166,7 @@ export function LanguagesSection({
       emptyText='No languages yet.'
       candidateId={candidateId}
       items={items}
+      openAddSignal={openAddSignal}
       fields={[
         {
           name: 'name',
@@ -199,9 +208,11 @@ export function LanguagesSection({
 export function LinksSection({
   candidateId,
   items,
+  openAddSignal,
 }: {
   candidateId: number
   items: ProfileLink[]
+  openAddSignal?: number
 }) {
   return (
     <ListSection<ProfileLink, SaveLinkDto>
@@ -210,6 +221,7 @@ export function LinksSection({
       emptyText='No links yet. Add GitHub, LinkedIn or a portfolio.'
       candidateId={candidateId}
       items={items}
+      openAddSignal={openAddSignal}
       fields={[
         {
           name: 'label',

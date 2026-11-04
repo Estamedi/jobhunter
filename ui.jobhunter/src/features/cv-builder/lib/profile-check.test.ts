@@ -31,4 +31,35 @@ describe('profileGaps', () => {
       }).map((g) => g.id)
     ).toEqual(['phone'])
   })
+
+  it('checks the extra pieces only when they are passed in', () => {
+    const base = {
+      skills: 3,
+      email: 'a@b.test',
+      phone: '+1',
+      location: 'Muscat',
+    }
+
+    expect(profileGaps(base)).toEqual([])
+    expect(
+      profileGaps({
+        ...base,
+        hasPhoto: false,
+        headline: ' ',
+        about: null,
+        experiences: 0,
+        educations: 0,
+      }).map((g) => g.id)
+    ).toEqual(['photo', 'headline', 'about', 'experience', 'education'])
+    expect(
+      profileGaps({
+        ...base,
+        hasPhoto: true,
+        headline: 'Engineer',
+        about: 'Hello',
+        experiences: 2,
+        educations: 1,
+      })
+    ).toEqual([])
+  })
 })

@@ -1,6 +1,14 @@
 import { useState } from 'react'
-import { Pencil, Plus, X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -20,6 +28,7 @@ import {
   SKILL_EVIDENCE_LEVELS,
   skillLevelLabel,
 } from '../lib/skill-evidence'
+import { ProfileCard } from './profile-card'
 
 const NOT_SET = 'none'
 
@@ -128,6 +137,7 @@ export function SkillsSection({
   onAdd,
   onUpdate,
   onRemove,
+  openAddSignal = 0,
 }: {
   skills: ProfileSkill[]
   isAdding: boolean
@@ -135,7 +145,17 @@ export function SkillsSection({
   onAdd: (skill: NewSkill) => void
   onUpdate: (id: number, dto: SaveSkillDto) => void
   onRemove: (skill: ProfileSkill) => void
+  // Goes up when the page asks for the "add" dialog to open (the header's Add section menu).
+  openAddSignal?: number
 }) {
+  const [adding, setAdding] = useState(false)
+  // Opens the dialog when the page's signal goes up, adjusted while rendering as React recommends.
+  const [seenSignal, setSeenSignal] = useState(openAddSignal)
+  if (seenSignal !== openAddSignal) {
+    setSeenSignal(openAddSignal)
+    setAdding(true)
+  }
+
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
   const [level, setLevel] = useState('')
@@ -155,6 +175,7 @@ export function SkillsSection({
       evidenceLevel: level,
       note: note.trim(),
     })
+    // The dialog stays open so several skills can be added in a row.
     setName('')
     setNote('')
   }
@@ -167,19 +188,22 @@ export function SkillsSection({
   }
 
   return (
-    <section className='rounded-md border p-5'>
-      <h2 className='mb-4 text-xl font-semibold'>Skills</h2>
-
+    <ProfileCard
+      id='section-skills'
+      title='Skills'
+      addLabel='Add skill'
+      onAdd={() => setAdding(true)}
+    >
       {skills.length === 0 && (
-        <p className='mb-4 text-sm text-muted-foreground'>
+        <p className='text-sm text-muted-foreground'>
           No skills yet. Add the ones you want on your CV.
         </p>
       )}
 
-      <div className='mb-4 space-y-3'>
+      <div className='space-y-4'>
         {[...groups.entries()].map(([group, items]) => (
           <div key={group}>
-            <p className='mb-1 text-xs font-medium text-muted-foreground uppercase'>
+            <p className='mb-1.5 text-xs font-medium text-muted-foreground uppercase'>
               {group}
             </p>
             <div className='flex flex-wrap gap-2'>
@@ -189,11 +213,11 @@ export function SkillsSection({
                   <span
                     key={s.id}
                     title={s.note ?? undefined}
-                    className='flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm'
+                    className='flex items-center gap-1 rounded-full border bg-muted/40 px-3 py-1 text-sm font-medium'
                   >
                     {s.name}
                     {levelLabel && (
-                      <span className='text-xs text-muted-foreground'>
+                      <span className='text-xs font-normal text-muted-foreground'>
                         · {levelLabel}
                       </span>
                     )}
@@ -217,39 +241,49 @@ export function SkillsSection({
         ))}
       </div>
 
-      <div className='flex flex-wrap gap-2'>
-        <Input
-          className='min-w-40 flex-1'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={onEnter}
-          placeholder='Add a skill'
-        />
-        <Input
-          className='w-40'
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          onKeyDown={onEnter}
-          placeholder='Group (optional)'
-        />
-        <LevelSelect value={level} onChange={setLevel} className='w-56' />
-        <Input
-          className='min-w-40 flex-1'
-          value={note}
-          maxLength={MAX_SKILL_NOTE_LENGTH}
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={onEnter}
-          placeholder='Where did you use it? (optional)'
-        />
-        <Button
-          type='button'
-          variant='outline'
-          disabled={!name.trim() || isAdding}
-          onClick={submit}
-        >
-          <Plus className='mr-1 h-4 w-4' /> Add skill
-        </Button>
-      </div>
-    </section>
+      <Dialog open={adding} onOpenChange={setAdding}>
+        <DialogContent className='max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>Add skill</DialogTitle>
+            <DialogDescription>
+              Say how you know it, and where you used it, if you like.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-3'>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={onEnter}
+              placeholder='Skill, for example Terraform'
+              aria-label='Skill'
+            />
+            <Input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              onKeyDown={onEnter}
+              placeholder='Group (optional)'
+              aria-label='Group'
+            />
+            <LevelSelect value={level} onChange={setLevel} className='w-full' />
+            <Input
+              value={note}
+              maxLength={MAX_SKILL_NOTE_LENGTH}
+              onChange={(e) => setNote(e.target.value)}
+              onKeyDown={onEnter}
+              placeholder='Where did you use it? (optional)'
+              aria-label='Where did you use it?'
+            />
+          </div>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setAdding(false)}>
+              Done
+            </Button>
+            <Button disabled={!name.trim() || isAdding} onClick={submit}>
+              Add skill
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </ProfileCard>
   )
 }

@@ -1,4 +1,4 @@
-import { Pencil, Plus } from 'lucide-react'
+import { Building2, Gem, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { type ProfileExperience } from '../api'
 import {
@@ -9,6 +9,8 @@ import {
   roleRange,
   workplaceLabel,
 } from '../lib/experience'
+import { ExpandableText } from './expandable-text'
+import { ProfileCard } from './profile-card'
 
 const MAX_SKILLS_SHOWN = 2
 
@@ -17,11 +19,22 @@ function SkillsLine({ skills }: { skills: string[] }) {
   const shown = skills.slice(0, MAX_SKILLS_SHOWN).join(', ')
   const extra = skills.length - MAX_SKILLS_SHOWN
   return (
-    <p className='mt-2 text-sm'>
-      <span className='font-semibold'>Skills: </span>
-      {shown}
-      {extra > 0 && `, +${extra} ${extra === 1 ? 'skill' : 'skills'}`}
+    <p className='mt-2 flex items-start gap-2 text-sm font-semibold'>
+      <Gem className='mt-0.5 h-4 w-4 shrink-0 text-muted-foreground' />
+      <span>
+        {shown}
+        {extra > 0 && `, +${extra} ${extra === 1 ? 'skill' : 'skills'}`}
+      </span>
     </p>
+  )
+}
+
+// The square a company logo would fill; there is no logo to show, so it holds an icon.
+function CompanyMark() {
+  return (
+    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground'>
+      <Building2 className='h-6 w-6' />
+    </div>
   )
 }
 
@@ -62,14 +75,14 @@ function Role({
           <p className='text-sm text-muted-foreground'>{place}</p>
         )}
         {role.description && (
-          <p className='mt-2 text-sm whitespace-pre-line'>{role.description}</p>
+          <ExpandableText text={role.description} className='mt-2' />
         )}
         <SkillsLine skills={role.skills} />
       </div>
       <Button
         variant='ghost'
         size='icon'
-        className='h-8 w-8 shrink-0'
+        className='h-8 w-8 shrink-0 rounded-full'
         title='Edit experience'
         onClick={() => onEdit(role)}
       >
@@ -91,19 +104,12 @@ export function ExperienceSection({
   const groups = groupByCompany(experiences)
 
   return (
-    <section className='rounded-md border p-5'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h2 className='text-xl font-semibold'>Experience</h2>
-        <Button
-          variant='ghost'
-          size='icon'
-          title='Add experience'
-          onClick={onAdd}
-        >
-          <Plus className='h-5 w-5' />
-        </Button>
-      </div>
-
+    <ProfileCard
+      id='section-experience'
+      title='Experience'
+      addLabel='Add experience'
+      onAdd={onAdd}
+    >
       {groups.length === 0 && (
         <p className='text-sm text-muted-foreground'>
           No experience yet. Add your roles so the CV Writer can use them.
@@ -113,37 +119,49 @@ export function ExperienceSection({
       <div className='divide-y'>
         {groups.map((group) =>
           group.roles.length === 1 ? (
-            <div key={group.roles[0].id} className='py-4 first:pt-0 last:pb-0'>
-              <Role role={group.roles[0]} showCompany onEdit={onEdit} />
+            <div
+              key={group.roles[0].id}
+              className='flex gap-3 py-4 first:pt-0 last:pb-0'
+            >
+              <CompanyMark />
+              <div className='min-w-0 flex-1'>
+                <Role role={group.roles[0]} showCompany onEdit={onEdit} />
+              </div>
             </div>
           ) : (
-            <div key={group.company} className='py-4 first:pt-0 last:pb-0'>
-              <p className='font-semibold'>{group.company}</p>
-              <p className='text-sm text-muted-foreground'>
-                {formatDuration(group.totalMonths)}
-              </p>
-              <p className='mb-3 text-sm text-muted-foreground'>
-                {[
-                  group.roles[0].location,
-                  workplaceLabel(group.roles[0].workplaceType),
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
-              <div className='space-y-5 border-l-2 border-muted pl-4'>
-                {group.roles.map((role) => (
-                  <Role
-                    key={role.id}
-                    role={role}
-                    showCompany={false}
-                    onEdit={onEdit}
-                  />
-                ))}
+            <div
+              key={group.company}
+              className='flex gap-3 py-4 first:pt-0 last:pb-0'
+            >
+              <CompanyMark />
+              <div className='min-w-0 flex-1'>
+                <p className='font-semibold'>{group.company}</p>
+                <p className='text-sm text-muted-foreground'>
+                  {formatDuration(group.totalMonths)}
+                </p>
+                <p className='mb-3 text-sm text-muted-foreground'>
+                  {[
+                    group.roles[0].location,
+                    workplaceLabel(group.roles[0].workplaceType),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+                <div className='space-y-5 border-s-2 border-muted ps-4'>
+                  {group.roles.map((role) => (
+                    <Role
+                      key={role.id}
+                      role={role}
+                      showCompany={false}
+                      onEdit={onEdit}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )
         )}
       </div>
-    </section>
+    </ProfileCard>
   )
 }

@@ -1,17 +1,47 @@
 export interface ProfileGap {
-  id: 'skills' | 'email' | 'phone' | 'location'
+  id:
+    | 'skills'
+    | 'email'
+    | 'phone'
+    | 'location'
+    | 'photo'
+    | 'headline'
+    | 'about'
+    | 'experience'
+    | 'education'
   message: string
 }
 
-// What is missing from a profile before a CV is written from it. Experience has its own message in the
-// form, so it is not listed here. Every gap is fixed on the profile page.
+// What is missing from a profile before a CV is written from it. Every gap is fixed on the profile page.
+// The CV form asks only for what a CV header and skills need. The profile page also passes photo, headline,
+// about, experience and education to get its fuller checklist; a piece that is not passed is not checked.
 export function profileGaps(input: {
   skills: number
   email?: string | null
   phone?: string | null
   location?: string | null
+  hasPhoto?: boolean
+  headline?: string | null
+  about?: string | null
+  experiences?: number
+  educations?: number
 }): ProfileGap[] {
   const gaps: ProfileGap[] = []
+  if (input.hasPhoto === false) {
+    gaps.push({ id: 'photo', message: 'You have not added a photo yet.' })
+  }
+  if (input.headline !== undefined && !input.headline?.trim()) {
+    gaps.push({ id: 'headline', message: 'Your headline is empty.' })
+  }
+  if (input.about !== undefined && !input.about?.trim()) {
+    gaps.push({ id: 'about', message: 'Your About section is empty.' })
+  }
+  if (input.experiences === 0) {
+    gaps.push({ id: 'experience', message: 'No experience added yet.' })
+  }
+  if (input.educations === 0) {
+    gaps.push({ id: 'education', message: 'No education added yet.' })
+  }
   if (input.skills === 0) {
     gaps.push({ id: 'skills', message: 'Your profile has no skills yet.' })
   }
