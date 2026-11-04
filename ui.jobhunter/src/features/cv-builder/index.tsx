@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { format } from 'date-fns'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import {
-  FileDown,
-  History,
-  Loader2,
-  Pencil,
-  Plus,
-  Sparkles,
-  Trash2,
-} from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { ArrowLeft, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -51,11 +42,13 @@ import {
 } from './api'
 import { CvEditor } from './components/cv-editor'
 import { CvPreview } from './components/cv-preview'
+import { DraftToolbar } from './components/draft-toolbar'
+import { DraftsList } from './components/drafts-list'
 import { GeneratingPanel } from './components/generating-panel'
 import { ReviewPanel } from './components/review-panel'
 import { SectionEditor } from './components/section-editor'
 import { VersionHistoryDialog } from './components/version-history-dialog'
-import { WishlistPanel, type BatchProgress } from './components/wishlist-panel'
+import { type BatchProgress } from './components/wishlist-panel'
 import {
   finishedEvent,
   listPollInterval,
@@ -70,7 +63,7 @@ import {
 } from './lib/fix-issues'
 import { jobPostingText } from './lib/job-text'
 import { profileGaps, type ProfileGap } from './lib/profile-check'
-import { CV_TEMPLATES, templateLabel } from './lib/templates'
+import { templateLabel } from './lib/templates'
 import { useCvGenerationHub } from './lib/use-cv-hub'
 
 const BACKGROUND_KEY = 'cvBuilder.background'
@@ -354,7 +347,13 @@ export function CvBuilder({
   jobRoleId?: number
 }) {
   const qc = useQueryClient()
+  const navigate = useNavigate()
+  // No draft open is the list view; an open draft is the workspace.
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const openDraft = (id: number | null) => {
+    setEditing(false)
+    setSelectedId(id)
+  }
   const [editing, setEditing] = useState(false)
   const [refining, setRefining] = useState<CvSection | null>(null)
   const [editingSection, setEditingSection] = useState<CvSection | null>(null)
@@ -366,8 +365,19 @@ export function CvBuilder({
     key: string
     locations: CvScoreLocation[]
   } | null>(null)
-  // The New CV form is tucked away while a draft is open, until asked for.
-  const [showForm, setShowForm] = useState(false)
+  // The New CV form is a dialog. It opens by itself when the page is reached from an application or a vacancy.
+  const prefillKey = `${applicationId ?? ''}-${jobRoleId ?? ''}`
+  const [newCvOpen, setNewCvOpen] = useState(!!applicationId || !!jobRoleId)
+  // The job a link brought in is dropped from the address once the dialog is done with it, so a later New CV
+  // starts blank and a CV is not attached to that job by accident.
+  const clearPrefill = () => {
+    if (applicationId || jobRoleId) navigate({ to: '/cv-builder', search: {} })
+  }
+  const [seenPrefill, setSeenPrefill] = useState(prefillKey)
+  if (seenPrefill !== prefillKey) {
+    setSeenPrefill(prefillKey)
+    if (applicationId || jobRoleId) setNewCvOpen(true)
+  }
   const [progress, setProgress] = useState<BatchProgress | null>(null)
   const [deleting, setDeleting] = useState<CvDraftSummary | CvDraft | null>(
     null
@@ -478,7 +488,8 @@ export function CvBuilder({
       applyDraft(created)
       setSelectedId(created.id)
       setEditing(false)
-      setShowForm(false)
+      setNewCvOpen(false)
+      clearPrefill()
       toast.info('Your CV is being written', {
         description:
           'It appears here when it is ready. You can leave this page.',
@@ -523,8 +534,7 @@ export function CvBuilder({
         action: {
           label: 'Open',
           onClick: () => {
-            setSelectedId(event.draftId)
-            setEditing(false)
+            openDraft(event.draftId)
           },
         },
       })
@@ -770,7 +780,6 @@ export function CvBuilder({
 
   const shownKey = `${selectedId}:${draft?.lastModified}`
   const highlights = shown?.key === shownKey ? shown.locations : undefined
-  const formOpen = showForm || selectedId === null
 
   // Issues from the writing score that sit in the section being refined, for the "Fix issues" button.
   const fixable =
@@ -800,272 +809,216 @@ export function CvBuilder({
       />
     ) : null
 
-  return (
-    <div className='grid gap-6 lg:grid-cols-[360px_1fr]'>
-      <div className='flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pr-1'>
-        {review && <div className='hidden lg:block'>{review}</div>}
+  // Every draft in the switcher, including one the list has not loaded yet (just queued).
+  const switcherDrafts: { id: number; title: string }[] =
+    draft && !drafts.some((d) => d.id === draft.id)
+      ? [...drafts, draft]
+      : drafts
 
-        <WishlistPanel
+  // The tools beside the CV. The slot is always there, so the CV does not move when the review arrives.
+  const tools = review ?? (
+    <div className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
+      {editing
+        ? 'The score and job match are paused while you edit the whole CV. Save or cancel to continue.'
+        : 'The score and job match appear here when your CV is ready.'}
+    </div>
+  )
+
+  return (
+    <div className='space-y-4'>
+      {selectedId === null ? (
+        <DraftsList
+          drafts={drafts}
+          loading={draftsLoading}
+          onOpen={openDraft}
+          onNew={() => setNewCvOpen(true)}
           applications={wishlist?.items ?? []}
-          drafts={draftsResult?.items ?? []}
           isGenerating={generateAll.isPending}
           progress={progress}
-          onSelectDraft={(id) => {
-            setSelectedId(id)
-            setEditing(false)
-          }}
           onGenerateAll={() => generateAll.mutate()}
         />
-
-        <div className='rounded-md border p-4'>
-          <h2 className='mb-3 font-semibold'>Your drafts</h2>
-          {draftsLoading && <Skeleton className='h-8 w-full' />}
-          {!draftsLoading && drafts.length === 0 && (
-            <p className='text-sm text-muted-foreground'>No drafts yet.</p>
-          )}
-          <ul className='space-y-1'>
-            {drafts.map((d) => (
-              <li key={d.id}>
-                <button
-                  type='button'
-                  onClick={() => {
-                    setSelectedId(d.id)
-                    setEditing(false)
-                  }}
-                  className={`w-full rounded px-2 py-1.5 text-left text-sm hover:bg-muted ${
-                    d.id === selectedId ? 'bg-muted font-medium' : ''
-                  }`}
-                >
-                  <div className='truncate'>{d.title}</div>
-                  <div className='text-xs text-muted-foreground'>
-                    {isWriting(d.status)
-                      ? 'Writing…'
-                      : d.status === 'Failed'
-                        ? 'Failed, open to try again'
-                        : format(new Date(d.lastModified), 'MMM d, yyyy')}
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {formOpen ? (
-          <div className='rounded-md border p-4'>
-            <div className='mb-3 flex items-center justify-between'>
-              <h2 className='font-semibold'>New CV</h2>
-              {draft && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={() => setShowForm(false)}
-                >
-                  Hide
-                </Button>
-              )}
-            </div>
-            {prefillLoading || profileLoading ? (
-              <Skeleton className='h-64 w-full' />
-            ) : (
-              <GenerateForm
-                key={`${applicationId}-${jobRoleId}`}
-                initial={prefill}
-                profileRoles={profile?.experiences.length ?? 0}
-                gaps={profileGaps({
-                  skills: profile?.skills.length ?? 0,
-                  email: candidate?.email,
-                  phone: candidate?.phone,
-                  location: candidate?.currentLocation,
-                })}
-                cvs={cvsResult?.items ?? []}
-                isPending={generate.isPending || !candidate}
-                onSubmit={(d) => generate.mutate(d)}
-              />
+      ) : (
+        <>
+          <div className='flex flex-wrap items-center gap-2'>
+            <Button variant='ghost' size='sm' onClick={() => openDraft(null)}>
+              <ArrowLeft className='mr-1 h-4 w-4' /> All drafts
+            </Button>
+            <Select
+              value={String(selectedId)}
+              onValueChange={(v) => openDraft(Number(v))}
+            >
+              <SelectTrigger
+                className='h-8 w-72 max-w-full'
+                aria-label='Switch draft'
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {switcherDrafts.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {draft && candidate && ready && (
+              <div className='ml-auto'>
+                <DraftToolbar
+                  templateId={draft.templateId || 'classic'}
+                  templateBusy={changeTemplate.isPending}
+                  editing={editing}
+                  exporting={exportPdf.isPending}
+                  onTemplate={(id) => changeTemplate.mutate(id)}
+                  onToggleEdit={() => setEditing((v) => !v)}
+                  onExport={(f) => exportPdf.mutate(f)}
+                  onHistory={() => setHistoryOpen(true)}
+                  onDelete={() => setDeleting(draft)}
+                />
+              </div>
             )}
           </div>
-        ) : (
-          <Button variant='outline' onClick={() => setShowForm(true)}>
-            <Plus className='mr-1 h-4 w-4' /> New CV
-          </Button>
-        )}
-      </div>
 
-      <div className='min-w-0'>
-        {(generate.isPending || writing) && (
-          <GeneratingPanel
-            key={writing ? draft?.id : 'new'}
-            since={writing ? draft?.created : undefined}
-          />
-        )}
-        {draft && draftStatus === 'Failed' && !generate.isPending && (
-          <div
-            role='alert'
-            className='space-y-3 rounded-md border border-destructive/40 p-6'
-          >
-            <p className='font-semibold'>This CV could not be written</p>
-            <p className='text-sm text-muted-foreground'>
-              {draft.error ?? 'Something went wrong while writing it.'}
-            </p>
-            <div className='flex gap-2'>
-              <Button
-                size='sm'
-                onClick={() => retry.mutate(draft.id)}
-                disabled={retry.isPending}
-              >
-                {retry.isPending && (
-                  <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+          <div className='grid gap-6 lg:grid-cols-[360px_1fr]'>
+            <div className='order-2 flex flex-col gap-6 lg:sticky lg:top-4 lg:order-1 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pr-1'>
+              {tools}
+            </div>
+
+            <div className='order-1 min-w-0 lg:order-2'>
+              <div className='min-h-[36rem] rounded-md bg-muted/40 p-4'>
+                {draftLoading && <Skeleton className='h-[32rem] w-full' />}
+                {!draftLoading && !draft && (
+                  <p className='py-12 text-center text-sm text-muted-foreground'>
+                    This draft could not be opened. It may have been deleted.
+                  </p>
                 )}
-                Try again
-              </Button>
-              <Button
-                size='sm'
-                variant='outline'
-                onClick={() => setDeleting(draft)}
-              >
-                <Trash2 className='mr-1 h-4 w-4' /> Delete
-              </Button>
-            </div>
-          </div>
-        )}
-        {!generate.isPending && selectedId === null && (
-          <div className='flex h-64 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground'>
-            Generate a CV or pick a draft to see it here.
-          </div>
-        )}
-        {!generate.isPending && selectedId !== null && draftLoading && (
-          <Skeleton className='h-96 w-full' />
-        )}
-        {!generate.isPending && draft && candidate && ready && (
-          <div className='space-y-3'>
-            <div className='flex flex-wrap items-center justify-between gap-2'>
-              <div>
-                <h2 className='font-semibold'>{draft.title}</h2>
-                <p className='text-xs text-muted-foreground'>
-                  Hover a section to Edit it by hand or Refine it with AI.
-                </p>
-              </div>
-              <div className='flex gap-2'>
-                <Select
-                  value={draft.templateId || 'classic'}
-                  onValueChange={(v) => changeTemplate.mutate(v)}
-                  disabled={changeTemplate.isPending}
-                >
-                  <SelectTrigger
-                    className='h-8 w-40'
-                    aria-label='CV template'
-                    title='Colours and spacing of the CV. The layout is the same for all.'
+                {writing && (
+                  <div className='rounded-md bg-background'>
+                    <GeneratingPanel key={draft?.id} since={draft?.created} />
+                  </div>
+                )}
+                {draft && draftStatus === 'Failed' && (
+                  <div
+                    role='alert'
+                    className='space-y-3 rounded-md border border-destructive/40 bg-background p-6'
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CV_TEMPLATES.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setHistoryOpen(true)}
-                >
-                  <History className='mr-1 h-4 w-4' /> History
-                </Button>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setEditing((v) => !v)}
-                >
-                  <Pencil className='mr-1 h-4 w-4' />{' '}
-                  {editing ? 'Preview' : 'Edit'}
-                </Button>
-                <Button
-                  size='sm'
-                  onClick={() => exportPdf.mutate('pdf')}
-                  disabled={exportPdf.isPending}
-                  title='Exports as an A4 PDF (210 × 297 mm)'
-                >
-                  {exportPdf.isPending ? (
-                    <Loader2 className='mr-1 h-4 w-4 animate-spin' />
-                  ) : (
-                    <FileDown className='mr-1 h-4 w-4' />
-                  )}
-                  Export PDF
-                </Button>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => exportPdf.mutate('docx')}
-                  disabled={exportPdf.isPending}
-                  title='Exports as an editable A4 Word document'
-                >
-                  <FileDown className='mr-1 h-4 w-4' />
-                  Export DOCX
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-8 w-8 text-destructive'
-                  title='Delete draft'
-                  onClick={() => setDeleting(draft)}
-                >
-                  <Trash2 className='h-4 w-4' />
-                </Button>
+                    <p className='font-semibold'>
+                      This CV could not be written
+                    </p>
+                    <p className='text-sm text-muted-foreground'>
+                      {draft.error ?? 'Something went wrong while writing it.'}
+                    </p>
+                    <div className='flex gap-2'>
+                      <Button
+                        size='sm'
+                        onClick={() => retry.mutate(draft.id)}
+                        disabled={retry.isPending}
+                      >
+                        {retry.isPending && (
+                          <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                        )}
+                        Try again
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={() => setDeleting(draft)}
+                      >
+                        <Trash2 className='mr-1 h-4 w-4' /> Delete
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {draft && candidate && ready && editing && (
+                  <div className='space-y-3'>
+                    <p className='flex items-center gap-2 text-sm font-medium'>
+                      <Pencil className='h-4 w-4' /> Editing the whole CV
+                    </p>
+                    <div className='rounded-md border bg-background p-4'>
+                      <CvEditor
+                        content={draft.content}
+                        isSaving={save.isPending}
+                        onSave={(c) => save.mutate(c)}
+                        onCancel={() => setEditing(false)}
+                      />
+                    </div>
+                  </div>
+                )}
+                {draft && candidate && ready && !editing && (
+                  <>
+                    <p className='mb-3 text-center text-xs text-muted-foreground'>
+                      Hover a section to Edit it by hand or Refine it with AI.
+                      Preview and exported PDF use A4 page size (210 × 297 mm).{' '}
+                      {draft.templateId === 'photo' ? (
+                        photoUrl || photoLoading ? (
+                          'The photo comes from your profile.'
+                        ) : (
+                          <>
+                            This template has no photo yet.{' '}
+                            <Link to='/profile' className='underline'>
+                              Add one on your profile
+                            </Link>
+                            .
+                          </>
+                        )
+                      ) : (
+                        'This template has no photo; choose “With photo” to add yours.'
+                      )}
+                    </p>
+                    <CvPreview
+                      header={{
+                        fullName: candidate.fullName,
+                        email: candidate.email,
+                        phone: candidate.phone,
+                        location: candidate.currentLocation,
+                        availability: candidate.availability,
+                      }}
+                      content={draft.content}
+                      onEdit={(section) => setEditingSection(section)}
+                      onRefine={(section) => setRefining(section)}
+                      highlights={highlights}
+                      templateId={draft.templateId}
+                      photoUrl={photoUrl}
+                    />
+                  </>
+                )}
               </div>
             </div>
-
-            {editing ? (
-              <div className='rounded-md border p-4'>
-                <CvEditor
-                  content={draft.content}
-                  isSaving={save.isPending}
-                  onSave={(c) => save.mutate(c)}
-                  onCancel={() => setEditing(false)}
-                />
-              </div>
-            ) : (
-              <div className='rounded-md bg-muted/40 p-4'>
-                <p className='mb-3 text-center text-xs text-muted-foreground'>
-                  Preview and exported PDF use A4 page size (210 × 297 mm).{' '}
-                  {draft.templateId === 'photo' ? (
-                    photoUrl || photoLoading ? (
-                      'The photo comes from your profile.'
-                    ) : (
-                      <>
-                        This template has no photo yet.{' '}
-                        <Link to='/profile' className='underline'>
-                          Add one on your profile
-                        </Link>
-                        .
-                      </>
-                    )
-                  ) : (
-                    'This template has no photo; choose “With photo” to add yours.'
-                  )}
-                </p>
-                <CvPreview
-                  header={{
-                    fullName: candidate.fullName,
-                    email: candidate.email,
-                    phone: candidate.phone,
-                    location: candidate.currentLocation,
-                    availability: candidate.availability,
-                  }}
-                  content={draft.content}
-                  onEdit={(section) => setEditingSection(section)}
-                  onRefine={(section) => setRefining(section)}
-                  highlights={highlights}
-                  templateId={draft.templateId}
-                  photoUrl={photoUrl}
-                />
-              </div>
-            )}
-
-            {review && <div className='lg:hidden'>{review}</div>}
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      <Dialog
+        open={newCvOpen}
+        onOpenChange={(open) => {
+          if (!open && generate.isPending) return
+          setNewCvOpen(open)
+          if (!open) clearPrefill()
+        }}
+      >
+        <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-2xl'>
+          <DialogHeader>
+            <DialogTitle>New CV</DialogTitle>
+          </DialogHeader>
+          {prefillLoading || profileLoading ? (
+            <Skeleton className='h-64 w-full' />
+          ) : (
+            <GenerateForm
+              key={`${applicationId}-${jobRoleId}`}
+              initial={prefill}
+              profileRoles={profile?.experiences.length ?? 0}
+              gaps={profileGaps({
+                skills: profile?.skills.length ?? 0,
+                email: candidate?.email,
+                phone: candidate?.phone,
+                location: candidate?.currentLocation,
+              })}
+              cvs={cvsResult?.items ?? []}
+              isPending={generate.isPending || !candidate}
+              onSubmit={(d) => generate.mutate(d)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Locks the page while the AI fixes the CV, so nothing can be edited or exported half way. */}
       <Dialog open={fix.isPending}>
