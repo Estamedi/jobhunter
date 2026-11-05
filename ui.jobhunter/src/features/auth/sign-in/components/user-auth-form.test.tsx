@@ -164,6 +164,28 @@ describe('UserAuthForm', () => {
     )
   })
 
+  it('sends an unconfirmed user to the check-your-email page', async () => {
+    setAccessTokenMock.mockClear()
+    vi.mocked(axios.isAxiosError).mockReturnValue(true)
+    axiosPostMock.mockRejectedValueOnce({
+      response: { status: 401, data: { detail: 'NotAllowed' } },
+    })
+    const { getByRole, getByLabelText } = await render(<UserAuthForm />)
+
+    await userEvent.fill(getByRole('textbox', { name: /Email/i }), 'a@b.com')
+    await userEvent.fill(getByLabelText('Password'), '1234567890')
+    await userEvent.click(getByRole('button', { name: /Sign in/i }))
+
+    await vi.waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({
+        to: '/register-complete',
+        search: { email: 'a@b.com' },
+        replace: true,
+      })
+    )
+    expect(setAccessTokenMock).not.toHaveBeenCalled()
+  })
+
   it('exchanges the Google token and navigates on success', async () => {
     vi.clearAllMocks()
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'google-client-id')

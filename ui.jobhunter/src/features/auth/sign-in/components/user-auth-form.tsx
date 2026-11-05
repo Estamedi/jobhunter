@@ -92,7 +92,22 @@ export function UserAuthForm({
       toast.success(`Welcome back, ${data.email}!`)
       navigate({ to: redirectTo || '/', replace: true })
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+      const detail = axios.isAxiosError(err)
+        ? (err.response?.data as { detail?: string } | undefined)?.detail
+        : undefined
+      if (detail === 'NotAllowed') {
+        // Identity refuses sign-in until the email is confirmed; send them to the resend screen.
+        toast.error(
+          `Please confirm your email first. We sent a link to ${data.email}.`
+        )
+        navigate({
+          to: '/register-complete',
+          search: { email: data.email },
+          replace: true,
+        })
+      } else if (detail === 'LockedOut') {
+        toast.error('Too many attempts. Please try again later.')
+      } else if (axios.isAxiosError(err) && err.response?.status === 401) {
         toast.error('Invalid email or password.')
       } else {
         toast.error('Failed to sign in. Please try again.')
