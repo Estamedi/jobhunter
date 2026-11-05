@@ -11,8 +11,16 @@ interface ErrorResponse {
 export function getAuthErrorMessage(err: unknown, fallback: string) {
   if (axios.isAxiosError(err)) {
     const data = err.response?.data as ErrorResponse | undefined
-    const firstError = data?.errors
-      ? Object.values(data.errors)
+    // Identity reports every failure at once; a taken account matters more than a weak password.
+    const errors = data?.errors
+    const taken = errors?.DuplicateEmail ?? errors?.DuplicateUserName
+    const takenMessage = Array.isArray(taken) ? taken[0] : taken
+    if (takenMessage) {
+      return 'An account with this email already exists. Try signing in instead.'
+    }
+
+    const firstError = errors
+      ? Object.values(errors)
           .flatMap((messages) =>
             Array.isArray(messages) ? messages : [messages]
           )

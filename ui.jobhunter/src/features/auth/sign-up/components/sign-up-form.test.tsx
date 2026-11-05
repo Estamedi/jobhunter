@@ -170,7 +170,8 @@ describe('SignUpForm', () => {
       response: {
         data: {
           errors: {
-            DuplicateEmail: ['Email is already taken.'],
+            PasswordTooShort: ['Passwords must be at least 10 characters.'],
+            DuplicateUserName: ["Username 'a@b.com' is already taken."],
           },
         },
       },
@@ -183,7 +184,9 @@ describe('SignUpForm', () => {
     await userEvent.click(submitButton)
 
     await vi.waitFor(() =>
-      expect(toastErrorMock).toHaveBeenCalledWith('Email is already taken.')
+      expect(toastErrorMock).toHaveBeenCalledWith(
+        'An account with this email already exists. Try signing in instead.'
+      )
     )
     expect(axios.post).toHaveBeenCalledTimes(1)
     expect(setAccessTokenMock).not.toHaveBeenCalled()

@@ -130,7 +130,7 @@ export function SignUp() {
             </div>
 
             <div className='space-y-5 px-7 pb-7'>
-              <SignUpForm className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>button:first-of-type]:mx-auto [&>button:first-of-type]:mt-3 [&>button:first-of-type]:h-12 [&>button:first-of-type]:w-full [&>button:first-of-type]:max-w-xs [&>button:first-of-type]:rounded-2xl [&>button:first-of-type]:bg-primary [&>button:first-of-type]:text-base [&>button:first-of-type]:font-bold [&>button:first-of-type]:shadow-lg [&>button:first-of-type]:shadow-primary/20 [&>button:first-of-type:hover]:bg-primary/90' />
+              <SignUpForm className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>[data-primary-action]]:mx-auto [&>[data-primary-action]]:mt-3 [&>[data-primary-action]]:h-12 [&>[data-primary-action]]:w-full [&>[data-primary-action]]:max-w-xs [&>[data-primary-action]]:rounded-2xl [&>[data-primary-action]]:border [&>[data-primary-action]]:border-primary/40 [&>[data-primary-action]]:bg-transparent [&>[data-primary-action]]:text-primary [&>[data-primary-action]]:text-base [&>[data-primary-action]]:font-bold [&>[data-primary-action]:hover]:bg-primary/10' />
 
               <div className='rounded-2xl bg-accent px-4 py-3 dark:bg-primary/20'>
                 <div className='flex gap-3 text-sm text-muted-foreground'>

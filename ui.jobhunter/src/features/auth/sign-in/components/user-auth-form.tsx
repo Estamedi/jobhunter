@@ -133,6 +133,33 @@ export function UserAuthForm({
         className={cn('grid gap-3', className)}
         {...props}
       >
+        <Button
+          variant='outline'
+          type='button'
+          // Google brand button: fixed colors per theme so it never inherits the green theme accent.
+          className='mx-auto h-14 w-full max-w-xs rounded-2xl border-2 shadow-md text-base font-bold border-[#747775] bg-white text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1f1f21] dark:hover:text-[#E3E3E3]'
+          disabled={isLoading || isGoogleLoading}
+          onClick={onGoogleSignIn}
+        >
+          {isGoogleLoading ? (
+            <Loader2 className='animate-spin' />
+          ) : (
+            <IconGoogle className='h-4 w-4' />
+          )}
+          Continue with Google
+        </Button>
+
+        <div className='relative my-2'>
+          <div className='absolute inset-0 flex items-center'>
+            <span className='w-full border-t' />
+          </div>
+          <div className='relative flex justify-center text-xs uppercase'>
+            <span className='bg-background px-2 text-muted-foreground'>
+              Or sign in with email
+            </span>
+          </div>
+        </div>
+
         <FormField
           control={form.control}
           name='email'
@@ -167,36 +194,9 @@ export function UserAuthForm({
             Forgot password?
           </Link>
         </div>
-        <Button className='mt-2' disabled={isLoading}>
+        <Button className='mt-2' data-primary-action disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
           Sign in
-        </Button>
-
-        <div className='relative my-2'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t' />
-          </div>
-          <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background px-2 text-muted-foreground'>
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <Button
-          variant='outline'
-          type='button'
-          // Google brand button: fixed colors per theme so it never inherits the green theme accent.
-          className='mx-auto mt-3 h-12 w-full max-w-xs rounded-2xl text-base font-bold border-[#747775] bg-white text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1f1f21] dark:hover:text-[#E3E3E3]'
-          disabled={isLoading || isGoogleLoading}
-          onClick={onGoogleSignIn}
-        >
-          {isGoogleLoading ? (
-            <Loader2 className='animate-spin' />
-          ) : (
-            <IconGoogle className='h-4 w-4' />
-          )}
-          Continue with Google
         </Button>
       </form>
     </Form>
