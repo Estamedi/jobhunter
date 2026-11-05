@@ -93,7 +93,10 @@ public static class DependencyInjection
 
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSender"));
         builder.Services.AddSingleton<EmailService>();
-        builder.Services.AddSingleton<IEmailNotificationService>(sp => sp.GetRequiredService<EmailService>());
+        builder.Services.AddSingleton<EmailQueue>();
+        builder.Services.AddSingleton<IEmailQueue>(sp => sp.GetRequiredService<EmailQueue>());
+        builder.Services.AddScoped<IEmailNotificationService, EventEmailNotificationService>();
+        builder.Services.AddHostedService<EmailWorker>();
         builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
         builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
