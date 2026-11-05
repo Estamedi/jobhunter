@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -25,5 +26,12 @@ function DashboardPage() {
 }
 
 export const Route = createFileRoute('/_authenticated/')({
+  // The dashboard is the personal job-hunt view; administrators manage the platform instead.
+  beforeLoad: () => {
+    const roles = useAuthStore.getState().auth.user?.role ?? []
+    if (roles.some((r) => r.toLowerCase() === 'administrator')) {
+      throw redirect({ to: '/reports', replace: true })
+    }
+  },
   component: DashboardPage,
 })

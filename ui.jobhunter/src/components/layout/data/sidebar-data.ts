@@ -204,10 +204,7 @@ const defaultNavGroups: NavGroup[] = [
 const administratorNavGroups: NavGroup[] = [
   {
     title: 'Overview',
-    items: [
-      { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-      { title: 'Reports', url: '/reports', icon: BarChart3 },
-    ],
+    items: [{ title: 'Reports', url: '/reports', icon: BarChart3 }],
   },
   {
     title: 'Administration',
