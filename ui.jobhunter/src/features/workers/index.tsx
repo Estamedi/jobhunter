@@ -38,26 +38,58 @@ function ago(value: string | null) {
   return value ? formatDistanceToNow(new Date(value), { addSuffix: true }) : '-'
 }
 
+// Plain names for the workers, so the list reads as what was done and not as a class name.
+const JOB_TITLES: Record<string, string> = {
+  CvGenerationWorker: 'CV writing',
+  ProfileImportWorker: 'CV reading',
+  CvUploadWorker: 'S3 upload',
+  EmailWorker: 'Email',
+}
+
+function jobTitle(name: string) {
+  return JOB_TITLES[name.split('.')[0]] ?? name
+}
+
+const CRON_TEXT: Record<string, string> = {
+  '* * * * *': 'Every minute',
+  '*/5 * * * *': 'Every 5 minutes',
+  '0 * * * *': 'Every hour',
+  '0 0 * * *': 'Every day',
+}
+
+function cronText(cron: string) {
+  return CRON_TEXT[cron] ?? cron
+}
+
+// A server name is "host:pid:guid"; the host is what an administrator recognises.
+function serverHost(name: string) {
+  return name.split(':')[0]
+}
+
 function Stat({
   label,
   value,
   tone,
+  onClick,
 }: {
   label: string
   value: number
   tone?: 'bad'
+  onClick?: () => void
 }) {
+  const bad = tone === 'bad' && value > 0
   return (
-    <Card>
+    <Card
+      onClick={onClick}
+      className={`${onClick ? 'cursor-pointer transition-colors hover:bg-muted/50' : ''} ${bad ? 'border-destructive bg-destructive/5' : ''}`}
+    >
       <CardHeader className='pb-1'>
         <CardTitle className='text-sm font-medium text-muted-foreground'>
           {label}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p
-          className={`text-2xl font-bold ${tone === 'bad' && value > 0 ? 'text-destructive' : ''}`}
-        >
+        <p className={`text-2xl font-bold ${bad ? 'text-destructive' : ''}`}>
           {value.toLocaleString()}
         </p>
       </CardContent>
@@ -97,6 +129,21 @@ export function Workers() {
   const trigger = useJobAction(workersApi.trigger, 'Poll started')
 
   const stats = overview.data?.stats
+  const counts: Partial<Record<JobState, number>> = stats
+    ? {
+        Failed: stats.failed,
+        Processing: stats.processing,
+        Enqueued: stats.enqueued,
+        Scheduled: stats.scheduled,
+        Succeeded: stats.succeeded,
+        Deleted: stats.deleted,
+      }
+    : {}
+  const showDetail = state === 'Failed' || state === 'Processing'
+  const show = (s: JobState) => {
+    setState(s)
+    setPage(1)
+  }
   const online = overview.data?.servers.length ?? 0
 
   return (
@@ -122,11 +169,32 @@ export function Workers() {
           ))
         ) : (
           <>
-            <Stat label='Waiting' value={stats.enqueued} />
-            <Stat label='Running now' value={stats.processing} />
-            <Stat label='Scheduled' value={stats.scheduled} />
-            <Stat label='Failed' value={stats.failed} tone='bad' />
-            <Stat label='Succeeded' value={stats.succeeded} />
+            <Stat
+              label='Waiting'
+              value={stats.enqueued}
+              onClick={() => show('Enqueued')}
+            />
+            <Stat
+              label='Running now'
+              value={stats.processing}
+              onClick={() => show('Processing')}
+            />
+            <Stat
+              label='Scheduled'
+              value={stats.scheduled}
+              onClick={() => show('Scheduled')}
+            />
+            <Stat
+              label='Failed'
+              value={stats.failed}
+              tone='bad'
+              onClick={() => show('Failed')}
+            />
+            <Stat
+              label='Succeeded'
+              value={stats.succeeded}
+              onClick={() => show('Succeeded')}
+            />
             <Stat label='Servers' value={stats.servers} />
           </>
         )}
@@ -143,7 +211,7 @@ export function Workers() {
                 <TableRow>
                   <TableHead>Queue</TableHead>
                   <TableHead className='text-right'>Waiting</TableHead>
-                  <TableHead className='text-right'>Taken</TableHead>
+                  <TableHead className='text-right'>In progress</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -161,7 +229,7 @@ export function Workers() {
 
         <Card>
           <CardHeader>
-            <CardTitle className='text-base'>Items in each queue</CardTitle>
+            <CardTitle className='text-base'>Work items by status</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -232,7 +300,9 @@ export function Workers() {
               )}
               {overview.data?.servers.map((s) => (
                 <TableRow key={s.name}>
-                  <TableCell className='font-medium'>{s.name}</TableCell>
+                  <TableCell className='font-medium' title={s.name}>
+                    {serverHost(s.name)}
+                  </TableCell>
                   <TableCell>{s.workerCount}</TableCell>
                   <TableCell>{s.queues.join(', ')}</TableCell>
                   <TableCell>{ago(s.startedAt)}</TableCell>
@@ -267,9 +337,15 @@ export function Workers() {
                     <p className='font-medium'>{r.id}</p>
                     <p className='text-xs text-muted-foreground'>{r.name}</p>
                   </TableCell>
-                  <TableCell className='font-mono text-xs'>{r.cron}</TableCell>
-                  <TableCell>{ago(r.lastExecution)}</TableCell>
-                  <TableCell>{when(r.nextExecution)}</TableCell>
+                  <TableCell className='text-sm' title={r.cron}>
+                    {cronText(r.cron)}
+                  </TableCell>
+                  <TableCell title={when(r.lastExecution)}>
+                    {ago(r.lastExecution)}
+                  </TableCell>
+                  <TableCell title={when(r.nextExecution)}>
+                    {r.nextExecution ? ago(r.nextExecution) : '-'}
+                  </TableCell>
                   <TableCell>
                     {r.lastJobState && (
                       <Badge
@@ -302,17 +378,16 @@ export function Workers() {
 
       <div className='space-y-3'>
         <h3 className='text-lg font-semibold'>Jobs</h3>
-        <Tabs
-          value={state}
-          onValueChange={(v) => {
-            setState(v as JobState)
-            setPage(1)
-          }}
-        >
+        <Tabs value={state} onValueChange={(v) => show(v as JobState)}>
           <TabsList>
             {STATES.map((s) => (
               <TabsTrigger key={s} value={s}>
                 {s}
+                {counts[s] !== undefined && (
+                  <span className='ml-1.5 text-xs text-muted-foreground'>
+                    {counts[s]!.toLocaleString()}
+                  </span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -325,14 +400,14 @@ export function Workers() {
                 <TableHead>Job</TableHead>
                 <TableHead>Queue</TableHead>
                 <TableHead>Since</TableHead>
-                <TableHead>Detail</TableHead>
+                {showDetail && <TableHead>Detail</TableHead>}
                 <TableHead className='w-40' />
               </TableRow>
             </TableHeader>
             <TableBody>
               {jobs.isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={showDetail ? 5 : 4}>
                     <Skeleton className='h-8 w-full' />
                   </TableCell>
                 </TableRow>
@@ -340,7 +415,7 @@ export function Workers() {
               {!jobs.isLoading && jobs.data?.items.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={showDetail ? 5 : 4}
                     className='py-8 text-center text-muted-foreground'
                   >
                     No {state.toLowerCase()} jobs.
@@ -350,24 +425,30 @@ export function Workers() {
               {jobs.data?.items.map((j) => (
                 <TableRow key={j.id}>
                   <TableCell>
-                    <p className='font-medium'>{j.name}</p>
-                    <p className='text-xs text-muted-foreground'>#{j.id}</p>
+                    <p className='font-medium'>{jobTitle(j.name)}</p>
+                    <p className='text-xs text-muted-foreground'>
+                      {j.name} #{j.id}
+                    </p>
                   </TableCell>
                   <TableCell>{j.queue}</TableCell>
-                  <TableCell className='whitespace-nowrap text-sm text-muted-foreground'>
+                  <TableCell className='text-sm whitespace-nowrap text-muted-foreground'>
                     {when(j.since)}
                   </TableCell>
-                  <TableCell className='max-w-md text-sm'>
-                    {j.error && (
-                      <p className='break-words text-destructive'>{j.error}</p>
-                    )}
-                    {j.server && (
-                      <p className='text-muted-foreground'>on {j.server}</p>
-                    )}
-                  </TableCell>
+                  {showDetail && (
+                    <TableCell className='max-w-md text-sm'>
+                      {j.error && (
+                        <p className='break-words text-destructive'>
+                          {j.error}
+                        </p>
+                      )}
+                      {j.server && (
+                        <p className='text-muted-foreground'>on {j.server}</p>
+                      )}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <div className='flex gap-1'>
-                      {state !== 'Processing' && (
+                      {(state === 'Failed' || state === 'Deleted') && (
                         <Button
                           size='sm'
                           variant='outline'
