@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ListPagination } from '@/components/list-pagination'
-import { type JobState, workersApi } from './api'
+import { type JobState, openHangfireDashboard, workersApi } from './api'
 
 const PAGE_SIZE = 15
 const REFRESH_MS = 5000
@@ -128,15 +128,6 @@ export function Workers() {
   const remove = useJobAction(workersApi.remove, 'Job deleted')
   const trigger = useJobAction(workersApi.trigger, 'Poll started')
 
-  const openDashboard = useMutation({
-    mutationFn: workersApi.dashboardLink,
-    onSuccess: (path) => {
-      const base = (import.meta.env.VITE_API_BASE_URL ?? '') as string
-      window.open(`${base}${path}`, '_blank', 'noopener')
-    },
-    onError: () => toast.error('Could not open the Hangfire dashboard.'),
-  })
-
   const stats = overview.data?.stats
   const counts: Partial<Record<JobState, number>> = stats
     ? {
@@ -165,11 +156,7 @@ export function Workers() {
             Refreshes every few seconds. What each job did is in the Audit log.
           </p>
         </div>
-        <Button
-          variant='outline'
-          disabled={openDashboard.isPending}
-          onClick={() => openDashboard.mutate()}
-        >
+        <Button variant='outline' onClick={() => void openHangfireDashboard()}>
           <ExternalLink className='mr-1 h-4 w-4' /> Hangfire dashboard
         </Button>
       </div>

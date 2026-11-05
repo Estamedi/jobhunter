@@ -21,6 +21,8 @@ type BaseNavItem = {
 type NavLink = BaseNavItem & {
   url: LinkProps['to'] | (string & {})
   items?: never
+  /** Runs instead of navigating, for items that open something outside the app. */
+  action?: () => void
 }
 
 type NavCollapsible = BaseNavItem & {

@@ -1,4 +1,5 @@
 import {
+  Activity,
   LayoutDashboard,
   Building2,
   Contact2,
@@ -23,6 +24,7 @@ import {
   Cog,
 } from 'lucide-react'
 import { Logo } from '@/assets/logo'
+import { openHangfireDashboard } from '@/features/workers/api'
 import { type NavGroup, type SidebarData } from '../types'
 
 /** Job seeker accounts only get a flat, minimal menu. */
@@ -213,6 +215,12 @@ const administratorNavGroups: NavGroup[] = [
       { title: 'Registered Users', url: '/users', icon: Users },
       { title: 'Audit log', url: '/audit-logs', icon: ScrollText },
       { title: 'Workers', url: '/workers', icon: Cog },
+      {
+        title: 'Hangfire',
+        url: '/hangfire',
+        icon: Activity,
+        action: () => void openHangfireDashboard(),
+      },
     ],
   },
   ...defaultNavGroups

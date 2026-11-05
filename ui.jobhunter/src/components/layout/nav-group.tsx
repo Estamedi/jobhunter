@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, ExternalLink } from 'lucide-react'
 import {
   Collapsible,
   CollapsibleContent,
@@ -64,6 +64,17 @@ function NavBadge({ children }: { children: ReactNode }) {
 
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar()
+  if (item.action) {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip={item.title} onClick={item.action}>
+          {item.icon && <item.icon />}
+          <span>{item.title}</span>
+          <ExternalLink className='ml-auto !size-3 opacity-60' />
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    )
+  }
   return (
     <SidebarMenuItem>
       <SidebarMenuButton

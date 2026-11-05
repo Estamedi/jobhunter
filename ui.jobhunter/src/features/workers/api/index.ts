@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { http } from '@/lib/http'
 
 export interface WorkerStats {
@@ -106,4 +107,15 @@ export const workersApi = {
       .post<{ path: string }>('/api/Workers/dashboard-link')
       .then((r) => r.data.path),
   trigger: (id: string) => http.post(`/api/Workers/recurring/${id}/trigger`),
+}
+
+// Hangfire's own dashboard needs a one-minute link from the API; opening it signs this browser in.
+export async function openHangfireDashboard() {
+  try {
+    const path = await workersApi.dashboardLink()
+    const base = (import.meta.env.VITE_API_BASE_URL ?? '') as string
+    window.open(`${base}${path}`, '_blank', 'noopener')
+  } catch {
+    toast.error('Could not open the Hangfire dashboard.')
+  }
 }
