@@ -40,11 +40,32 @@ public class ProfileImportService(
             throw new ProfileImportFailedException(UnreadableMessage);
         }
 
-        var parsed = await aiService.ParseAsync(text, cancellationToken);
+        var parsed = ClampToLimits(await aiService.ParseAsync(text, cancellationToken));
 
         job.ResultJson = ProfileImportJobMapping.Serialize(parsed);
         job.Error = null;
         job.Status = ProfileImportStatus.Completed;
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    // The AI sometimes ignores the length limits in the prompt, and the confirm step then fails validation
+    // (for example an experience description of 2,500 characters). Trim the long free-text fields to the
+    // limits the import validator enforces so the user can always confirm what was read.
+    public static ParsedProfileDto ClampToLimits(ParsedProfileDto p) => p with
+    {
+        Headline = Clamp(p.Headline, 220),
+        Summary = Clamp(p.Summary, 2600),
+        Experiences = [.. p.Experiences.Select(e => e with { Description = Clamp(e.Description, 2000) })],
+        Educations = [.. p.Educations.Select(e => e with { Details = Clamp(e.Details, 2000) })],
+        Projects = [.. p.Projects.Select(e => e with { Description = Clamp(e.Description, 2000) })],
+    };
+
+    // Cuts at the last line break before the limit when there is one, so bullet lists stay whole.
+    private static string? Clamp(string? value, int max)
+    {
+        if (value is null || value.Length <= max) return value;
+
+        var cut = value.LastIndexOf('\n', max - 1);
+        return (cut > max / 2 ? value[..cut] : value[..max]).TrimEnd();
     }
 }
