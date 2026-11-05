@@ -39,6 +39,10 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv, CvStyle? s
         return cv.Links.Where(l => !string.Equals(l, header, StringComparison.Ordinal)).ToList();
     }
 
+    // The QR code is only drawn for a LinkedIn link; without one there is no QR code.
+    public static bool IsLinkedIn(string? link)
+        => link is not null && link.Contains("linkedin.com", StringComparison.OrdinalIgnoreCase);
+
     public static string LinkUrl(string link)
         => link.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? link : $"https://{link}";
 
@@ -172,7 +176,7 @@ public class ClassicCvDocument(CvHeaderDto header, GeneratedCvDto cv, CvStyle? s
         const float photoWidth = 90, photoHeight = 120, qrSize = 82;
         var photo = CvImages.UsablePhoto(header.Photo);
         var link = HeaderLink(cv);
-        var qr = link is null ? null : CvImages.QrCodePng(LinkUrl(link));
+        var qr = !IsLinkedIn(link) ? null : CvImages.QrCodePng(LinkUrl(link!));
 
         container.Row(row =>
         {

@@ -17,7 +17,41 @@ public static class CvProfileMerger
             Education = MergeEducation(cv.Education, profile, warnings),
             Skills = CapSkills(DedupeSkills(cv.Skills), CvLimits.MaxSkillItems),
             Headline = HeadlineTitle(cv.Headline),
+            Links = MergeLinks(cv.Links, profile),
         };
+
+    // Links are facts too: the model only sees them as text and can mangle them, which breaks the header
+    // link and its QR code. Each link it keeps is replaced by the profile's own URL, one that matches no
+    // profile link is dropped, and the profile's LinkedIn link is always there if the candidate has one.
+    public static List<string> MergeLinks(List<string> links, CandidateProfile? profile)
+    {
+        var urls = profile?.Links.OrderBy(l => l.SortOrder).Select(l => l.Url.Trim()).Where(u => u.Length > 0).ToList();
+        if (urls is null or { Count: 0 }) return links;
+
+        var result = new List<string>();
+        foreach (var link in links)
+        {
+            var match = urls.FirstOrDefault(u => LinkKey(u) == LinkKey(link))
+                ?? (IsLinkedIn(link) ? urls.FirstOrDefault(IsLinkedIn) : null);
+            if (match is not null && !result.Contains(match)) result.Add(match);
+        }
+
+        var linkedIn = urls.FirstOrDefault(IsLinkedIn);
+        if (linkedIn is not null && !result.Any(IsLinkedIn)) result.Insert(0, linkedIn);
+        return result;
+    }
+
+    private static bool IsLinkedIn(string link) => link.Contains("linkedin.com", StringComparison.OrdinalIgnoreCase);
+
+    private static string LinkKey(string link)
+    {
+        var key = link.Trim().ToLowerInvariant();
+        foreach (var prefix in new[] { "https://", "http://", "www." })
+        {
+            if (key.StartsWith(prefix)) key = key[prefix.Length..];
+        }
+        return key.TrimEnd('/');
+    }
 
     // The headline is the job title and nothing else. The model sometimes adds skills after it ("Senior
     // Engineer | React | CI/CD"), so everything from the first pipe on is cut. Hand edits are never passed

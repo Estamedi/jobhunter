@@ -1,3 +1,5 @@
+using backend.jobhunter.Application.CvDrafts;
+using backend.jobhunter.Domain.Entities;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Infrastructure.CvImport;
 using backend.jobhunter.Infrastructure.CvRendering;
@@ -48,7 +50,7 @@ public class CvPhotoTemplateTests
     public void ShouldDrawOnlyThePhotoWithoutALinkAndOnlyTheQrCodeWithoutAPhoto()
     {
         ImageCount(Render(CvTemplates.Photo, Header, Cv())).ShouldBe(1);
-        ImageCount(Render(CvTemplates.Photo, Header with { Photo = null }, Cv("https://github.com/jane"))).ShouldBe(1);
+        ImageCount(Render(CvTemplates.Photo, Header with { Photo = null }, Cv("https://www.linkedin.com/in/jane"))).ShouldBe(1);
         ImageCount(Render(CvTemplates.Photo, Header with { Photo = null }, Cv())).ShouldBe(0);
     }
 
@@ -57,7 +59,7 @@ public class CvPhotoTemplateTests
     {
         byte[] corrupt = [0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02, 0x03];
 
-        var pdf = Render(CvTemplates.Photo, Header with { Photo = corrupt }, Cv("https://github.com/jane"));
+        var pdf = Render(CvTemplates.Photo, Header with { Photo = corrupt }, Cv("https://www.linkedin.com/in/jane"));
 
         ImageCount(pdf).ShouldBe(1); // only the QR code
         CvImages.UsablePhoto(corrupt).ShouldBeNull();
@@ -94,6 +96,20 @@ public class CvPhotoTemplateTests
         var classicText = await TextAsync(Render(CvTemplates.Classic, Header, Cv()));
         classicText.ShouldNotContain("Availability");
         classicText.ShouldNotContain("Residence:");
+    }
+
+    [Test]
+    public void ShouldDrawNoQrCodeWhenTheOnlyLinkIsNotLinkedIn()
+        => ImageCount(Render(CvTemplates.Photo, Header, Cv("https://github.com/jane"))).ShouldBe(1);
+
+    [Test]
+    public void ShouldKeepTheProfilesLinkedInUrlWhateverTheModelWrote()
+    {
+        var profile = new CandidateProfile { Links = [new ProfileLink { Label = "LinkedIn", Url = "https://www.linkedin.com/in/jane-sample" }] };
+
+        CvProfileMerger.MergeLinks(["linkedin.com/in/jane-samle", "https://made-up.example"], profile)
+            .ShouldBe(["https://www.linkedin.com/in/jane-sample"]);
+        CvProfileMerger.MergeLinks([], profile).ShouldBe(["https://www.linkedin.com/in/jane-sample"]);
     }
 
     [Test]
@@ -156,7 +172,7 @@ public class CvPhotoTemplateTests
     {
         byte[] corrupt = [0xFF, 0xD8, 0xFF, 0x00, 0x01];
 
-        using var document = OpenDocx(new DocxCvRenderer().Render(Header with { Photo = corrupt }, Cv("https://github.com/jane"), CvTemplates.Photo));
+        using var document = OpenDocx(new DocxCvRenderer().Render(Header with { Photo = corrupt }, Cv("https://www.linkedin.com/in/jane"), CvTemplates.Photo));
 
         document.MainDocumentPart!.Document!.Body!.Descendants<DocumentFormat.OpenXml.Wordprocessing.Drawing>().Count().ShouldBe(1); // QR only
     }

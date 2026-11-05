@@ -323,7 +323,7 @@ export function CvPreview({
                 )}
               </div>
             </div>
-            {headerLink && (
+            {headerLink && headerLink.toLowerCase().includes('linkedin.com') && (
               <div
                 className='flex h-[82px] w-[82px] shrink-0 items-center justify-center border text-center text-[10px] text-gray-500'
                 title='The PDF and Word file show a scannable QR code of this link here'

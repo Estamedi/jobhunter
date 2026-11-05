@@ -166,9 +166,9 @@ public class DocxCvRenderer : ICvDocxRenderer
                 var type = CandidatePhotoRules.ContentTypeOf(photo) == "image/png" ? ImagePartType.Png : ImagePartType.Jpeg;
                 name.Append(new Run(AnchoredImage(photo, type, photoWidth, photoHeight, right: false, id: 1, name: "Photo")));
             }
-            if (link is not null)
+            if (ClassicCvDocument.IsLinkedIn(link))
             {
-                name.Append(new Run(AnchoredImage(CvImages.QrCodePng(ClassicCvDocument.LinkUrl(link)), ImagePartType.Png, qrSize, qrSize, right: true, id: 2, name: "QR code")));
+                name.Append(new Run(AnchoredImage(CvImages.QrCodePng(ClassicCvDocument.LinkUrl(link!)), ImagePartType.Png, qrSize, qrSize, right: true, id: 2, name: "QR code")));
             }
             name.Append(Run(header.FullName, size: 17, color: style.NameColor));
 
