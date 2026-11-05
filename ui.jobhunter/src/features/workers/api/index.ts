@@ -101,5 +101,9 @@ export const workersApi = {
     http.get<WorkerJobDetail>(`/api/Workers/jobs/${id}`).then((r) => r.data),
   requeue: (id: string) => http.post(`/api/Workers/jobs/${id}/requeue`),
   remove: (id: string) => http.delete(`/api/Workers/jobs/${id}`),
+  dashboardLink: () =>
+    http
+      .post<{ path: string }>('/api/Workers/dashboard-link')
+      .then((r) => r.data.path),
   trigger: (id: string) => http.post(`/api/Workers/recurring/${id}/trigger`),
 }

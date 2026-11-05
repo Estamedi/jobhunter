@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Play, RotateCcw, Trash2 } from 'lucide-react'
+import { ExternalLink, Play, RotateCcw, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -128,6 +128,15 @@ export function Workers() {
   const remove = useJobAction(workersApi.remove, 'Job deleted')
   const trigger = useJobAction(workersApi.trigger, 'Poll started')
 
+  const openDashboard = useMutation({
+    mutationFn: workersApi.dashboardLink,
+    onSuccess: (path) => {
+      const base = (import.meta.env.VITE_API_BASE_URL ?? '') as string
+      window.open(`${base}${path}`, '_blank', 'noopener')
+    },
+    onError: () => toast.error('Could not open the Hangfire dashboard.'),
+  })
+
   const stats = overview.data?.stats
   const counts: Partial<Record<JobState, number>> = stats
     ? {
@@ -148,12 +157,21 @@ export function Workers() {
 
   return (
     <div className='space-y-6'>
-      <div>
-        <h2 className='text-2xl font-bold tracking-tight'>Workers</h2>
-        <p className='text-muted-foreground'>
-          The background jobs: CV writing, CV reading, S3 uploads and email.
-          Refreshes every few seconds. What each job did is in the Audit log.
-        </p>
+      <div className='flex items-start justify-between gap-4'>
+        <div>
+          <h2 className='text-2xl font-bold tracking-tight'>Workers</h2>
+          <p className='text-muted-foreground'>
+            The background jobs: CV writing, CV reading, S3 uploads and email.
+            Refreshes every few seconds. What each job did is in the Audit log.
+          </p>
+        </div>
+        <Button
+          variant='outline'
+          disabled={openDashboard.isPending}
+          onClick={() => openDashboard.mutate()}
+        >
+          <ExternalLink className='mr-1 h-4 w-4' /> Hangfire dashboard
+        </Button>
       </div>
 
       {online === 0 && !overview.isLoading && (

@@ -67,6 +67,8 @@ app.UseAuthorization();
 
 app.UseFileServer();
 
+app.MapHangfireDashboard();
+
 // API docs list every route and schema; keep them out of production.
 if (app.Environment.IsDevelopment())
 {
