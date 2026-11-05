@@ -19,6 +19,7 @@ import {
   UserRound,
   Users,
   Bot,
+  ScrollText,
 } from 'lucide-react'
 import { Logo } from '@/assets/logo'
 import { type NavGroup, type SidebarData } from '../types'
@@ -207,7 +208,10 @@ const administratorNavGroups: NavGroup[] = [
   },
   {
     title: 'Administration',
-    items: [{ title: 'Registered Users', url: '/users', icon: Users }],
+    items: [
+      { title: 'Registered Users', url: '/users', icon: Users },
+      { title: 'Audit log', url: '/audit-logs', icon: ScrollText },
+    ],
   },
   ...defaultNavGroups
     .filter((g) => g.title === 'Setup')
@@ -221,7 +225,11 @@ const administratorNavGroups: NavGroup[] = [
                 ...i,
                 items: [
                   ...i.items,
-                  { title: 'AI provider', url: '/settings/ai-provider', icon: Bot },
+                  {
+                    title: 'AI provider',
+                    url: '/settings/ai-provider',
+                    icon: Bot,
+                  },
                 ],
               }
             : i

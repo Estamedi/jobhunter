@@ -7,6 +7,7 @@ using backend.jobhunter.Application.Users.Commands.UpdateOnboardingStatus;
 using backend.jobhunter.Application.Users.Queries.GetCurrentUser;
 using backend.jobhunter.Application.Users.Queries.GetUsers;
 using backend.jobhunter.Infrastructure.Identity;
+using backend.jobhunter.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ public class Users : IEndpointGroup
 {
     public static void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapIdentityApi<ApplicationUser>();
+        groupBuilder.MapIdentityApi<ApplicationUser>().AddIdentityAudit();
 
         groupBuilder.MapGet(GetUsers, string.Empty).RequireAuthorization();
         groupBuilder.MapPost(GoogleLogin, "google-login");

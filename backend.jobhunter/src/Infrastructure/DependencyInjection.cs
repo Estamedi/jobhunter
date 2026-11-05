@@ -95,7 +95,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<EmailService>();
         builder.Services.AddSingleton<EmailQueue>();
         builder.Services.AddSingleton<IEmailQueue>(sp => sp.GetRequiredService<EmailQueue>());
-        builder.Services.AddScoped<IEmailNotificationService, EventEmailNotificationService>();
+        builder.Services.AddSingleton<IEmailNotificationService, EventEmailNotificationService>();
         builder.Services.AddHostedService<EmailWorker>();
         builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 

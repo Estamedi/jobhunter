@@ -18,6 +18,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         _user = user;
     }
 
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Candidate> Candidates => Set<Candidate>();
     public DbSet<JobCompany> Companies => Set<JobCompany>();
     public DbSet<JobContact> Contacts => Set<JobContact>();

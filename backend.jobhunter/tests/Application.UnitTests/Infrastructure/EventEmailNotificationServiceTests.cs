@@ -2,6 +2,7 @@ using backend.jobhunter.Application.Notifications.EventHandlers;
 using backend.jobhunter.Domain.Events;
 using backend.jobhunter.Infrastructure.Notification;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
 using Shouldly;
@@ -14,7 +15,8 @@ public class EventEmailNotificationServiceTests
     public async Task Send_RaisesAnEmailRequestedEvent()
     {
         var publisher = new Mock<IPublisher>();
-        var service = new EventEmailNotificationService(publisher.Object);
+        var provider = new ServiceCollection().AddSingleton(publisher.Object).BuildServiceProvider();
+        var service = new EventEmailNotificationService(provider.GetRequiredService<IServiceScopeFactory>());
 
         await service.SendEmailAsync("a@b.com", "Hi", "<p>Body</p>");
 
