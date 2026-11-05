@@ -23,6 +23,7 @@ services:
       - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGIN:-}
       - EmailSender__UserName=${EMAILSENDER__USERNAME:-}
       - EmailSender__Password=${EMAILSENDER__PASSWORD:-}
+      - Domain__WebUrl=${DOMAIN__WEBURL:-https://app.applyladder.com}
       - Seed__AdminEmail=${SEED__ADMINEMAIL:-}
       - Seed__AdminPassword=${SEED__ADMINPASSWORD:-}
       - FileStorage__RootPath=/app/uploads/cvs
