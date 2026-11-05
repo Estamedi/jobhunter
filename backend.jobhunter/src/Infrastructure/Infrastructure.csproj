@@ -13,6 +13,10 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <!-- Hangfire.Core asks for an old Newtonsoft.Json with a known vulnerability. -->
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Hangfire.PostgreSql" />
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="PdfPig" />
     <PackageReference Include="QuestPDF" />

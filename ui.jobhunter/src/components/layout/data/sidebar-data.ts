@@ -20,6 +20,7 @@ import {
   Users,
   Bot,
   ScrollText,
+  Cog,
 } from 'lucide-react'
 import { Logo } from '@/assets/logo'
 import { type NavGroup, type SidebarData } from '../types'
@@ -211,6 +212,7 @@ const administratorNavGroups: NavGroup[] = [
     items: [
       { title: 'Registered Users', url: '/users', icon: Users },
       { title: 'Audit log', url: '/audit-logs', icon: ScrollText },
+      { title: 'Workers', url: '/workers', icon: Cog },
     ],
   },
   ...defaultNavGroups

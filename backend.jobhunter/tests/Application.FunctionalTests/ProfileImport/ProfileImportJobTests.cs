@@ -224,7 +224,7 @@ public class ProfileImportJobTests : TestBase
             tooManyId = tooMany.Id;
         }
         var worker = new ProfileImportWorker(
-            FunctionalTestSetup.ScopeFactory, new ProfileImportSignal(), NullLogger<ProfileImportWorker>.Instance);
+            FunctionalTestSetup.ScopeFactory, NullLogger<ProfileImportWorker>.Instance);
 
         await worker.RecoverInterruptedAsync(default);
 
@@ -232,6 +232,9 @@ public class ProfileImportJobTests : TestBase
         failed.Status.ShouldBe(ProfileImportStatus.Failed);
         failed.Error.ShouldBe(ProfileImportWorker.RestartMessage);
         (await LoadAsync(retryId)).Status.ShouldNotBe(ProfileImportStatus.Running);
+        // As at startup: recovery puts the work back, then the worker is woken.
+        using (var scope = FunctionalTestSetup.ScopeFactory.CreateScope())
+            scope.ServiceProvider.GetRequiredService<IProfileImportSignal>().Notify();
         await WaitForAsync(retryId, ProfileImportStatus.Completed);
     }
 

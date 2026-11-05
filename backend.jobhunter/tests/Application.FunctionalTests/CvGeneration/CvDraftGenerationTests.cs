@@ -223,12 +223,36 @@ public class CvDraftGenerationTests : TestBase
     }
 
     [Test]
+    public async Task ShouldRecordTheBackgroundJobInTheAuditLog()
+    {
+        var candidateId = await CreateCandidateAsync();
+        var draft = await TestApp.SendAsync(Request(candidateId));
+        await WaitForAsync(draft.Id, CvDraftStatus.Completed);
+
+        await TestApp.RunAsAdministratorAsync();
+        // The job writes its audit row just after the draft is saved.
+        for (var i = 0; i < 50; i++)
+        {
+            var logs = await TestApp.SendAsync(new backend.jobhunter.Application.AuditLogs.Queries.GetAuditLogs.GetAuditLogsQuery(PageSize: 100));
+            var row = logs.Items.FirstOrDefault(l => l.Action == "Job:CvGenerationWorker.DrainAsync");
+            if (row is not null)
+            {
+                row.Succeeded.ShouldBeTrue();
+                row.UserEmail.ShouldBe("background-worker");
+                return;
+            }
+            await Task.Delay(200);
+        }
+        Assert.Fail("The CV generation job never appeared in the audit log.");
+    }
+
+    [Test]
     public async Task ShouldPutInterruptedDraftsBackInTheQueueOrFailThemAfterTooManyTries()
     {
         var retry = await InsertDraftAsync(CvDraftStatus.Running, attempts: 1);
         var tooMany = await InsertDraftAsync(CvDraftStatus.Running, attempts: CvGenerationWorker.MaxAttempts);
         var worker = new CvGenerationWorker(
-            FunctionalTestSetup.ScopeFactory, new CvGenerationSignal(), NullLogger<CvGenerationWorker>.Instance);
+            FunctionalTestSetup.ScopeFactory, NullLogger<CvGenerationWorker>.Instance);
 
         await worker.RecoverInterruptedAsync(default);
 
@@ -236,6 +260,9 @@ public class CvDraftGenerationTests : TestBase
         failed.Status.ShouldBe(CvDraftStatus.Failed);
         failed.GenerationError.ShouldBe(CvGenerationWorker.RestartMessage);
         (await LoadAsync(retry)).Status.ShouldNotBe(CvDraftStatus.Running);
+        // As at startup: recovery puts the work back, then the worker is woken.
+        using (var scope = FunctionalTestSetup.ScopeFactory.CreateScope())
+            scope.ServiceProvider.GetRequiredService<ICvGenerationSignal>().Notify();
         await WaitForAsync(retry, CvDraftStatus.Completed);
     }
 

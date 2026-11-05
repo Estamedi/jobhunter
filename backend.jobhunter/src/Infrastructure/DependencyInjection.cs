@@ -1,4 +1,4 @@
-﻿using backend.jobhunter.Application.CandidateProfiles;
+using backend.jobhunter.Application.CandidateProfiles;
 using backend.jobhunter.Application.Common;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Application.CvDrafts;
@@ -96,15 +96,14 @@ public static class DependencyInjection
         builder.Services.AddSingleton<EmailQueue>();
         builder.Services.AddSingleton<IEmailQueue>(sp => sp.GetRequiredService<EmailQueue>());
         builder.Services.AddSingleton<IEmailNotificationService, EventEmailNotificationService>();
-        builder.Services.AddHostedService<EmailWorker>();
+        builder.Services.AddTransient<EmailWorker>();
         builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
         builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
-        builder.Services.AddSingleton<CvUploadSignal>();
-        builder.Services.AddSingleton<ICvUploadSignal>(sp => sp.GetRequiredService<CvUploadSignal>());
         if (string.Equals(builder.Configuration["FileStorage:Provider"], "Local", StringComparison.OrdinalIgnoreCase))
         {
             builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
+            builder.Services.AddSingleton<ICvUploadSignal, NoopCvUploadSignal>();
         }
         else
         {
@@ -112,25 +111,20 @@ public static class DependencyInjection
             builder.Services.AddSingleton<CachedS3FileStorage>();
             builder.Services.AddSingleton<IFileStorage>(sp => sp.GetRequiredService<CachedS3FileStorage>());
             builder.Services.AddSingleton<ICvRemoteSync>(sp => sp.GetRequiredService<CachedS3FileStorage>());
-            builder.Services.AddHostedService(sp => new CvUploadWorker(
-                sp.GetRequiredService<IServiceScopeFactory>(),
-                sp,
-                sp.GetRequiredService<CvUploadSignal>(),
-                sp.GetRequiredService<IOptions<FileStorageOptions>>(),
-                sp.GetRequiredService<TimeProvider>(),
-                sp.GetRequiredService<ILogger<CvUploadWorker>>()));
+            builder.Services.AddSingleton<ICvUploadSignal, CvUploadSignal>();
+            builder.Services.AddTransient<CvUploadWorker>();
         }
 
-        builder.Services.AddSingleton<CvGenerationSignal>();
-        builder.Services.AddSingleton<ICvGenerationSignal>(sp => sp.GetRequiredService<CvGenerationSignal>());
+        builder.Services.AddSingleton<ICvGenerationSignal, CvGenerationSignal>();
         builder.Services.AddScoped<UserOverride>();
         builder.Services.AddScoped<CvDraftGenerationService>();
-        builder.Services.AddHostedService<CvGenerationWorker>();
+        builder.Services.AddTransient<CvGenerationWorker>();
 
-        builder.Services.AddSingleton<ProfileImportSignal>();
-        builder.Services.AddSingleton<IProfileImportSignal>(sp => sp.GetRequiredService<ProfileImportSignal>());
+        builder.Services.AddSingleton<IProfileImportSignal, ProfileImportSignal>();
         builder.Services.AddScoped<ProfileImportService>();
-        builder.Services.AddHostedService<ProfileImportWorker>();
+        builder.Services.AddTransient<ProfileImportWorker>();
+
+        builder.AddBackgroundJobs(connectionString);
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();

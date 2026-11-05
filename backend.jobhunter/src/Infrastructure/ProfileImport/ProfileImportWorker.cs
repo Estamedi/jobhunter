@@ -5,50 +5,30 @@ using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using backend.jobhunter.Infrastructure.BackgroundJobs;
+using Hangfire;
 using Microsoft.Extensions.Logging;
 
 namespace backend.jobhunter.Infrastructure.ProfileImport;
 
-// Reads Pending CV imports one at a time. Woken by ProfileImportSignal when a job is queued, and by a poll
-// fallback that also covers restarts. Assumes a single backend instance, like the other workers.
-public class ProfileImportWorker(
-    IServiceScopeFactory scopeFactory, ProfileImportSignal signal, ILogger<ProfileImportWorker> logger) : BackgroundService
+// Reads Pending CV imports one at a time, as a Hangfire job. The queue is the ProfileImportJobs status column: a
+// job is enqueued by ProfileImportSignal when an import is queued and by a once-a-minute poll that also covers
+// restarts, and drains every Pending import. Hangfire does not retry it; a failed import is marked Failed.
+[Queue(JobQueues.ProfileImport)]
+[DisableConcurrentExecution(3600)]
+[AutomaticRetry(Attempts = 0)]
+public class ProfileImportWorker(IServiceScopeFactory scopeFactory, ILogger<ProfileImportWorker> logger)
 {
     // A job is retried once after a restart in the middle of reading it, then marked Failed.
     public const int MaxAttempts = 2;
     public const string RestartMessage = "The server restarted while reading this CV. Try again.";
 
-    private static readonly TimeSpan Poll = TimeSpan.FromSeconds(15);
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    // Reads every waiting import. Returns how many it took, for the audit log.
+    public async Task<int> DrainAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            await RecoverInterruptedAsync(stoppingToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogError(ex, "Could not recover interrupted CV imports.");
-        }
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await signal.WaitAsync(Poll, stoppingToken);
-                while (await ProcessNextAsync(stoppingToken)) { }
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "CV import worker iteration failed.");
-                await Task.Delay(Poll, stoppingToken);
-            }
-        }
+        var processed = 0;
+        while (await ProcessNextAsync(cancellationToken)) processed++;
+        return processed;
     }
 
     // A job left Running by a stopped server goes back in the queue, or fails after too many tries.

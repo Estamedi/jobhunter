@@ -20,7 +20,12 @@ internal sealed class DatabaseResetter : IAsyncDisposable
         var connection = new NpgsqlConnection(connectionString);
 
         await connection.OpenAsync();
-        var respawner = await Respawner.CreateAsync(connection);
+        var respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            // Hangfire's own tables (its servers and recurring polls) must survive between tests.
+            SchemasToExclude = ["hangfire"],
+        });
         await connection.CloseAsync();
         return new DatabaseResetter(connection, respawner);
     }

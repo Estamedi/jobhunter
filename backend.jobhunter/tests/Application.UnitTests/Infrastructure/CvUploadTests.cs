@@ -50,19 +50,6 @@ public class CvUploadTests
         CvUploadWorker.IsDue(attempts, Now.AddSeconds(-secondsSinceLast), Now, Retry).ShouldBe(expected);
 
     [Test]
-    public async Task Signal_CompletesWhenNotified_AndTimesOutOtherwise()
-    {
-        var signal = new CvUploadSignal();
-
-        (await signal.WaitAsync(TimeSpan.FromMilliseconds(50), CancellationToken.None)).ShouldBeFalse();
-
-        signal.Notify();
-        signal.Notify(); // coalesced
-        (await signal.WaitAsync(TimeSpan.FromSeconds(1), CancellationToken.None)).ShouldBeTrue();
-        (await signal.WaitAsync(TimeSpan.FromMilliseconds(50), CancellationToken.None)).ShouldBeFalse();
-    }
-
-    [Test]
     public async Task CachedStorage_SaveAsync_WritesToDiskOnly()
     {
         var root = Path.Combine(Path.GetTempPath(), "cv-cache-" + Guid.NewGuid().ToString("N"));

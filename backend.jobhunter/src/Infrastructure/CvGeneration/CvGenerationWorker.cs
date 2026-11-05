@@ -5,51 +5,31 @@ using backend.jobhunter.Application.CvDrafts;
 using backend.jobhunter.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using backend.jobhunter.Infrastructure.BackgroundJobs;
+using Hangfire;
 using Microsoft.Extensions.Logging;
 
 namespace backend.jobhunter.Infrastructure.CvGeneration;
 
-// Writes Pending CV drafts one at a time. Woken by CvGenerationSignal when a draft is queued, and by a
-// poll fallback that also covers restarts. Assumes a single backend instance, like CvUploadWorker.
-public class CvGenerationWorker(
-    IServiceScopeFactory scopeFactory, CvGenerationSignal signal, ILogger<CvGenerationWorker> logger) : BackgroundService
+// Writes Pending CV drafts one at a time, as a Hangfire job. The queue is the CvDrafts status column: a job is
+// enqueued by CvGenerationSignal when a draft is queued and by a once-a-minute poll that also covers restarts,
+// and drains every Pending draft. Hangfire does not retry it; a failed draft is marked Failed for the user to retry.
+[Queue(JobQueues.CvGeneration)]
+[DisableConcurrentExecution(3600)]
+[AutomaticRetry(Attempts = 0)]
+public class CvGenerationWorker(IServiceScopeFactory scopeFactory, ILogger<CvGenerationWorker> logger)
 {
     // A draft is retried once after a restart in the middle of writing it, then marked Failed.
     public const int MaxAttempts = 2;
     public const string RestartMessage = "The server restarted while writing this CV. Try again.";
     public const string GenericFailureMessage = "Something went wrong while writing this CV. Try again.";
 
-    private static readonly TimeSpan Poll = TimeSpan.FromSeconds(15);
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    // Writes every waiting draft. Returns how many it took, for the audit log.
+    public async Task<int> DrainAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            await RecoverInterruptedAsync(stoppingToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogError(ex, "Could not recover interrupted CV drafts.");
-        }
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await signal.WaitAsync(Poll, stoppingToken);
-                while (await ProcessNextAsync(stoppingToken)) { }
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "CV generation worker iteration failed.");
-                await Task.Delay(Poll, stoppingToken);
-            }
-        }
+        var processed = 0;
+        while (await ProcessNextAsync(cancellationToken)) processed++;
+        return processed;
     }
 
     // A draft left Running by a stopped server goes back in the queue, or fails after too many tries.

@@ -2,85 +2,49 @@ using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using backend.jobhunter.Infrastructure.BackgroundJobs;
+using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace backend.jobhunter.Infrastructure.Files;
 
-// Uploads Pending CV files from the local cache to S3. Woken by CvUploadRequestedEvent and by a
-// poll fallback (covers restarts and retries). Assumes a single backend instance.
-public class CvUploadWorker : BackgroundService
+// Uploads Pending CV files from the local cache to S3, as a Hangfire job. The queue is the Cvs upload-status
+// column: a job is enqueued by CvUploadSignal when a CV is saved and by a once-a-minute poll that also covers
+// restarts and retries with backoff. Only registered when S3 storage is configured.
+[Queue(JobQueues.CvUpload)]
+[DisableConcurrentExecution(3600)]
+[AutomaticRetry(Attempts = 0)]
+public class CvUploadWorker(
+    IServiceScopeFactory scopeFactory,
+    IOptions<FileStorageOptions> options,
+    TimeProvider clock,
+    ILogger<CvUploadWorker> logger,
+    ICvRemoteSync? remote = null)
 {
     // The event fires before the row is committed; give the save a moment to finish.
     private static readonly TimeSpan CommitGrace = TimeSpan.FromMilliseconds(500);
 
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IServiceProvider _services;
-    private readonly CvUploadSignal _signal;
-    private readonly IOptions<FileStorageOptions> _options;
-    private readonly TimeProvider _clock;
-    private readonly ILogger<CvUploadWorker> _logger;
-    private ICvRemoteSync? _remote;
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+    private readonly IOptions<FileStorageOptions> _options = options;
+    private readonly TimeProvider _clock = clock;
+    private readonly ILogger<CvUploadWorker> _logger = logger;
+    private readonly ICvRemoteSync? _remote = remote;
 
-    public CvUploadWorker(
-        IServiceScopeFactory scopeFactory,
-        IServiceProvider services,
-        CvUploadSignal signal,
-        IOptions<FileStorageOptions> options,
-        TimeProvider clock,
-        ILogger<CvUploadWorker> logger,
-        ICvRemoteSync? remote = null)
+    // Returns how many CVs it tried to upload, for the audit log.
+    public async Task<int> RunAsync(CancellationToken cancellationToken)
     {
-        _scopeFactory = scopeFactory;
-        _services = services;
-        _signal = signal;
-        _options = options;
-        _clock = clock;
-        _logger = logger;
-        _remote = remote;
+        if (_remote is null)
+        {
+            _logger.LogWarning("S3 file storage is not configured; the CV upload worker is disabled.");
+            return 0;
+        }
+
+        await Task.Delay(CommitGrace, cancellationToken);
+        return await ProcessPendingAsync(_options.Value.Retry, cancellationToken);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        try
-        {
-            // Resolved lazily so an unconfigured S3 (empty bucket) disables the worker instead of failing startup.
-            _remote ??= _services.GetRequiredService<ICvRemoteSync>();
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "S3 file storage is not configured; the CV upload worker is disabled.");
-            return;
-        }
-
-        var retry = _options.Value.Retry;
-        var poll = TimeSpan.FromSeconds(Math.Max(1, retry.PollSeconds));
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                if (await _signal.WaitAsync(poll, stoppingToken))
-                {
-                    await Task.Delay(CommitGrace, stoppingToken);
-                }
-
-                await ProcessPendingAsync(retry, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "CV upload worker iteration failed.");
-                await Task.Delay(poll, stoppingToken);
-            }
-        }
-    }
-
-    public async Task ProcessPendingAsync(UploadRetryOptions retry, CancellationToken cancellationToken)
+    public async Task<int> ProcessPendingAsync(UploadRetryOptions retry, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -100,6 +64,8 @@ public class CvUploadWorker : BackgroundService
             cancellationToken.ThrowIfCancellationRequested();
             await UploadOneAsync(context, cv, retry, cancellationToken);
         }
+
+        return due.Count;
     }
 
     private async Task UploadOneAsync(IApplicationDbContext context, Domain.Entities.Cv cv, UploadRetryOptions retry, CancellationToken cancellationToken)

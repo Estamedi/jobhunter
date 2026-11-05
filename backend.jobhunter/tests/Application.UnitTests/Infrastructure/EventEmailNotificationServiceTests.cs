@@ -1,3 +1,6 @@
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 using backend.jobhunter.Application.Notifications.EventHandlers;
 using backend.jobhunter.Domain.Events;
 using backend.jobhunter.Infrastructure.Notification;
@@ -26,18 +29,18 @@ public class EventEmailNotificationServiceTests
     }
 
     [Test]
-    public async Task Handler_QueuesTheEmailForTheWorker()
+    public async Task Handler_QueuesTheEmailAsABackgroundJob()
     {
-        var queue = new EmailQueue();
+        var client = new Mock<IBackgroundJobClient>();
+        var queue = new EmailQueue(client.Object);
         var handler = new EmailRequestedEventHandler(queue);
 
         await handler.Handle(new EmailRequestedEvent("c@d.com", "Yo", "<p>Two</p>", "from@x.com", "From"), CancellationToken.None);
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-        await foreach (var job in queue.ReadAllAsync(cts.Token))
-        {
-            job.ShouldBe(new EmailJob("c@d.com", "Yo", "<p>Two</p>", "from@x.com", "From"));
-            break;
-        }
+        client.Verify(c => c.Create(
+            It.Is<Job>(j => j.Type == typeof(EmailWorker) && j.Method.Name == nameof(EmailWorker.SendAsync)
+                && (string)j.Args[0] == "c@d.com" && (string)j.Args[1] == "Yo" && (string)j.Args[2] == "<p>Two</p>"
+                && (string)j.Args[3] == "from@x.com" && (string)j.Args[4] == "From"),
+            It.IsAny<IState>()), Times.Once);
     }
 }

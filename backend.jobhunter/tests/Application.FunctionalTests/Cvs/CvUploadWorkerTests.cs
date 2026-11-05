@@ -32,8 +32,6 @@ public class CvUploadWorkerTests : TestBase
 
     private static CvUploadWorker CreateWorker(FakeRemote remote, int maxAttempts = 2) => new(
         FunctionalTestSetup.ScopeFactory,
-        FunctionalTestSetup.ScopeFactory.CreateScope().ServiceProvider,
-        new CvUploadSignal(),
         Options.Create(new FileStorageOptions
         {
             Retry = { MaxAttempts = maxAttempts, BaseDelaySeconds = 0, MaxDelaySeconds = 0 },
