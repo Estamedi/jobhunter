@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -298,8 +299,13 @@ export function Onboarding() {
       await authApi.updateOnboardingStatus('Completed')
       auth.setOnboardingStatus('Completed')
       navigate({ to: '/onboarding/extension', replace: true })
-    } catch {
-      toast.error('Failed to save your profile. Please try again.')
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          'Failed to save your profile. Please try again.'
+        )
+      )
     } finally {
       setIsSubmitting(false)
     }

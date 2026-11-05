@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { getCookie } from '@/lib/cookies'
 
 const ACCESS_TOKEN = 'thisisjustarandomstring'
@@ -18,6 +19,15 @@ http.interceptors.request.use((config) => {
   const token = getAccessToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
+})
+
+// A 400 from the server lists why it failed (field by field). Put the first reason in the error's message
+// so every catch block and toast can show it instead of "Request failed with status code 400".
+http.interceptors.response.use(undefined, (error: unknown) => {
+  if (axios.isAxiosError(error) && error.response?.status === 400) {
+    error.message = getApiErrorMessage(error, error.message)
+  }
+  return Promise.reject(error)
 })
 
 // Axios's default serializer emits array params as `key[]=a&key[]=b`, which ASP.NET Core
