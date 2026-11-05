@@ -2,14 +2,17 @@ using System.Text.Json;
 using backend.jobhunter.Application.Common.Exceptions;
 using backend.jobhunter.Application.Common.Interfaces;
 using backend.jobhunter.Domain.Entities;
+using backend.jobhunter.Application.CvDrafts.Commands.ExportCvDraft;
 using backend.jobhunter.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace backend.jobhunter.Application.CvDrafts;
 
 // Writes the content of a Pending draft with the AI. Run by the background worker, never inside a web
 // request, because one generation takes about a minute and a retry doubles it.
 public class CvDraftGenerationService(
-    IApplicationDbContext context, ICvGenerationAiService aiService, IFileStorage fileStorage, ICvTextExtractor textExtractor)
+    IApplicationDbContext context, ICvGenerationAiService aiService, IFileStorage fileStorage, ICvTextExtractor textExtractor,
+    ISender sender, ILogger<CvDraftGenerationService> logger)
 {
     public async Task RunAsync(int draftId, CancellationToken cancellationToken)
     {
@@ -53,6 +56,20 @@ public class CvDraftGenerationService(
         draft.GenerationError = null;
         draft.Status = CvDraftStatus.Completed;
         await context.SaveChangesAsync(cancellationToken);
+
+        // A draft written for an application gets its PDF attached right away (when the application has no
+        // CV yet). A failure here never fails the draft; the user can still export it by hand.
+        if (draft.JobApplicationId.HasValue)
+        {
+            try
+            {
+                await sender.Send(new ExportCvDraftCommand(draft.Id), cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Could not attach the CV of draft {DraftId} to its application.", draft.Id);
+            }
+        }
     }
 
     // The skills the job asks for, read once and kept on the draft, so the match report reuses them. Without

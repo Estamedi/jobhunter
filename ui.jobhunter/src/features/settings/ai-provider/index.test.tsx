@@ -84,20 +84,39 @@ describe('AI provider API keys', () => {
     )
   })
 
-  it('shows one key row per provider with where its key comes from', async () => {
+  it('shows one card per provider with where its key comes from', async () => {
     const screen = await renderPage()
-    const row = (name: string) =>
-      screen.getByRole('form', { name: `${name} API key` })
 
     await expect
-      .element(row('OpenAI').getByText('Saved here, ends in 1234'))
+      .element(screen.getByText('Your key ends in 1234'))
       .toBeVisible()
+    await expect.element(screen.getByText('Server key')).toBeVisible()
     await expect
-      .element(row('Anthropic').getByText('Set on the server'))
+      .element(screen.getByText('No key', { exact: true }))
       .toBeVisible()
+  })
+
+  it('saves the provider as soon as it is chosen', async () => {
+    const screen = await renderPage()
+
+    await screen.getByRole('radio', { name: /Anthropic/ }).click()
+
+    await vi.waitFor(() =>
+      expect(http.put).toHaveBeenCalledWith('/api/Settings/ai', {
+        provider: 'Anthropic',
+      })
+    )
+  })
+
+  it('warns on the card when the chosen provider has no key', async () => {
+    const data = settings([status({ name: 'OpenRouter' })])
+    data.provider = 'OpenRouter'
+    serve(data)
+    const screen = await renderPage()
+
     await expect
-      .element(row('OpenRouter').getByText('No key', { exact: true }))
-      .toBeVisible()
+      .element(screen.getByRole('alert'))
+      .toHaveTextContent(/Save a key below to use OpenRouter/)
   })
 
   it('saves the key of one provider only and clears the field', async () => {
@@ -213,10 +232,12 @@ describe('Model field of an AI action', () => {
   const field = (screen: Awaited<ReturnType<typeof renderPage>>) =>
     screen.getByRole('combobox', { name: 'CV generation model' })
 
-  it('is disabled while the action uses the default provider', async () => {
+  it('shows the model in use as text while the action uses the default provider', async () => {
     const screen = await withProviderChosen()
+    await screen.getByText(/Advanced: provider and model/).click()
 
-    await expect.element(field(screen)).toBeDisabled()
+    await expect.element(screen.getByText('Uses gpt-5.5')).toBeVisible()
+    await expect.element(field(screen)).not.toBeInTheDocument()
   })
 
   it('shows the saved model even when it is not in the provider list', async () => {
@@ -248,7 +269,7 @@ describe('Model field of an AI action', () => {
     await screen.getByRole('option', { name: 'gpt-4o-mini' }).click()
 
     await expect.element(field(screen)).toHaveTextContent('gpt-4o-mini')
-    await screen.getByRole('button', { name: 'Save actions' }).click()
+    await screen.getByRole('button', { name: 'Save changes' }).click()
     await vi.waitFor(() =>
       expect(http.put).toHaveBeenCalledWith('/api/Settings/ai/actions', {
         actions: [

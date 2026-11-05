@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { isAxiosError } from 'axios'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { http } from '@/lib/http'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -36,17 +36,20 @@ function failureMessage(error: unknown, fallback: string) {
   return fallback
 }
 
-function statusText(p: ProviderStatus) {
+// One vocabulary for where a provider's key comes from, shared by the provider card and its key field.
+export function statusText(p: ProviderStatus) {
   if (p.source === 'settings') {
-    return p.hint ? `Saved here, ends in ${p.hint}` : 'Saved here'
+    return p.hint ? `Your key ends in ${p.hint}` : 'Your key'
   }
-  if (p.source === 'config') return 'Set on the server'
+  if (p.source === 'config') return 'Server key'
   return 'No key'
 }
 
-function KeyRow({ provider }: { provider: ProviderStatus }) {
+// The key field of one provider card: saved and removed on its own.
+export function KeyForm({ provider }: { provider: ProviderStatus }) {
   const qc = useQueryClient()
   const [key, setKey] = useState('')
+  const [shown, setShown] = useState(false)
   // A new or removed key changes which models the provider lists, so that list is read again too.
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['ai-settings'] })
@@ -58,7 +61,7 @@ function KeyRow({ provider }: { provider: ProviderStatus }) {
     onSuccess: () => {
       setKey('')
       refresh()
-      toast.success(`${provider.name} key saved`)
+      toast.success('Key saved')
     },
     onError: (error) =>
       toast.error(failureMessage(error, 'Could not save the key')),
@@ -68,7 +71,7 @@ function KeyRow({ provider }: { provider: ProviderStatus }) {
     mutationFn: () => keysApi.remove(provider.name),
     onSuccess: () => {
       refresh()
-      toast.success(`${provider.name} key removed`)
+      toast.success('Key removed')
     },
     onError: () => toast.error('Could not remove the key'),
   })
@@ -83,15 +86,9 @@ function KeyRow({ provider }: { provider: ProviderStatus }) {
   return (
     <form
       onSubmit={submit}
-      className='space-y-2 rounded-lg border p-4'
+      className='space-y-2'
       aria-label={`${provider.name} API key`}
     >
-      <div className='flex flex-wrap items-center gap-2'>
-        <span className='font-medium'>{provider.name}</span>
-        <Badge variant={provider.configured ? 'secondary' : 'outline'}>
-          {statusText(provider)}
-        </Badge>
-      </div>
       {provider.savedKeyUnreadable && (
         <p className='text-sm text-destructive'>
           The key saved here can no longer be read, so it is not used. Enter it
@@ -99,17 +96,33 @@ function KeyRow({ provider }: { provider: ProviderStatus }) {
         </p>
       )}
       <div className='flex flex-wrap gap-2'>
-        <Input
-          type='password'
-          autoComplete='off'
-          className='min-w-64 flex-1'
-          aria-label={`${provider.name} API key`}
-          placeholder={
-            hasSaved ? 'Enter a new key to replace it' : 'Paste the API key'
-          }
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-        />
+        <div className='relative min-w-64 flex-1'>
+          <Input
+            type={shown ? 'text' : 'password'}
+            autoComplete='off'
+            className='pr-10'
+            aria-label={`${provider.name} API key`}
+            placeholder={
+              hasSaved ? 'Enter a new key to replace it' : 'Paste the API key'
+            }
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+          />
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon'
+            className='absolute top-0 right-0 h-full w-9 text-muted-foreground'
+            aria-label={shown ? 'Hide key' : 'Show key'}
+            onClick={() => setShown((v) => !v)}
+          >
+            {shown ? (
+              <EyeOff className='h-4 w-4' />
+            ) : (
+              <Eye className='h-4 w-4' />
+            )}
+          </Button>
+        </div>
         <Button type='submit' disabled={!key.trim() || save.isPending}>
           Save key
         </Button>
@@ -120,30 +133,10 @@ function KeyRow({ provider }: { provider: ProviderStatus }) {
             disabled={remove.isPending}
             onClick={() => remove.mutate()}
           >
-            Remove
+            Remove key
           </Button>
         )}
       </div>
     </form>
-  )
-}
-
-// One row per provider, so each key is saved and removed on its own. A key saved here is used instead of the
-// one set on the server; removing it goes back to the server's key, if there is one.
-export function ProviderKeys({ providers }: { providers: ProviderStatus[] }) {
-  return (
-    <div className='space-y-3 pt-4'>
-      <div>
-        <h4 className='font-medium'>API keys</h4>
-        <p className='text-sm text-muted-foreground'>
-          A key saved here is stored encrypted and is used instead of the key
-          set on the server. Removing it goes back to the server&apos;s key. A
-          saved key is never shown again, only its last characters.
-        </p>
-      </div>
-      {providers.map((p) => (
-        <KeyRow key={p.name} provider={p} />
-      ))}
-    </div>
   )
 }
