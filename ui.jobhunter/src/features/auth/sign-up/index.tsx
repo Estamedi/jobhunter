@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { Check, Circle, FileText, LogIn, UserPlus } from 'lucide-react'
 import { Logo } from '@/assets/logo'
+import { CvRewriteScene } from '../cv-rewrite-scene'
 import { SignUpForm } from './components/sign-up-form'
 
 const setupSteps = [
@@ -32,8 +33,11 @@ export function SignUp() {
           <div className='absolute -top-20 -left-16 size-64 rounded-full bg-primary/30 blur-3xl' />
           <div className='absolute -right-24 bottom-0 size-72 rounded-full bg-foreground/20 blur-3xl' />
 
-          <div className='relative space-y-10'>
-            <a href='https://applyladder.com' className='flex w-fit items-center gap-3'>
+          <div className='relative space-y-8'>
+            <a
+              href='https://applyladder.com'
+              className='flex w-fit items-center gap-3'
+            >
               <Logo className='size-9' />
               <span className='text-xl font-bold'>Job Hunter CRM</span>
             </a>
@@ -47,6 +51,8 @@ export function SignUp() {
                 company, interview, and follow-up organized from day one.
               </p>
             </div>
+
+            <CvRewriteScene className='h-auto w-full max-w-lg' />
 
             <div className='grid max-w-lg gap-3'>
               {setupSteps.map((step, index) => {
@@ -130,7 +136,7 @@ export function SignUp() {
             </div>
 
             <div className='space-y-5 px-7 pb-7'>
-              <SignUpForm className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>[data-primary-action]]:mx-auto [&>[data-primary-action]]:mt-3 [&>[data-primary-action]]:h-12 [&>[data-primary-action]]:w-full [&>[data-primary-action]]:max-w-xs [&>[data-primary-action]]:rounded-2xl [&>[data-primary-action]]:border [&>[data-primary-action]]:border-primary/40 [&>[data-primary-action]]:bg-transparent [&>[data-primary-action]]:text-primary [&>[data-primary-action]]:text-base [&>[data-primary-action]]:font-bold [&>[data-primary-action]:hover]:bg-primary/10' />
+              <SignUpForm className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>[data-primary-action]]:mx-auto [&>[data-primary-action]]:mt-3 [&>[data-primary-action]]:h-12 [&>[data-primary-action]]:w-full [&>[data-primary-action]]:max-w-xs [&>[data-primary-action]]:rounded-2xl [&>[data-primary-action]]:border [&>[data-primary-action]]:border-primary/40 [&>[data-primary-action]]:bg-transparent [&>[data-primary-action]]:text-base [&>[data-primary-action]]:font-bold [&>[data-primary-action]]:text-primary [&>[data-primary-action]:hover]:bg-primary/10' />
 
               <div className='rounded-2xl bg-accent px-4 py-3 dark:bg-primary/20'>
                 <div className='flex gap-3 text-sm text-muted-foreground'>

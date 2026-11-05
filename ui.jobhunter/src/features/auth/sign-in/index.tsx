@@ -1,6 +1,7 @@
 import { Link, useSearch } from '@tanstack/react-router'
 import { Check, Circle, LogIn, Upload, UserRoundCheck } from 'lucide-react'
 import { Logo } from '@/assets/logo'
+import { CvRewriteScene } from '../cv-rewrite-scene'
 import { UserAuthForm } from './components/user-auth-form'
 
 const pipelineSteps = [
@@ -34,7 +35,7 @@ export function SignIn() {
           <div className='absolute -top-20 -left-16 size-64 rounded-full bg-primary/30 blur-3xl' />
           <div className='absolute -right-24 bottom-0 size-72 rounded-full bg-foreground/20 blur-3xl' />
 
-          <div className='relative space-y-10'>
+          <div className='relative space-y-8'>
             <div className='flex items-center gap-3'>
               <Logo className='size-9' />
               <span className='text-xl font-bold'>Job Hunter CRM</span>
@@ -49,6 +50,8 @@ export function SignIn() {
                 applying for jobs with everything organized in one place.
               </p>
             </div>
+
+            <CvRewriteScene className='h-auto w-full max-w-lg' />
 
             <div className='grid max-w-lg gap-3'>
               {pipelineSteps.map((step, index) => {
@@ -88,9 +91,7 @@ export function SignIn() {
             <div className='grid max-w-lg grid-cols-3 gap-3'>
               <div className='rounded-2xl bg-primary p-4 text-white'>
                 <p className='text-2xl font-black'>3x</p>
-                <p className='mt-1 text-xs text-accent'>
-                  faster profile setup
-                </p>
+                <p className='mt-1 text-xs text-accent'>faster profile setup</p>
               </div>
               <div className='rounded-2xl border border-border bg-card/80 p-4'>
                 <p className='text-2xl font-black'>1</p>
@@ -133,7 +134,7 @@ export function SignIn() {
             <div className='space-y-5 px-7 pb-7'>
               <UserAuthForm
                 redirectTo={redirect}
-                className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>[data-primary-action]]:mx-auto [&>[data-primary-action]]:mt-3 [&>[data-primary-action]]:h-12 [&>[data-primary-action]]:w-full [&>[data-primary-action]]:max-w-xs [&>[data-primary-action]]:rounded-2xl [&>[data-primary-action]]:border [&>[data-primary-action]]:border-primary/40 [&>[data-primary-action]]:bg-transparent [&>[data-primary-action]]:text-primary [&>[data-primary-action]]:text-base [&>[data-primary-action]]:font-bold [&>[data-primary-action]:hover]:bg-primary/10'
+                className='[&_input]:h-12 [&_input]:rounded-2xl [&_input]:border-border [&_input]:bg-background [&>[data-primary-action]]:mx-auto [&>[data-primary-action]]:mt-3 [&>[data-primary-action]]:h-12 [&>[data-primary-action]]:w-full [&>[data-primary-action]]:max-w-xs [&>[data-primary-action]]:rounded-2xl [&>[data-primary-action]]:border [&>[data-primary-action]]:border-primary/40 [&>[data-primary-action]]:bg-transparent [&>[data-primary-action]]:text-base [&>[data-primary-action]]:font-bold [&>[data-primary-action]]:text-primary [&>[data-primary-action]:hover]:bg-primary/10'
               />
 
               <div className='rounded-2xl bg-accent px-4 py-3 dark:bg-primary/20'>

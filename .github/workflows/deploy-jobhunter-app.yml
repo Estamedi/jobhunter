@@ -129,6 +129,8 @@ jobs:
             LANGFUSE__HOST='${{ secrets.LANGFUSE_BASE_URL }}' \
             LANGFUSE__PUBLICKEY='${{ secrets.LANGFUSE_PUBLIC_KEY }}' \
             LANGFUSE__SECRETKEY='${{ secrets.LANGFUSE_SECRET_KEY }}' \
+            EMAILSENDER__USERNAME='${{ secrets.EMAILSENDER_USERNAME || vars.EMAILSENDER_USERNAME }}' \
+            EMAILSENDER__PASSWORD='${{ secrets.EMAILSENDER_PASSWORD || vars.EMAILSENDER_PASSWORD }}' \
             SEED__ADMINEMAIL='${{ secrets.SEED_ADMIN_EMAIL }}' \
             SEED__ADMINPASSWORD='${{ secrets.SEED_ADMIN_PASSWORD }}' \
             FILESTORAGE__S3__BUCKETNAME='${{ vars.FILESTORAGE__S3__BUCKETNAME }}' \
