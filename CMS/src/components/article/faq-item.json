@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_article_faq_items",
+  "info": {
+    "displayName": "FAQ item",
+    "description": "One question and its answer, shown on the article and in its FAQ structured data"
+  },
+  "options": {},
+  "attributes": {
+    "q": {
+      "type": "string",
+      "required": true
+    },
+    "a": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

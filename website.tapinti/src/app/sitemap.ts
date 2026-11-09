@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-import { CONTENT_LOCALE, HOME_UPDATED, contentPages } from "@/content/pages";
+import { CONTENT_LOCALE, HOME_UPDATED } from "@/content/pages";
 import { listCmsArticles } from "@/lib/cms";
+import { listPages } from "@/lib/pages";
 
 const SITE_URL = "https://applyladder.com";
 
@@ -21,16 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   }));
 
-  const content: MetadataRoute.Sitemap = contentPages.map((page) => ({
-    url: `${SITE_URL}/${CONTENT_LOCALE}/${page.slug}`,
-    lastModified: page.updated,
-  }));
-
   const blog: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/${CONTENT_LOCALE}/blog`, lastModified: HOME_UPDATED },
   ];
 
-  // Articles written in the CMS: one URL per language, linked to its translations.
+  // English pages (CMS first, built-in copies as fallback) and the articles written in other languages.
+  // A slug that exists in more than one language links its translations.
   const perLocale = await Promise.all(
     routing.locales.map(async (locale) => ({ locale, articles: await listCmsArticles(locale) })),
   );
@@ -38,18 +35,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const { locale, articles } of perLocale) {
     for (const a of articles) localesBySlug.set(a.slug, [...(localesBySlug.get(a.slug) ?? []), locale]);
   }
-  const cms: MetadataRoute.Sitemap = perLocale.flatMap(({ locale, articles }) =>
-    articles.map((a) => {
-      const locales = localesBySlug.get(a.slug) ?? [locale];
-      return {
-        url: `${SITE_URL}/${locale}/${a.slug}`,
-        lastModified: a.updatedAt ?? a.publishedDate,
-        alternates: {
-          languages: Object.fromEntries(locales.map((l) => [l, `${SITE_URL}/${l}/${a.slug}`])),
-        },
-      };
-    }),
-  );
+  const entry = (locale: string, slug: string, lastModified?: string) => {
+    const locales = localesBySlug.get(slug) ?? [locale];
+    return {
+      url: `${SITE_URL}/${locale}/${slug}`,
+      lastModified: lastModified || undefined,
+      ...(locales.length > 1
+        ? {
+            alternates: {
+              languages: Object.fromEntries(locales.map((l) => [l, `${SITE_URL}/${l}/${slug}`])),
+            },
+          }
+        : {}),
+    };
+  };
 
-  return [...home, ...blog, ...content, ...cms];
+  const content: MetadataRoute.Sitemap = (await listPages()).map((p) =>
+    entry(CONTENT_LOCALE, p.slug, p.updated),
+  );
+  const translated: MetadataRoute.Sitemap = perLocale
+    .filter(({ locale }) => locale !== CONTENT_LOCALE)
+    .flatMap(({ locale, articles }) =>
+      articles.map((a) => entry(locale, a.slug, a.updatedDate ?? a.updatedAt)),
+    );
+
+  return [...home, ...blog, ...content, ...translated];
 }

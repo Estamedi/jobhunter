@@ -4,8 +4,9 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Link } from "@/i18n/navigation";
 import { getBlogImage } from "@/lib/blog-image";
-import { CONTENT_LOCALE, contentPages } from "@/content/pages";
+import { CONTENT_LOCALE } from "@/content/pages";
 import { listCmsArticles } from "@/lib/cms";
+import { listPages } from "@/lib/pages";
 
 export const revalidate = 60;
 
@@ -16,6 +17,26 @@ export const metadata: Metadata = {
   alternates: { canonical: `/${CONTENT_LOCALE}/blog` },
 };
 
+type Card = { slug: string; title: string; description: string; image?: string };
+
+async function loadCards(locale: string): Promise<Card[]> {
+  if (locale === CONTENT_LOCALE) {
+    return (await listPages()).map((p) => ({
+      slug: p.slug,
+      title: p.h1,
+      description: p.description,
+      image: p.image ?? getBlogImage(p.slug),
+    }));
+  }
+  // Other languages list the articles written in the CMS in that language.
+  return (await listCmsArticles(locale)).map((a) => ({
+    slug: a.slug,
+    title: a.title,
+    description: a.excerpt,
+    image: a.cover,
+  }));
+}
+
 export default async function BlogIndex({
   params,
 }: {
@@ -23,9 +44,7 @@ export default async function BlogIndex({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const cmsArticles = await listCmsArticles(locale);
-  // The built-in pages are English only, so they are not linked from the other languages.
-  const builtIn = locale === CONTENT_LOCALE ? contentPages : [];
+  const cards = await loadCards(locale);
 
   return (
     <>
@@ -39,16 +58,16 @@ export default async function BlogIndex({
             Guides and tools for running a calmer, better-organised job search.
           </p>
           <ul className="mt-12 space-y-4">
-            {cmsArticles.map((a) => (
-              <li key={`cms-${a.slug}`}>
+            {cards.map((c) => (
+              <li key={c.slug}>
                 <Link
-                  href={`/${a.slug}`}
+                  href={`/${c.slug}`}
                   className="block overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
                 >
-                  {a.cover && (
+                  {c.image && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={a.cover}
+                      src={c.image}
                       alt=""
                       width={1200}
                       height={630}
@@ -56,44 +75,16 @@ export default async function BlogIndex({
                     />
                   )}
                   <div className="p-6">
-                    <h2 className="text-xl font-semibold">{a.title}</h2>
-                    {a.excerpt && (
+                    <h2 className="text-xl font-semibold">{c.title}</h2>
+                    {c.description && (
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                        {a.excerpt}
+                        {c.description}
                       </p>
                     )}
                   </div>
                 </Link>
               </li>
             ))}
-            {builtIn.map((p) => {
-              const image = getBlogImage(p.slug);
-              return (
-              <li key={p.slug}>
-                <Link
-                  href={`/${p.slug}`}
-                  className="block overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
-                >
-                  {image && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={image}
-                      alt=""
-                      width={1200}
-                      height={630}
-                      className="aspect-[1200/630] w-full object-cover"
-                    />
-                  )}
-                  <div className="p-6">
-                  <h2 className="text-xl font-semibold">{p.h1}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {p.description}
-                  </p>
-                  </div>
-                </Link>
-              </li>
-              );
-            })}
           </ul>
         </div>
       </main>

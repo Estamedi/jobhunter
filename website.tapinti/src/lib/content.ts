@@ -1,6 +1,7 @@
 import { routing } from "@/i18n/routing";
 import { APP_URL, SIGN_UP_URL } from "@/lib/links";
-import { CONTENT_LOCALE, contentPages, getContentPage } from "@/content/pages";
+import { CONTENT_LOCALE, type ContentPage } from "@/content/pages";
+import { listPages } from "@/lib/pages";
 
 export const SITE_URL = "https://applyladder.com";
 
@@ -93,6 +94,7 @@ export async function pageMarkdown(locale: string): Promise<string> {
 
 /** Short index following the llms.txt convention. */
 export async function llmsIndex(): Promise<string> {
+  const contentPages = await listPages();
   const m = await loadMessages(routing.defaultLocale);
   const lines = [
     "# ApplyLadder",
@@ -120,11 +122,8 @@ export async function llmsIndex(): Promise<string> {
   return lines.join("\n");
 }
 
-/** A content page as markdown, or undefined for an unknown slug. */
-export function contentPageMarkdown(slug: string): string | undefined {
-  const page = getContentPage(slug);
-  if (!page) return undefined;
-
+/** A content page as markdown. */
+export function contentPageMarkdown(page: ContentPage): string {
   const out: string[] = [`# ${page.h1}`, "", `> ${page.description}`, "", page.intro, ""];
   for (const section of page.sections) {
     out.push(`## ${section.heading}`, "", ...section.body.flatMap((p) => [p, ""]));

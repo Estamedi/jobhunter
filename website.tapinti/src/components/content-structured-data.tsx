@@ -31,14 +31,18 @@ export function ContentStructuredData({ page }: { page: ContentPage }) {
           { "@type": "ListItem", position: 2, name: page.label, item: url },
         ],
       },
-      {
-        "@type": "FAQPage",
-        mainEntity: page.faq.map((f) => ({
-          "@type": "Question",
-          name: f.q,
-          acceptedAnswer: { "@type": "Answer", text: f.a },
-        })),
-      },
+      ...(page.faq.length > 0
+        ? [
+            {
+              "@type": "FAQPage",
+              mainEntity: page.faq.map((f) => ({
+                "@type": "Question",
+                name: f.q,
+                acceptedAnswer: { "@type": "Answer", text: f.a },
+              })),
+            },
+          ]
+        : []),
     ],
   };
 
@@ -46,7 +50,7 @@ export function ContentStructuredData({ page }: { page: ContentPage }) {
     <script
       type="application/ld+json"
       // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(json).replace(/</g, "\\u003c") }}
     />
   );
 }

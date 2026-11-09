@@ -1,6 +1,6 @@
 import { llmsIndex } from "@/lib/content";
 
-export const dynamic = "force-static";
+export const revalidate = 60;
 
 export async function GET() {
   return new Response(await llmsIndex(), {

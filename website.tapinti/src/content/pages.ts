@@ -25,6 +25,8 @@ export type ContentPage = {
   externalCta?: { href: string; label: string };
   /** Short label for navigation and link lists */
   label: string;
+  /** Cover image path; defaults to public/blog/<slug>.webp when it exists */
+  image?: string;
 };
 
 export const contentPages: ContentPage[] = [

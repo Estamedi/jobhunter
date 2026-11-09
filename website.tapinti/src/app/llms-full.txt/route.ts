@@ -1,12 +1,12 @@
 import { contentPageMarkdown, pageMarkdown } from "@/lib/content";
-import { contentPages } from "@/content/pages";
+import { listPages } from "@/lib/pages";
 
-export const dynamic = "force-static";
+export const revalidate = 60;
 
 export async function GET() {
   const body = [
     await pageMarkdown("en"),
-    ...contentPages.map((p) => contentPageMarkdown(p.slug)),
+    ...(await listPages()).map((p) => contentPageMarkdown(p)),
   ].join("\n---\n\n");
 
   return new Response(body, {

@@ -1,16 +1,35 @@
+import Markdown from "react-markdown";
 import { Link } from "@/i18n/navigation";
 import { Plus } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { SIGN_UP_URL } from "@/lib/links";
 import { getBlogImage } from "@/lib/blog-image";
-import { getContentPage, type ContentPage } from "@/content/pages";
+import type { ContentPage } from "@/content/pages";
 
-export function ContentPageView({ page }: { page: ContentPage }) {
-  const related = page.related
-    .map((slug) => getContentPage(slug))
-    .filter((p): p is ContentPage => Boolean(p));
+// Text written in the CMS may use bold and links; plain text renders exactly as it is.
+function Inline({ children }: { children: string }) {
+  return (
+    <Markdown
+      components={{
+        p: ({ children }) => <>{children}</>,
+        a: ({ node: _n, ...p }) => (
+          <a className="text-brand underline underline-offset-2 hover:opacity-80" {...p} />
+        ),
+      }}
+    >
+      {children}
+    </Markdown>
+  );
+}
 
-  const image = getBlogImage(page.slug);
+export function ContentPageView({
+  page,
+  related,
+}: {
+  page: ContentPage;
+  related: ContentPage[];
+}) {
+  const image = page.image ?? getBlogImage(page.slug);
 
   return (
     <article className="mx-auto max-w-3xl px-4 pb-24 pt-32 sm:px-6 sm:pt-40">
@@ -69,29 +88,34 @@ export function ContentPageView({ page }: { page: ContentPage }) {
         </ButtonLink>
       </div>
 
-      {page.sections.map((section) => (
-        <section key={section.heading} className="mt-14">
-          <h2 className="text-balance text-2xl font-bold tracking-tight sm:text-3xl">
-            {section.heading}
-          </h2>
+      {page.sections.map((section, i) => (
+        <section key={`${i}-${section.heading}`} className="mt-14">
+          {section.heading && (
+            <h2 className="text-balance text-2xl font-bold tracking-tight sm:text-3xl">
+              {section.heading}
+            </h2>
+          )}
           {section.body.map((paragraph) => (
             <p
               key={paragraph}
               className="mt-4 text-pretty leading-relaxed text-foreground/85"
             >
-              {paragraph}
+              <Inline>{paragraph}</Inline>
             </p>
           ))}
           {section.bullets && (
             <ul className="mt-4 list-disc space-y-2 ps-6 leading-relaxed text-foreground/85">
               {section.bullets.map((b) => (
-                <li key={b}>{b}</li>
+                <li key={b}>
+                  <Inline>{b}</Inline>
+                </li>
               ))}
             </ul>
           )}
         </section>
       ))}
 
+      {page.faq.length > 0 && (
       <section className="mt-16">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
           Frequently asked questions
@@ -113,6 +137,7 @@ export function ContentPageView({ page }: { page: ContentPage }) {
           ))}
         </div>
       </section>
+      )}
 
       {related.length > 0 && (
         <section className="mt-16">

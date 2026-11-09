@@ -49,18 +49,85 @@
     "cover": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "youtubeUrl": {
       "type": "string"
     },
     "kind": {
       "type": "enumeration",
-      "enum": ["article", "video"],
+      "enum": [
+        "article",
+        "video"
+      ],
       "default": "article",
       "required": true
     },
     "publishedDate": {
+      "type": "date"
+    },
+    "seoTitle": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "seoDescription": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "label": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "faq": {
+      "type": "component",
+      "repeatable": true,
+      "component": "article.faq-item",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "relatedSlugs": {
+      "type": "string"
+    },
+    "downloadHref": {
+      "type": "string"
+    },
+    "downloadLabel": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "externalCtaHref": {
+      "type": "string"
+    },
+    "externalCtaLabel": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "updatedDate": {
       "type": "date"
     }
   }
