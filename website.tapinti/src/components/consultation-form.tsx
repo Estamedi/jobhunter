@@ -73,17 +73,6 @@ export function ConsultationForm() {
         />
       </label>
       <label className="block text-sm font-medium">
-        {t("email")}
-        <input
-          name="email"
-          type="email"
-          maxLength={256}
-          autoComplete="email"
-          dir="ltr"
-          className={field}
-        />
-      </label>
-      <label className="block text-sm font-medium">
         {t("phone")}
         <input
           name="phone"
@@ -91,6 +80,17 @@ export function ConsultationForm() {
           required
           maxLength={50}
           autoComplete="tel"
+          dir="ltr"
+          className={field}
+        />
+      </label>
+      <label className="block text-sm font-medium">
+        {t("email")}
+        <input
+          name="email"
+          type="email"
+          maxLength={256}
+          autoComplete="email"
           dir="ltr"
           className={field}
         />
