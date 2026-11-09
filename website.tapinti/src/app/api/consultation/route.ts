@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     locale: str(body.locale, 10),
     website: str(body.website, 200),
   };
-  if (!payload.fullName || !payload.email) {
+  if (!payload.fullName || !payload.phone) {
     return Response.json({ error: "invalid" }, { status: 400 });
   }
 

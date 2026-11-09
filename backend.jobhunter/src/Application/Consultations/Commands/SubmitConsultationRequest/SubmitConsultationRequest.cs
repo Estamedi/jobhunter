@@ -7,8 +7,8 @@ namespace backend.jobhunter.Application.Consultations.Commands.SubmitConsultatio
 public record SubmitConsultationRequestCommand : IRequest<int>
 {
     public required string FullName { get; init; }
-    public required string Email { get; init; }
-    public string? Phone { get; init; }
+    public string? Email { get; init; }
+    public required string Phone { get; init; }
     public string? Message { get; init; }
     public string? Locale { get; init; }
 
@@ -21,8 +21,8 @@ public class SubmitConsultationRequestCommandValidator : AbstractValidator<Submi
     public SubmitConsultationRequestCommandValidator()
     {
         RuleFor(x => x.FullName).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.Email).NotEmpty().MaximumLength(256).EmailAddress();
-        RuleFor(x => x.Phone).MaximumLength(50);
+        RuleFor(x => x.Email).MaximumLength(256).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email));
+        RuleFor(x => x.Phone).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Message).MaximumLength(2000);
         RuleFor(x => x.Locale).MaximumLength(10);
     }
@@ -39,8 +39,8 @@ public class SubmitConsultationRequestCommandHandler(IApplicationDbContext conte
         {
             Created = DateTimeOffset.UtcNow,
             FullName = request.FullName.Trim(),
-            Email = request.Email.Trim(),
-            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+            Phone = request.Phone.Trim(),
             Message = string.IsNullOrWhiteSpace(request.Message) ? null : request.Message.Trim(),
             Locale = string.IsNullOrWhiteSpace(request.Locale) ? null : request.Locale.Trim(),
         };

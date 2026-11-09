@@ -59,8 +59,8 @@ export function Consultations() {
             <TableRow>
               <TableHead>Received</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Language</TableHead>
               <TableHead>Message</TableHead>
             </TableRow>
@@ -89,16 +89,25 @@ export function Consultations() {
                   {format(new Date(lead.created), 'MMM d, yyyy HH:mm')}
                 </TableCell>
                 <TableCell className='font-medium'>{lead.fullName}</TableCell>
-                <TableCell>
+                <TableCell className='whitespace-nowrap'>
                   <a
                     className='text-primary hover:underline'
-                    href={`mailto:${lead.email}`}
+                    href={`tel:${lead.phone}`}
                   >
-                    {lead.email}
+                    {lead.phone}
                   </a>
                 </TableCell>
-                <TableCell className='whitespace-nowrap'>
-                  {lead.phone ?? '—'}
+                <TableCell>
+                  {lead.email ? (
+                    <a
+                      className='text-primary hover:underline'
+                      href={`mailto:${lead.email}`}
+                    >
+                      {lead.email}
+                    </a>
+                  ) : (
+                    '—'
+                  )}
                 </TableCell>
                 <TableCell className='uppercase'>{lead.locale ?? '—'}</TableCell>
                 <TableCell className='max-w-md whitespace-pre-wrap text-sm text-muted-foreground'>

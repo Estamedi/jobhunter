@@ -13,7 +13,7 @@ using backend.jobhunter.Infrastructure.Data;
 namespace backend.jobhunter.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261109092118_AddConsultationLeads")]
+    [Migration("20261109093228_AddConsultationLeads")]
     partial class AddConsultationLeads
     {
         /// <inheritdoc />
@@ -483,7 +483,6 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
@@ -501,6 +500,7 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 

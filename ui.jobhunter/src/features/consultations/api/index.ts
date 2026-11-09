@@ -4,8 +4,8 @@ export interface ConsultationLead {
   id: number
   created: string
   fullName: string
-  email: string
-  phone: string | null
+  email: string | null
+  phone: string
   message: string | null
   locale: string | null
 }

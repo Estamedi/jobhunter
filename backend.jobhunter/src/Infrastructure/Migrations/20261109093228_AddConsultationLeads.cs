@@ -20,8 +20,8 @@ namespace backend.jobhunter.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FullName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Phone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Phone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Message = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     Locale = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true)
                 },

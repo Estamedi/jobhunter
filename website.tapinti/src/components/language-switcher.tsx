@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useRef, useEffect } from "react";
-import { Globe, Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { locales, type Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
@@ -45,11 +45,9 @@ export function LanguageSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-2 text-sm text-foreground/80 transition-colors hover:text-foreground"
+        className="inline-grid size-9 place-items-center rounded-full border border-border bg-card/60 text-lg leading-none transition-colors hover:bg-muted"
       >
-        <Globe className="size-[18px]" />
-        <span className="hidden sm:inline">{LABELS[locale].native}</span>
-        <ChevronDown className="size-3.5 opacity-60" />
+        <span aria-hidden>{LABELS[locale].flag}</span>
       </button>
 
       {open && (

@@ -77,7 +77,6 @@ export function ConsultationForm() {
         <input
           name="email"
           type="email"
-          required
           maxLength={256}
           autoComplete="email"
           dir="ltr"
@@ -89,6 +88,7 @@ export function ConsultationForm() {
         <input
           name="phone"
           type="tel"
+          required
           maxLength={50}
           autoComplete="tel"
           dir="ltr"

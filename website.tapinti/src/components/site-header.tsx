@@ -8,21 +8,19 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button";
-import { CHROME_EXTENSION_URL, SIGN_IN_URL, SIGN_UP_URL } from "@/lib/links";
+import { CHROME_EXTENSION_URL, SIGN_IN_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
   { id: "features", key: "features" },
   { id: "how", key: "howItWorks" },
   { id: "pricing", key: "pricing" },
-  { id: "faq", key: "faq" },
 ] as const;
 
 const PAGE_LINKS = [{ href: "/blog", key: "blog" }] as const;
 
 export function SiteHeader() {
   const t = useTranslations("nav");
-  const c = useTranslations("common");
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -47,12 +45,12 @@ export function SiteHeader() {
           <Logo />
         </Link>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="hidden items-center gap-0.5 md:flex">
           {SECTIONS.map((s) => (
             <li key={s.id}>
               <Link
                 href={`/#${s.id}`}
-                className="rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
+                className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
               >
                 {t(s.key)}
               </Link>
@@ -62,7 +60,7 @@ export function SiteHeader() {
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
+                className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
               >
                 {t(l.key)}
               </Link>
@@ -77,13 +75,13 @@ export function SiteHeader() {
           <ThemeToggle />
           <a
             href={SIGN_IN_URL}
-            className="hidden rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground lg:inline-block"
+            className="hidden whitespace-nowrap rounded-full px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground lg:inline-block"
           >
             {t("signIn")}
           </a>
           <Link
             href="/consultation"
-            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-brand transition-colors hover:bg-muted md:inline-flex"
+            className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-brand/30 px-3.5 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 lg:inline-flex"
           >
             <MessageCircle className="size-4" />
             {t("consultation")}
@@ -98,13 +96,6 @@ export function SiteHeader() {
           >
             <Puzzle className="size-4" />
             {t("addToChrome")}
-          </ButtonLink>
-          <ButtonLink
-            href={SIGN_UP_URL}
-            size="sm"
-            className="hidden sm:inline-flex"
-          >
-            {c("startFree")}
           </ButtonLink>
           <button
             type="button"
@@ -165,11 +156,8 @@ export function SiteHeader() {
                 {t("addToChrome")}
               </a>
             </li>
-            <li className="mt-2 flex items-center justify-between gap-2">
+            <li className="mt-2">
               <LanguageSwitcher />
-              <ButtonLink href={SIGN_UP_URL} size="sm" className="flex-1">
-                {c("startFree")}
-              </ButtonLink>
             </li>
           </ul>
         </div>

@@ -9,8 +9,8 @@ public record ConsultationLeadDto(
     int Id,
     DateTimeOffset Created,
     string FullName,
-    string Email,
-    string? Phone,
+    string? Email,
+    string Phone,
     string? Message,
     string? Locale);
 
@@ -40,8 +40,8 @@ public class GetConsultationLeadsQueryHandler(IApplicationDbContext context)
         {
             var term = request.Search.Trim().ToLower();
             query = query.Where(l => l.FullName.ToLower().Contains(term)
-                || l.Email.ToLower().Contains(term)
-                || (l.Phone != null && l.Phone.Contains(term)));
+                || (l.Email != null && l.Email.ToLower().Contains(term))
+                || l.Phone.Contains(term));
         }
 
         var total = await query.CountAsync(cancellationToken);
