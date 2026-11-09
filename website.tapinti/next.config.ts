@@ -3,6 +3,10 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
 
+// Cover images uploaded in the CMS are served through this site, so the CMS needs no public address.
+// The target is fixed at build time; the default is the CMS container on the server.
+const CMS_URL = process.env.CMS_URL ?? "http://tapinti-cms:1337";
+
 const nextConfig: NextConfig = {
   async redirects() {
     // Permanent, so search engines treat /en as the canonical home page
@@ -27,7 +31,9 @@ const nextConfig: NextConfig = {
           destination: "/md/:locale",
         },
       ],
-      afterFiles: [],
+      afterFiles: [
+        { source: "/cms-uploads/:path*", destination: `${CMS_URL}/uploads/:path*` },
+      ],
       fallback: [],
     };
   },

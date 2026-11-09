@@ -5,6 +5,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { Link } from "@/i18n/navigation";
 import { getBlogImage } from "@/lib/blog-image";
 import { CONTENT_LOCALE, contentPages } from "@/content/pages";
+import { listCmsArticles } from "@/lib/cms";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Blog: Job Search Guides and Tools",
@@ -20,6 +23,9 @@ export default async function BlogIndex({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const cmsArticles = await listCmsArticles(locale);
+  // The built-in pages are English only, so they are not linked from the other languages.
+  const builtIn = locale === CONTENT_LOCALE ? contentPages : [];
 
   return (
     <>
@@ -33,7 +39,34 @@ export default async function BlogIndex({
             Guides and tools for running a calmer, better-organised job search.
           </p>
           <ul className="mt-12 space-y-4">
-            {contentPages.map((p) => {
+            {cmsArticles.map((a) => (
+              <li key={`cms-${a.slug}`}>
+                <Link
+                  href={`/${a.slug}`}
+                  className="block overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
+                >
+                  {a.cover && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={a.cover}
+                      alt=""
+                      width={1200}
+                      height={630}
+                      className="aspect-[1200/630] w-full object-cover"
+                    />
+                  )}
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold">{a.title}</h2>
+                    {a.excerpt && (
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        {a.excerpt}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            ))}
+            {builtIn.map((p) => {
               const image = getBlogImage(p.slug);
               return (
               <li key={p.slug}>

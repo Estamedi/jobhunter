@@ -16,6 +16,7 @@ services:
       - NODE_ENV=production
       - HOSTNAME=0.0.0.0
       - PORT=3000
+      - CMS_URL=${CMS_URL:-http://tapinti-cms:1337}
     labels:
       - "logging=promtail"
       - "com.docker.compose.project=jobhunter"
