@@ -1,5 +1,12 @@
 import { Link, useSearch } from '@tanstack/react-router'
-import { Check, Circle, LogIn, Upload, UserRoundCheck } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  Circle,
+  LogIn,
+  Upload,
+  UserRoundCheck,
+} from 'lucide-react'
 import { Logo } from '@/assets/logo'
 import { CvRewriteScene } from '../cv-rewrite-scene'
 import { UserAuthForm } from './components/user-auth-form'
@@ -36,10 +43,13 @@ export function SignIn() {
           <div className='absolute -right-24 bottom-0 size-72 rounded-full bg-foreground/20 blur-3xl' />
 
           <div className='relative space-y-8'>
-            <div className='flex items-center gap-3'>
+            <a
+              href='https://applyladder.com'
+              className='flex w-fit items-center gap-3'
+            >
               <Logo className='size-9' />
               <span className='text-xl font-bold'>Job Hunter CRM</span>
-            </div>
+            </a>
 
             <div className='space-y-4'>
               <h1 className='max-w-xl text-5xl font-black tracking-tight text-balance'>
@@ -110,10 +120,29 @@ export function SignIn() {
         </section>
 
         <section className='mx-auto w-full max-w-md'>
-          <div className='mb-6 flex items-center justify-center gap-3 lg:hidden'>
+          <div className='mb-6 flex items-center justify-between text-sm font-semibold'>
+            <a
+              href='https://applyladder.com'
+              className='inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary'
+            >
+              <ArrowLeft className='size-4' />
+              Back to website
+            </a>
+            <a
+              href='https://applyladder.com/#pricing'
+              className='text-muted-foreground hover:text-primary'
+            >
+              Pricing
+            </a>
+          </div>
+
+          <a
+            href='https://applyladder.com'
+            className='mb-6 flex items-center justify-center gap-3 lg:hidden'
+          >
             <Logo className='size-9' />
             <span className='text-xl font-bold'>Job Hunter CRM</span>
-          </div>
+          </a>
 
           <div className='rounded-[2rem] border border-border bg-card shadow-lg shadow-border/70 dark:shadow-none'>
             <div className='px-7 pt-7 pb-5'>
