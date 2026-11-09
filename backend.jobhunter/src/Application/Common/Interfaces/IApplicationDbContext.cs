@@ -5,6 +5,7 @@ namespace backend.jobhunter.Application.Common.Interfaces;
 public interface IApplicationDbContext
 {
     DbSet<AuditLog> AuditLogs { get; }
+    DbSet<ConsultationLead> ConsultationLeads { get; }
     DbSet<Candidate> Candidates { get; }
     DbSet<JobCompany> Companies { get; }
     DbSet<JobContact> Contacts { get; }

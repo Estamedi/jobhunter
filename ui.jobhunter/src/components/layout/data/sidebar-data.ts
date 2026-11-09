@@ -20,6 +20,7 @@ import {
   UserRound,
   Users,
   Bot,
+  MessageSquareText,
   ScrollText,
   Cog,
 } from 'lucide-react'
@@ -210,6 +211,7 @@ const administratorNavGroups: NavGroup[] = [
     title: 'Administration',
     items: [
       { title: 'Registered Users', url: '/users', icon: Users },
+      { title: 'Consultations', url: '/consultations', icon: MessageSquareText },
       { title: 'Audit log', url: '/audit-logs', icon: ScrollText },
       { title: 'Workers', url: '/workers', icon: Cog },
       {

@@ -19,6 +19,8 @@ public static class RateLimiting
         "/api/Users/resetPassword",
         "/api/Users/resendConfirmationEmail",
         "/api/Users/google-login",
+        // Public website form: limited per IP like the sign-in endpoints so it cannot be used to flood the leads list.
+        "/api/Consultations",
     ];
 
     public static void AddAppRateLimiting(this IHostApplicationBuilder builder)

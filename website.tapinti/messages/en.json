@@ -11,10 +11,28 @@
     "getStarted": "Get Started",
     "category": "The Personal Career CRM"
   },
+  "consultation": {
+    "title": "Book a free consultation",
+    "subtitle": "Tell us a little about you and we will get back to you by email to plan your job search together.",
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone (optional)",
+    "message": "What do you need help with? (optional)",
+    "submit": "Request consultation",
+    "sending": "Sending…",
+    "successTitle": "Thank you, we got your request",
+    "successText": "We will contact you by email soon.",
+    "error": "Something went wrong. Please try again in a moment.",
+    "invalid": "Please enter your name and a valid email.",
+    "privacy": "We only use your details to contact you about your consultation.",
+    "metaTitle": "Free consultation | ApplyLadder",
+    "metaDescription": "Request a free job search consultation with the ApplyLadder team."
+  },
   "nav": {
     "features": "Features",
     "howItWorks": "How it works",
     "blog": "Blog",
+    "consultation": "Free consultation",
     "extension": "Chrome extension",
     "addToChrome": "Add to Chrome",
     "pricing": "Pricing",

@@ -47,6 +47,7 @@ import { Route as AuthenticatedCvsIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCvScoreIndexRouteImport } from './routes/_authenticated/cv-score/index'
 import { Route as AuthenticatedCvBuilderIndexRouteImport } from './routes/_authenticated/cv-builder/index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
+import { Route as AuthenticatedConsultationsIndexRouteImport } from './routes/_authenticated/consultations/index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedCandidatesIndexRouteImport } from './routes/_authenticated/candidates/index'
@@ -263,6 +264,12 @@ const AuthenticatedContactsIndexRoute =
     path: '/contacts/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedConsultationsIndexRoute =
+  AuthenticatedConsultationsIndexRouteImport.update({
+    id: '/consultations/',
+    path: '/consultations/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCompaniesIndexRoute =
   AuthenticatedCompaniesIndexRouteImport.update({
     id: '/companies/',
@@ -377,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/candidates/': typeof AuthenticatedCandidatesIndexRoute
   '/chats/': typeof AuthenticatedChatsIndexRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
+  '/consultations/': typeof AuthenticatedConsultationsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/cv-builder/': typeof AuthenticatedCvBuilderIndexRoute
   '/cv-score/': typeof AuthenticatedCvScoreIndexRoute
@@ -427,6 +435,7 @@ export interface FileRoutesByTo {
   '/candidates': typeof AuthenticatedCandidatesIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
+  '/consultations': typeof AuthenticatedConsultationsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/cv-builder': typeof AuthenticatedCvBuilderIndexRoute
   '/cv-score': typeof AuthenticatedCvScoreIndexRoute
@@ -482,6 +491,7 @@ export interface FileRoutesById {
   '/_authenticated/candidates/': typeof AuthenticatedCandidatesIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
+  '/_authenticated/consultations/': typeof AuthenticatedConsultationsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/cv-builder/': typeof AuthenticatedCvBuilderIndexRoute
   '/_authenticated/cv-score/': typeof AuthenticatedCvScoreIndexRoute
@@ -535,6 +545,7 @@ export interface FileRouteTypes {
     | '/candidates/'
     | '/chats/'
     | '/companies/'
+    | '/consultations/'
     | '/contacts/'
     | '/cv-builder/'
     | '/cv-score/'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
     | '/candidates'
     | '/chats'
     | '/companies'
+    | '/consultations'
     | '/contacts'
     | '/cv-builder'
     | '/cv-score'
@@ -639,6 +651,7 @@ export interface FileRouteTypes {
     | '/_authenticated/candidates/'
     | '/_authenticated/chats/'
     | '/_authenticated/companies/'
+    | '/_authenticated/consultations/'
     | '/_authenticated/contacts/'
     | '/_authenticated/cv-builder/'
     | '/_authenticated/cv-score/'
@@ -946,6 +959,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/consultations/': {
+      id: '/_authenticated/consultations/'
+      path: '/consultations'
+      fullPath: '/consultations/'
+      preLoaderRoute: typeof AuthenticatedConsultationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/companies/': {
       id: '/_authenticated/companies/'
       path: '/companies'
@@ -1077,6 +1097,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCandidatesIndexRoute: typeof AuthenticatedCandidatesIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
+  AuthenticatedConsultationsIndexRoute: typeof AuthenticatedConsultationsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCvBuilderIndexRoute: typeof AuthenticatedCvBuilderIndexRoute
   AuthenticatedCvScoreIndexRoute: typeof AuthenticatedCvScoreIndexRoute
@@ -1107,6 +1128,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCandidatesIndexRoute: AuthenticatedCandidatesIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
+  AuthenticatedConsultationsIndexRoute: AuthenticatedConsultationsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCvBuilderIndexRoute: AuthenticatedCvBuilderIndexRoute,
   AuthenticatedCvScoreIndexRoute: AuthenticatedCvScoreIndexRoute,

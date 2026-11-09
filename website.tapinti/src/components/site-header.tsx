@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Menu, Puzzle, X } from "lucide-react";
+import { Menu, MessageCircle, Puzzle, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -81,6 +81,13 @@ export function SiteHeader() {
           >
             {t("signIn")}
           </a>
+          <Link
+            href="/consultation"
+            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-brand transition-colors hover:bg-muted md:inline-flex"
+          >
+            <MessageCircle className="size-4" />
+            {t("consultation")}
+          </Link>
           <ButtonLink
             href={CHROME_EXTENSION_URL}
             variant="secondary"
@@ -137,6 +144,16 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/consultation"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 font-medium text-brand hover:bg-muted"
+              >
+                <MessageCircle className="size-4" />
+                {t("consultation")}
+              </Link>
+            </li>
             <li>
               <a
                 href={CHROME_EXTENSION_URL}
