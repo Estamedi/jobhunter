@@ -81,7 +81,7 @@ export function SiteHeader() {
           </a>
           <Link
             href="/consultation"
-            className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-brand/30 px-3.5 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 lg:inline-flex"
+            className="hidden h-9 items-center gap-1.5 whitespace-nowrap rounded-full bg-[oklch(0.82_0.15_78)] px-4 text-sm font-medium text-[oklch(0.25_0.04_60)] shadow-md shadow-[oklch(0.82_0.15_78)]/30 transition-all hover:-translate-y-0.5 hover:bg-[oklch(0.86_0.15_78)] lg:inline-flex"
           >
             <MessageCircle className="size-4" />
             {t("consultation")}
@@ -139,7 +139,7 @@ export function SiteHeader() {
               <Link
                 href="/consultation"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-3 py-2.5 font-medium text-brand hover:bg-muted"
+                className="flex items-center gap-2 rounded-lg bg-[oklch(0.82_0.15_78)] px-3 py-2.5 font-medium text-[oklch(0.25_0.04_60)] hover:bg-[oklch(0.86_0.15_78)]"
               >
                 <MessageCircle className="size-4" />
                 {t("consultation")}
