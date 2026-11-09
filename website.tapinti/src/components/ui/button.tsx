@@ -1,7 +1,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "accent";
 type Size = "sm" | "md" | "lg";
 
 const base =
@@ -12,6 +12,9 @@ const variants: Record<Variant, string> = {
     "bg-brand text-white shadow-lg shadow-brand/25 hover:shadow-xl hover:shadow-brand/30 hover:-translate-y-0.5 bg-gradient-to-b from-[color-mix(in_oklab,var(--brand-primary)_92%,white)] to-brand",
   secondary:
     "border border-border bg-card/60 text-foreground backdrop-blur hover:bg-muted hover:-translate-y-0.5",
+  // Warm amber next to the brand green, so the consultation call-to-action stands out without clashing.
+  accent:
+    "bg-[oklch(0.82_0.15_78)] text-[oklch(0.25_0.04_60)] shadow-lg shadow-[oklch(0.82_0.15_78)]/30 hover:bg-[oklch(0.86_0.15_78)] hover:-translate-y-0.5",
   ghost: "text-foreground/80 hover:text-foreground hover:bg-muted",
 };
 

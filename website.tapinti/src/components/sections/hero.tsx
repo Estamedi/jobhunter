@@ -1,9 +1,9 @@
 "use client";
 
 import { motion, type Variants } from "motion/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { ArrowRight, Play, Puzzle, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, MessageCircle, Play, Puzzle, ShieldCheck, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { CHROME_EXTENSION_URL, SIGN_UP_URL } from "@/lib/links";
 
@@ -24,6 +24,7 @@ const item: Variants = {
 export function Hero() {
   const t = useTranslations("hero");
   const n = useTranslations("nav");
+  const locale = useLocale();
 
   return (
     <section
@@ -98,6 +99,15 @@ export function Hero() {
             >
               <Puzzle className="size-4" />
               {n("addToChrome")}
+            </ButtonLink>
+            <ButtonLink
+              href={`/${locale}/consultation`}
+              variant="accent"
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              <MessageCircle className="size-4" />
+              {n("consultation")}
             </ButtonLink>
           </motion.div>
 
