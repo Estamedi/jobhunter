@@ -119,7 +119,7 @@ jobs:
               done < .env
             fi
             printf 'CMS_IMAGE=%s\n' "$IMAGE" >> "$tmp_env"
-            printf 'CMS_PORT=8093\n' >> "$tmp_env"
+            printf 'CMS_PORT=8097\n' >> "$tmp_env"
             mv "$tmp_env" .env
 
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
@@ -149,7 +149,7 @@ jobs:
         if: success()
         run: |
           echo "ApplyLadder CMS deployed successfully to VPS"
-          echo "Admin panel: http://${{ secrets.VPS_HOST }}:8093/admin"
+          echo "Admin panel: http://${{ secrets.VPS_HOST }}:8097/admin"
 
       - name: Rollback on failure
         if: failure()
