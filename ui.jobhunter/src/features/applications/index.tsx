@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import { applicationsApi, type JobApplication, type CreateApplicationDto } from './api'
 import { candidatesApi } from '@/features/candidates/api'
 import { ListPagination } from '@/components/list-pagination'
@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { Plus, MoreHorizontal, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List, Eye, Sparkles } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, startOfWeek, subWeeks } from 'date-fns'
 import { ApplicationDetailDialog } from './components/application-detail-dialog'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
 import { ExtensionBanner } from './components/extension-banner'
@@ -24,12 +25,30 @@ import { DEFAULT_FILTERS, toApiFilters, type ApplicationFilters } from './data/f
 import { useBoardStages } from './hooks/use-board-stages'
 import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 50
+
+const NEEDS_ACTION = [
+  { value: 'Overdue', label: 'Overdue follow-ups' },
+  { value: 'DueToday', label: 'Due today' },
+  { value: 'ThisWeek', label: 'Due this week' },
+]
+
+// Rows arrive newest first, so grouping by week only needs to label where each group starts.
+function weekGroup(a: JobApplication): string {
+  const raw = a.appliedDate ?? a.lastActivityDate
+  if (!raw) return 'Earlier'
+  const d = new Date(raw)
+  const thisWeek = startOfWeek(new Date(), { weekStartsOn: 1 })
+  if (d >= thisWeek) return 'This week'
+  if (d >= subWeeks(thisWeek, 1)) return 'Last week'
+  return 'Earlier'
+}
 
 export function Applications() {
   const qc = useQueryClient()
   const [filters, setFilters] = useState<ApplicationFilters>(DEFAULT_FILTERS)
   const [page, setPage] = useState(1)
+  const [showRejected, setShowRejected] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<JobApplication | null>(null)
   const [customizeOpen, setCustomizeOpen] = useState(false)
@@ -59,10 +78,32 @@ export function Applications() {
     setPage(1)
   }
 
+  // Rejected applications pile up fastest, so the list hides them until asked for.
+  const excludeStatus = !filters.status && !showRejected ? 'Rejected' : undefined
+
   const { data, isLoading } = useQuery({
-    queryKey: ['applications', filters, page],
-    queryFn: () => applicationsApi.list({ ...toApiFilters(filters), page, pageSize: PAGE_SIZE }),
+    queryKey: ['applications', filters, excludeStatus, page],
+    queryFn: () => applicationsApi.list({ ...toApiFilters(filters), excludeStatus, page, pageSize: PAGE_SIZE }),
   })
+
+  // One tiny query per stage just to read its total for the count chips.
+  const stageCounts = useQueries({
+    queries: stages.map((s) => ({
+      queryKey: ['applications', 'count', s.status, { ...filters, status: undefined }],
+      queryFn: () => applicationsApi.list({ ...toApiFilters({ ...filters, status: s.status }), page: 1, pageSize: 1 }),
+      select: (r: { total: number }) => r.total,
+    })),
+  })
+
+  const changeStatus = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) => applicationsApi.updateStatus(id, status),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success('Status updated') },
+  })
+
+  function showView(view: 'active' | 'all' | string) {
+    setShowRejected(view === 'all')
+    updateFilters({ status: view === 'active' || view === 'all' ? undefined : view })
+  }
 
   const { data: myCandidate } = useQuery({
     queryKey: ['candidates', 'me'],
@@ -95,19 +136,51 @@ export function Applications() {
   return (
     <div className='space-y-4'>
       <ExtensionBanner />
-      <Tabs defaultValue='board'>
+      <Tabs defaultValue='all'>
         <div className='flex flex-wrap items-center justify-between gap-2'>
           <TabsList>
-            <TabsTrigger value='board'>
-              <LayoutGrid className='h-4 w-4 mr-1' /> Kanban View
-            </TabsTrigger>
             <TabsTrigger value='all'>
               <List className='h-4 w-4 mr-1' /> List View
+            </TabsTrigger>
+            <TabsTrigger value='board'>
+              <LayoutGrid className='h-4 w-4 mr-1' /> Kanban View
             </TabsTrigger>
           </TabsList>
           <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
             <Plus className='h-4 w-4 mr-1' /> Add Application
           </Button>
+        </div>
+
+        <div className='flex flex-wrap items-center gap-2' role='group' aria-label='Quick filters'>
+          <Button size='sm' variant={!filters.status && !showRejected ? 'default' : 'outline'} onClick={() => showView('active')}>
+            Active
+          </Button>
+          {stages.map((st, i) => (
+            <Button
+              key={st.status}
+              size='sm'
+              variant={filters.status === st.status ? 'default' : 'outline'}
+              onClick={() => showView(st.status)}
+            >
+              {st.label}
+              <span className='ml-1.5 tabular-nums text-xs opacity-70'>{stageCounts[i]?.data ?? '–'}</span>
+            </Button>
+          ))}
+          <Button size='sm' variant={!filters.status && showRejected ? 'default' : 'outline'} onClick={() => showView('all')}>
+            All
+          </Button>
+          <span className='mx-1 h-5 w-px bg-border' aria-hidden />
+          {NEEDS_ACTION.map((n) => (
+            <Button
+              key={n.value}
+              size='sm'
+              variant={filters.followUpStatus === n.value ? 'secondary' : 'ghost'}
+              aria-pressed={filters.followUpStatus === n.value}
+              onClick={() => updateFilters({ followUpStatus: filters.followUpStatus === n.value ? undefined : n.value })}
+            >
+              {n.label}
+            </Button>
+          ))}
         </div>
 
         <ApplicationsFilterBar filters={filters} onChange={updateFilters} statusOptions={stages} />
@@ -143,9 +216,16 @@ export function Applications() {
             {!isLoading && data?.items.length === 0 && (
               <TableRow><TableCell colSpan={10} className='text-center text-muted-foreground py-8'>No applications found.</TableCell></TableRow>
             )}
-            {data?.items.map((a) => (
+            {data?.items.map((a, idx) => (
+              <Fragment key={a.id}>
+              {(idx === 0 || weekGroup(data.items[idx - 1]) !== weekGroup(a)) && (
+                <TableRow className='bg-muted/40 hover:bg-muted/40'>
+                  <TableCell colSpan={10} className='py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                    {weekGroup(a)}
+                  </TableCell>
+                </TableRow>
+              )}
               <TableRow
-                key={a.id}
                 className='cursor-pointer'
                 onClick={() => openApplication(a.id)}
               >
@@ -158,10 +238,15 @@ export function Applications() {
                 >
                   {a.jobRoleDescription || '—'}
                 </TableCell>
-                <TableCell>
-                  <Badge variant={stageByStatus[a.status]?.badgeVariant ?? 'secondary'} className='text-xs whitespace-nowrap'>
-                    {stageByStatus[a.status]?.label ?? formatStatusLabel(a.status)}
-                  </Badge>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Select value={a.status} onValueChange={(status) => changeStatus.mutate({ id: a.id, status })}>
+                    <SelectTrigger className='h-8 w-[130px] text-xs' aria-label={`Status for ${a.jobRoleTitle ?? 'application'}`}>
+                      <SelectValue>{stageByStatus[a.status]?.label ?? formatStatusLabel(a.status)}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((st) => <SelectItem key={st.status} value={st.status}>{st.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   <Badge variant={a.priority === 'High' ? 'destructive' : 'secondary'} className='text-xs'>
@@ -217,6 +302,7 @@ export function Applications() {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
+              </Fragment>
             ))}
           </TableBody>
         </Table>

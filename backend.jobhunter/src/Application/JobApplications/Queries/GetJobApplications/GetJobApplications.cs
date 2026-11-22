@@ -47,6 +47,7 @@ public record GetJobApplicationsQuery(
     DateTimeOffset? FollowUpTo = null,
     string? FollowUpStatus = null,
     string? Search = null,
+    string? ExcludeStatus = null,
     int Page = 1,
     int PageSize = 50
 ) : IRequest<GetJobApplicationsResult>;
@@ -66,6 +67,8 @@ public class GetJobApplicationsQueryHandler(IApplicationDbContext context)
             query = query.Where(a => a.CompanyId == request.CompanyId.Value);
         if (!string.IsNullOrWhiteSpace(request.Status))
             query = query.Where(a => a.Status == request.Status);
+        if (!string.IsNullOrWhiteSpace(request.ExcludeStatus))
+            query = query.Where(a => a.Status != request.ExcludeStatus);
         if (request.Priority is { Length: > 0 })
         {
             var priorities = request.Priority

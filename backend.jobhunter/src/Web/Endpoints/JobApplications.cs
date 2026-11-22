@@ -37,14 +37,14 @@ public class JobApplications : IEndpointGroup
         string? jobTitle, decimal? salaryMin, decimal? salaryMax,
         DateTimeOffset? dateFrom, DateTimeOffset? dateTo,
         DateTimeOffset? followUpFrom, DateTimeOffset? followUpTo, string? followUpStatus,
-        string? search,
+        string? search, string? excludeStatus,
         int page = 1, int pageSize = 50,
         CancellationToken ct = default)
         => TypedResults.Ok(await sender.Send(
             new GetJobApplicationsQuery(
                 candidateId, companyId, status, priority, country, workType, employmentType, source,
                 jobTitle, salaryMin, salaryMax, dateFrom, dateTo, followUpFrom, followUpTo, followUpStatus,
-                search, page, pageSize), ct));
+                search, excludeStatus, page, pageSize), ct));
 
     [EndpointSummary("Attach a CV to an application")]
     [EndpointDescription("Sets the CV the application was sent with, replacing any CV already attached.")]

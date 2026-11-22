@@ -77,6 +77,7 @@ export const applicationsApi = {
       followUpFrom?: string
       followUpTo?: string
       followUpStatus?: string
+      excludeStatus?: string
       page?: number
       pageSize?: number
     } = {}
