@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import { applicationsApi, type JobApplication, type CreateApplicationDto } from './api'
@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { Plus, MoreHorizontal, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List, Eye, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Plus, MoreHorizontal, Trash2, Pencil, Download, FileText, Settings2, LayoutGrid, List, Eye, Sparkles, AlertCircle, Clock, CalendarDays } from 'lucide-react'
 import { format, startOfWeek, subWeeks } from 'date-fns'
 import { ApplicationDetailDialog } from './components/application-detail-dialog'
 import { ApplicationsMutateDialog } from './components/applications-mutate-dialog'
@@ -28,10 +29,44 @@ import { downloadCvFile } from '@/features/cvs/lib/cv-file'
 const PAGE_SIZE = 50
 
 const NEEDS_ACTION = [
-  { value: 'Overdue', label: 'Overdue follow-ups' },
-  { value: 'DueToday', label: 'Due today' },
-  { value: 'ThisWeek', label: 'Due this week' },
+  { value: 'Overdue', label: 'Overdue follow-ups', icon: AlertCircle, tone: 'text-red-700 dark:text-red-400' },
+  { value: 'DueToday', label: 'Due today', icon: Clock, tone: 'text-amber-700 dark:text-amber-400' },
+  { value: 'ThisWeek', label: 'Due this week', icon: CalendarDays, tone: '' },
 ]
+
+const STAGE_DOT: Record<string, string> = {
+  Wishlist: 'bg-slate-500',
+  Applied: 'bg-blue-500',
+  Interview: 'bg-amber-500',
+  Rejected: 'bg-red-500',
+}
+
+function SegmentButton({
+  active, onClick, count, dot, children,
+}: { active: boolean; onClick: () => void; count?: number; dot?: string; children: ReactNode }) {
+  return (
+    <button
+      type='button'
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-foreground hover:bg-background/70'
+      )}
+    >
+      {dot && <span className={cn('h-2 w-2 rounded-full', dot)} aria-hidden />}
+      {children}
+      <span
+        className={cn(
+          'min-w-5 rounded-full px-1.5 text-center text-xs font-semibold tabular-nums',
+          active ? 'bg-white/25 text-primary-foreground' : 'bg-foreground/10 text-foreground'
+        )}
+      >
+        {count ?? '–'}
+      </span>
+    </button>
+  )
+}
 
 // Rows arrive newest first, so grouping by week only needs to label where each group starts.
 function weekGroup(a: JobApplication): string {
@@ -95,6 +130,10 @@ export function Applications() {
     })),
   })
 
+  const countsReady = stageCounts.every((q) => q.data !== undefined)
+  const allTotal = countsReady ? stageCounts.reduce((n, q) => n + (q.data ?? 0), 0) : undefined
+  const activeTotal = allTotal === undefined ? undefined : allTotal - (stageCounts[stages.findIndex((s) => s.status === 'Rejected')]?.data ?? 0)
+
   const changeStatus = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => applicationsApi.updateStatus(id, status),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success('Status updated') },
@@ -151,36 +190,50 @@ export function Applications() {
           </Button>
         </div>
 
-        <div className='flex flex-wrap items-center gap-2' role='group' aria-label='Quick filters'>
-          <Button size='sm' variant={!filters.status && !showRejected ? 'default' : 'outline'} onClick={() => showView('active')}>
-            Active
-          </Button>
-          {stages.map((st, i) => (
-            <Button
-              key={st.status}
-              size='sm'
-              variant={filters.status === st.status ? 'default' : 'outline'}
-              onClick={() => showView(st.status)}
-            >
-              {st.label}
-              <span className='ml-1.5 tabular-nums text-xs opacity-70'>{stageCounts[i]?.data ?? '–'}</span>
-            </Button>
-          ))}
-          <Button size='sm' variant={!filters.status && showRejected ? 'default' : 'outline'} onClick={() => showView('all')}>
-            All
-          </Button>
-          <span className='mx-1 h-5 w-px bg-border' aria-hidden />
-          {NEEDS_ACTION.map((n) => (
-            <Button
-              key={n.value}
-              size='sm'
-              variant={filters.followUpStatus === n.value ? 'secondary' : 'ghost'}
-              aria-pressed={filters.followUpStatus === n.value}
-              onClick={() => updateFilters({ followUpStatus: filters.followUpStatus === n.value ? undefined : n.value })}
-            >
-              {n.label}
-            </Button>
-          ))}
+        <div className='flex flex-wrap items-center gap-x-4 gap-y-2'>
+          <div role='group' aria-label='Status filters' className='inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1'>
+            <SegmentButton active={!filters.status && !showRejected} onClick={() => showView('active')} count={activeTotal}>
+              Active
+            </SegmentButton>
+            <span className='mx-1 h-5 w-px bg-border' aria-hidden />
+            {stages.map((st, i) => (
+              <SegmentButton
+                key={st.status}
+                active={filters.status === st.status}
+                onClick={() => showView(st.status)}
+                count={stageCounts[i]?.data}
+                dot={STAGE_DOT[st.status] ?? 'bg-slate-400'}
+              >
+                {st.label}
+              </SegmentButton>
+            ))}
+            <span className='mx-1 h-5 w-px bg-border' aria-hidden />
+            <SegmentButton active={!filters.status && showRejected} onClick={() => showView('all')} count={allTotal}>
+              All
+            </SegmentButton>
+          </div>
+          <div role='group' aria-label='Follow-up filters' className='flex flex-wrap items-center gap-2'>
+            {NEEDS_ACTION.map((n) => {
+              const on = filters.followUpStatus === n.value
+              const Icon = n.icon
+              return (
+                <Button
+                  key={n.value}
+                  size='sm'
+                  variant='outline'
+                  aria-pressed={on}
+                  className={cn(
+                    'border-input font-medium',
+                    n.tone,
+                    on && 'border-foreground/60 bg-secondary ring-1 ring-foreground/20'
+                  )}
+                  onClick={() => updateFilters({ followUpStatus: on ? undefined : n.value })}
+                >
+                  <Icon className='h-4 w-4 mr-1' /> {n.label}
+                </Button>
+              )
+            })}
+          </div>
         </div>
 
         <ApplicationsFilterBar filters={filters} onChange={updateFilters} statusOptions={stages} />
