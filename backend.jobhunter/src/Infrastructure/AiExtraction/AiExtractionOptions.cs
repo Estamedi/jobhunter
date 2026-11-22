@@ -2,7 +2,7 @@ namespace backend.jobhunter.Infrastructure.AiExtraction;
 
 public class AiExtractionOptions
 {
-    public string PreferredProvider { get; set; } = "OpenAI";
+    public string PreferredProvider { get; set; } = "OpenRouter";
     public string? AnthropicApiKey { get; set; }
     public string AnthropicModel { get; set; } = "claude-opus-4-8";
     public string? AnthropicCvModel { get; set; }
@@ -10,7 +10,7 @@ public class AiExtractionOptions
     public string OpenAiModel { get; set; } = "gpt-4o-mini";
     public string? OpenAiCvModel { get; set; }
     public string? OpenRouterApiKey { get; set; }
-    public string OpenRouterModel { get; set; } = "openai/gpt-4o-mini";
+    public string OpenRouterModel { get; set; } = "google/gemini-4-carbon";
     public string? OpenRouterCvModel { get; set; }
 
     /// <summary>Providers an administrator can pick between.</summary>
