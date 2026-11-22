@@ -236,7 +236,7 @@ export function Applications() {
           </div>
         </div>
 
-        <ApplicationsFilterBar filters={filters} onChange={updateFilters} statusOptions={stages} />
+        <ApplicationsFilterBar filters={filters} onChange={updateFilters} />
 
         <TabsContent value='board' className='mt-4 space-y-3'>
           <div className='flex justify-end'>
