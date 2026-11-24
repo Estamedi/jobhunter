@@ -8,6 +8,8 @@ import {
 } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { type TFunction } from 'i18next'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   ArrowRight,
@@ -62,15 +64,15 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function validateResumeFile(file: File) {
+function validateResumeFile(file: File, t: TFunction) {
   const extension = file.name.split('.').pop()?.toLowerCase()
 
   if (!extension || !ACCEPTED_EXTENSIONS.includes(extension)) {
-    return 'Upload a PDF or DOCX resume file.'
+    return t('Upload a PDF or DOCX resume file.')
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return 'File must be 10 MB or smaller.'
+    return t('File must be 10 MB or smaller.')
   }
 
   return null
@@ -83,6 +85,7 @@ function SkipOnboardingButton({
   onSkip: () => void
   isSkipping: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <button
       type='button'
@@ -90,7 +93,7 @@ function SkipOnboardingButton({
       disabled={isSkipping}
       className='inline-flex w-fit items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50'
     >
-      {isSkipping ? 'Skipping…' : 'Skip for now'}
+      {isSkipping ? t('Skipping…') : t('Skip for now')}
     </button>
   )
 }
@@ -107,6 +110,7 @@ function nameFromResume(fileName: string) {
 }
 
 export function Onboarding() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { auth } = useAuthStore()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -126,7 +130,7 @@ export function Onboarding() {
   function handleFile(file?: File) {
     if (!file) return
 
-    const validationError = validateResumeFile(file)
+    const validationError = validateResumeFile(file, t)
     if (validationError) {
       setSelectedFile(null)
       setError(validationError)
@@ -171,7 +175,9 @@ export function Onboarding() {
       toast.error(
         error instanceof ImportFailedError
           ? error.message
-          : 'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+          : t(
+              'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+            )
       )
     } finally {
       setIsAnalyzing(false)
@@ -208,7 +214,9 @@ export function Onboarding() {
       toast.error(
         error instanceof ImportFailedError
           ? error.message
-          : 'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+          : t(
+              'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+            )
       ),
   })
 
@@ -303,7 +311,7 @@ export function Onboarding() {
       toast.error(
         getApiErrorMessage(
           err,
-          'Failed to save your profile. Please try again.'
+          t('Failed to save your profile. Please try again.')
         )
       )
     } finally {
@@ -319,7 +327,7 @@ export function Onboarding() {
       auth.setOnboardingStatus('Skipped')
       navigate({ to: '/onboarding/extension', replace: true })
     } catch {
-      toast.error('Failed to skip onboarding. Please try again.')
+      toast.error(t('Failed to skip onboarding. Please try again.'))
     } finally {
       setIsSkipping(false)
     }
@@ -345,8 +353,8 @@ export function Onboarding() {
                 onClick={() => setView('upload')}
                 className='inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
               >
-                <ArrowLeft className='size-4' />
-                Back to CV upload
+                <ArrowLeft className='size-4 rtl:rotate-180' />
+                {t('Back to CV upload')}
               </button>
               <SkipOnboardingButton
                 onSkip={skipOnboarding}
@@ -355,14 +363,15 @@ export function Onboarding() {
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 2 of 3
+              {t('Step {{n}} of 3', { n: 2 })}
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
-              Review your profile
+              {t('Review your profile')}
             </CardTitle>
             <CardDescription className='text-base'>
-              We filled this in from your resume. Check the details before you
-              continue.
+              {t(
+                'We filled this in from your resume. Check the details before you continue.'
+              )}
             </CardDescription>
           </CardHeader>
 
@@ -372,7 +381,7 @@ export function Onboarding() {
                 <CheckCircle2 className='size-5' />
               </div>
               <div className='min-w-0 flex-1'>
-                <p className='font-semibold'>Resume processed successfully</p>
+                <p className='font-semibold'>{t('Resume processed successfully')}</p>
                 <p className='truncate text-sm text-muted-foreground'>
                   {fileName}
                 </p>
@@ -382,79 +391,79 @@ export function Onboarding() {
             <form className='space-y-6' onSubmit={submitManualProfile}>
               <div className='grid gap-5 sm:grid-cols-2'>
                 <div className='space-y-2'>
-                  <Label htmlFor='parsed-full-name'>Full name</Label>
+                  <Label htmlFor='parsed-full-name'>{t('Full name')}</Label>
                   <div className='relative'>
-                    <UserRound className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <UserRound className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                     <Input
                       id='parsed-full-name'
                       name='fullName'
                       defaultValue={initialName}
-                      className='h-11 rounded-xl pl-10'
+                      className='h-11 rounded-xl ps-10'
                       required
                     />
                   </div>
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='parsed-email'>Email</Label>
+                  <Label htmlFor='parsed-email'>{t('Email')}</Label>
                   <div className='relative'>
-                    <Mail className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Mail className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                     <Input
                       id='parsed-email'
                       name='email'
                       type='email'
                       defaultValue={initialEmail}
-                      className='h-11 rounded-xl pl-10'
+                      className='h-11 rounded-xl ps-10'
                       required
                     />
                   </div>
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='parsed-job-title'>Current job title</Label>
+                  <Label htmlFor='parsed-job-title'>{t('Current job title')}</Label>
                   <div className='relative'>
-                    <BriefcaseBusiness className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <BriefcaseBusiness className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                     <Input
                       id='parsed-job-title'
                       name='jobTitle'
                       defaultValue={initialTitle}
-                      className='h-11 rounded-xl pl-10'
+                      className='h-11 rounded-xl ps-10'
                       required
                     />
                   </div>
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='parsed-phone'>Phone</Label>
+                  <Label htmlFor='parsed-phone'>{t('Phone')}</Label>
                   <div className='relative'>
-                    <Phone className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <Phone className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                     <Input
                       id='parsed-phone'
                       name='phone'
                       type='tel'
                       defaultValue={initialPhone}
-                      className='h-11 rounded-xl pl-10'
+                      className='h-11 rounded-xl ps-10'
                     />
                   </div>
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='parsed-location'>Location</Label>
+                  <Label htmlFor='parsed-location'>{t('Location')}</Label>
                   <div className='relative'>
-                    <MapPin className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                    <MapPin className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                     <Input
                       id='parsed-location'
                       name='location'
                       defaultValue={initialLocation}
-                      placeholder='City, country'
-                      className='h-11 rounded-xl pl-10'
+                      placeholder={t('City, country')}
+                      className='h-11 rounded-xl ps-10'
                     />
                   </div>
                 </div>
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='parsed-summary'>Professional summary</Label>
+                <Label htmlFor='parsed-summary'>{t('Professional summary')}</Label>
                 <Textarea
                   id='parsed-summary'
                   name='summary'
@@ -464,14 +473,14 @@ export function Onboarding() {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='parsed-skills'>Skills</Label>
+                <Label htmlFor='parsed-skills'>{t('Skills')}</Label>
                 <div className='relative'>
-                  <Sparkles className='pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground' />
+                  <Sparkles className='pointer-events-none absolute top-3 start-3 size-4 text-muted-foreground' />
                   <Textarea
                     id='parsed-skills'
                     name='skills'
                     defaultValue={initialSkills}
-                    className='min-h-20 resize-none rounded-xl pl-10'
+                    className='min-h-20 resize-none rounded-xl ps-10'
                   />
                 </div>
               </div>
@@ -482,15 +491,15 @@ export function Onboarding() {
                 type='submit'
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Saving…' : 'Confirm and continue'}
-                <ArrowRight className='size-4' />
+                {isSubmitting ? t('Saving…') : t('Confirm and continue')}
+                <ArrowRight className='size-4 rtl:rotate-180' />
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <p className='mt-6 text-sm text-muted-foreground'>
-          You can edit any information extracted from your resume.
+          {t('You can edit any information extracted from your resume.')}
         </p>
       </main>
     )
@@ -507,8 +516,8 @@ export function Onboarding() {
                 onClick={() => setView('upload')}
                 className='inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
               >
-                <ArrowLeft className='size-4' />
-                Back to CV upload
+                <ArrowLeft className='size-4 rtl:rotate-180' />
+                {t('Back to CV upload')}
               </button>
               <SkipOnboardingButton
                 onSkip={skipOnboarding}
@@ -517,28 +526,29 @@ export function Onboarding() {
             </div>
             <div className='mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 1 of 3
+              {t('Step {{n}} of 3', { n: 1 })}
             </div>
             <CardTitle className='text-3xl font-bold tracking-tight'>
-              Build your profile
+              {t('Build your profile')}
             </CardTitle>
             <CardDescription className='text-base'>
-              Tell us what you are looking for and we’ll personalize your job
-              search.
+              {t(
+                'Tell us what you are looking for and we’ll personalize your job search.'
+              )}
             </CardDescription>
           </CardHeader>
 
           <CardContent className='px-8 py-7'>
             <form className='space-y-5' onSubmit={submitManualProfile}>
               <div className='space-y-2'>
-                <Label htmlFor='full-name'>Full name</Label>
+                <Label htmlFor='full-name'>{t('Full name')}</Label>
                 <div className='relative'>
-                  <UserRound className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                  <UserRound className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                   <Input
                     id='full-name'
                     name='fullName'
-                    placeholder='Your full name'
-                    className='h-11 rounded-xl pl-10'
+                    placeholder={t('Your full name')}
+                    className='h-11 rounded-xl ps-10'
                     required
                     autoFocus
                   />
@@ -546,42 +556,42 @@ export function Onboarding() {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='job-title'>Desired job title</Label>
+                <Label htmlFor='job-title'>{t('Desired job title')}</Label>
                 <div className='relative'>
-                  <BriefcaseBusiness className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                  <BriefcaseBusiness className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                   <Input
                     id='job-title'
                     name='jobTitle'
-                    placeholder='e.g. Product Designer'
-                    className='h-11 rounded-xl pl-10'
+                    placeholder={t('e.g. Product Designer')}
+                    className='h-11 rounded-xl ps-10'
                     required
                   />
                 </div>
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='location'>Location</Label>
+                <Label htmlFor='location'>{t('Location')}</Label>
                 <div className='relative'>
-                  <MapPin className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+                  <MapPin className='pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground' />
                   <Input
                     id='location'
                     name='location'
-                    placeholder='City, country or Remote'
-                    className='h-11 rounded-xl pl-10'
+                    placeholder={t('City, country or Remote')}
+                    className='h-11 rounded-xl ps-10'
                     required
                   />
                 </div>
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='skills'>Skills</Label>
+                <Label htmlFor='skills'>{t('Skills')}</Label>
                 <div className='relative'>
-                  <Sparkles className='pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground' />
+                  <Sparkles className='pointer-events-none absolute top-3 start-3 size-4 text-muted-foreground' />
                   <Textarea
                     id='skills'
                     name='skills'
-                    placeholder='Add your key skills, separated by commas'
-                    className='min-h-24 resize-none rounded-xl pl-10'
+                    placeholder={t('Add your key skills, separated by commas')}
+                    className='min-h-24 resize-none rounded-xl ps-10'
                     required
                   />
                 </div>
@@ -593,15 +603,15 @@ export function Onboarding() {
                 type='submit'
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Saving…' : 'Save and continue'}
-                <ArrowRight className='size-4' />
+                {isSubmitting ? t('Saving…') : t('Save and continue')}
+                <ArrowRight className='size-4 rtl:rotate-180' />
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <p className='mt-6 text-sm text-muted-foreground'>
-          You can update your profile anytime.
+          {t('You can update your profile anytime.')}
         </p>
       </main>
     )
@@ -626,7 +636,7 @@ export function Onboarding() {
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 1 of 3
+              {t('Step {{n}} of 3', { n: 1 })}
             </div>
             <SkipOnboardingButton
               onSkip={skipOnboarding}
@@ -634,10 +644,10 @@ export function Onboarding() {
             />
           </div>
           <CardTitle className='text-3xl font-bold tracking-tight'>
-            Set up your profile
+            {t('Set up your profile')}
           </CardTitle>
           <CardDescription className='text-base'>
-            Upload your CV and we'll do the rest.
+            {t("Upload your CV and we'll do the rest.")}
           </CardDescription>
         </CardHeader>
 
@@ -673,7 +683,9 @@ export function Onboarding() {
                   <div className='min-w-0 flex-1'>
                     <p className='truncate font-bold'>{selectedFile.name}</p>
                     <p className='mt-1 text-sm text-muted-foreground'>
-                      {formatFileSize(selectedFile.size)} selected
+                      {t('{{size}} selected', {
+                        size: formatFileSize(selectedFile.size),
+                      })}
                     </p>
                   </div>
                   <button
@@ -683,14 +695,14 @@ export function Onboarding() {
                       removeFile()
                     }}
                     className='rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground'
-                    aria-label='Remove selected CV'
+                    aria-label={t('Remove selected CV')}
                   >
                     <X className='size-4' />
                   </button>
                 </div>
                 <div className='mt-4 flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400'>
                   <CheckCircle2 className='size-4' />
-                  Resume ready to upload
+                  {t('Resume ready to upload')}
                 </div>
               </div>
             ) : (
@@ -698,12 +710,12 @@ export function Onboarding() {
                 <div className='mb-5 flex size-18 items-center justify-center rounded-3xl border border-primary/20 bg-accent text-primary shadow-sm dark:border-primary/40 dark:bg-primary/15'>
                   <Upload className='size-8' />
                 </div>
-                <p className='text-lg font-bold'>Drop your CV here</p>
+                <p className='text-lg font-bold'>{t('Drop your CV here')}</p>
                 <p className='mt-1 text-sm text-muted-foreground'>
-                  PDF or DOCX - up to 10 MB
+                  {t('PDF or DOCX - up to 10 MB')}
                 </p>
                 <span className='mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-white shadow-xs hover:bg-primary/90'>
-                  Upload CV
+                  {t('Upload CV')}
                 </span>
               </>
             )}
@@ -718,7 +730,7 @@ export function Onboarding() {
 
           <div className='flex items-center gap-4 text-sm text-muted-foreground'>
             <div className='h-px flex-1 bg-border' />
-            or
+            {t('or')}
             <div className='h-px flex-1 bg-border' />
           </div>
 
@@ -728,7 +740,7 @@ export function Onboarding() {
             className='w-full rounded-2xl'
             onClick={() => setView('manual')}
           >
-            Fill in manually
+            {t('Fill in manually')}
           </Button>
 
           <Button
@@ -737,14 +749,14 @@ export function Onboarding() {
             disabled={!selectedFile}
             onClick={analyzeResume}
           >
-            Continue
-            <ArrowRight className='size-4' />
+            {t('Continue')}
+            <ArrowRight className='size-4 rtl:rotate-180' />
           </Button>
         </CardContent>
       </Card>
 
       <p className='mt-6 text-sm text-muted-foreground'>
-        You can update your profile anytime.
+        {t('You can update your profile anytime.')}
       </p>
     </main>
   )

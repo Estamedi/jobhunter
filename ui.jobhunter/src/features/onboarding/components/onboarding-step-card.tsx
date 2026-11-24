@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,6 +10,7 @@ type OnboardingStepCardProps = {
 }
 
 export function OnboardingStepCard({ step, index }: OnboardingStepCardProps) {
+  const { t } = useTranslation()
   const Icon = step.icon
   const status = statusConfig[step.status]
 
@@ -26,19 +28,19 @@ export function OnboardingStepCard({ step, index }: OnboardingStepCardProps) {
         <div className='min-w-0 flex-1 space-y-2'>
           <div className='flex flex-wrap items-center gap-2'>
             <span className='text-xs font-medium text-muted-foreground'>
-              Step {index + 1}
+              {t('Step {{n}}', { n: index + 1 })}
             </span>
             <Badge
               variant='outline'
               className={cn('text-xs', status.className)}
             >
-              {status.label}
+              {t(status.label)}
             </Badge>
           </div>
           <div>
-            <h3 className='font-semibold'>{step.title}</h3>
+            <h3 className='font-semibold'>{t(step.title)}</h3>
             <p className='mt-1 text-sm text-muted-foreground'>
-              {step.description}
+              {t(step.description)}
             </p>
           </div>
         </div>

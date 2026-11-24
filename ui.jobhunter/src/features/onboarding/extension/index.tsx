@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowRight, CheckCircle2, Puzzle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -25,6 +26,7 @@ function isChrome() {
 
 export function OnboardingExtension() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const goHome = () => navigate({ to: '/', replace: true })
 
   return (
@@ -34,22 +36,23 @@ export function OnboardingExtension() {
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2 text-sm font-bold tracking-wide text-primary uppercase'>
               <span className='size-2 rounded-full bg-primary' />
-              Step 3 of 3
+              {t('Step {{n}} of 3', { n: 3 })}
             </div>
             <button
               type='button'
               onClick={goHome}
               className='inline-flex w-fit items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
             >
-              Skip for now
+              {t('Skip for now')}
             </button>
           </div>
           <CardTitle className='text-3xl font-bold tracking-tight'>
-            Save jobs in one click
+            {t('Save jobs in one click')}
           </CardTitle>
           <CardDescription className='text-base'>
-            Add the ApplyLadder Job Saver extension to build your pipeline
-            faster.
+            {t(
+              'Add the ApplyLadder Job Saver extension to build your pipeline faster.'
+            )}
           </CardDescription>
         </CardHeader>
 
@@ -62,7 +65,7 @@ export function OnboardingExtension() {
               {benefits.map((b) => (
                 <li key={b} className='flex items-start gap-2'>
                   <CheckCircle2 className='mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400' />
-                  {b}
+                  {t(b)}
                 </li>
               ))}
             </ul>
@@ -75,13 +78,14 @@ export function OnboardingExtension() {
                 target='_blank'
                 rel='noopener noreferrer'
               >
-                Add to Chrome
+                {t('Add to Chrome')}
               </a>
             </Button>
           ) : (
             <p className='rounded-2xl border bg-background p-4 text-center text-sm text-muted-foreground'>
-              The extension works in Chrome. Open ApplyLadder on desktop Chrome
-              to install it.
+              {t(
+                'The extension works in Chrome. Open ApplyLadder on desktop Chrome to install it.'
+              )}
             </p>
           )}
 
@@ -91,14 +95,14 @@ export function OnboardingExtension() {
             className='w-full rounded-2xl'
             onClick={goHome}
           >
-            Continue to dashboard
-            <ArrowRight className='size-4' />
+            {t('Continue to dashboard')}
+            <ArrowRight className='size-4 rtl:rotate-180' />
           </Button>
         </CardContent>
       </Card>
 
       <p className='mt-6 text-sm text-muted-foreground'>
-        You can install it anytime from your dashboard.
+        {t('You can install it anytime from your dashboard.')}
       </p>
     </main>
   )

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { type IntegrationOption } from '../data/onboarding-data'
@@ -7,6 +8,7 @@ type IntegrationOptionCardProps = {
 }
 
 export function IntegrationOptionCard({ option }: IntegrationOptionCardProps) {
+  const { t } = useTranslation()
   const Icon = option.icon
 
   return (
@@ -16,12 +18,12 @@ export function IntegrationOptionCard({ option }: IntegrationOptionCardProps) {
           <div className='flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary'>
             <Icon className='size-5' />
           </div>
-          <Badge variant='secondary'>{option.badge}</Badge>
+          <Badge variant='secondary'>{t(option.badge)}</Badge>
         </div>
         <div>
-          <h3 className='font-semibold'>{option.title}</h3>
+          <h3 className='font-semibold'>{t(option.title)}</h3>
           <p className='mt-2 text-sm leading-6 text-muted-foreground'>
-            {option.description}
+            {t(option.description)}
           </p>
         </div>
       </CardContent>
