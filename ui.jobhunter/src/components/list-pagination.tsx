@@ -45,7 +45,9 @@ export function ListPagination({
                 e.preventDefault()
                 if (page > 1) onPageChange(page - 1)
               }}
-              className={page <= 1 ? 'pointer-events-none opacity-50' : undefined}
+              className={
+                page <= 1 ? 'pointer-events-none opacity-50' : undefined
+              }
             />
           </PaginationItem>
           {pageNumbers.map((pageNumber, index) =>
@@ -75,7 +77,11 @@ export function ListPagination({
                 e.preventDefault()
                 if (page < totalPages) onPageChange(page + 1)
               }}
-              className={page >= totalPages ? 'pointer-events-none opacity-50' : undefined}
+              className={
+                page >= totalPages
+                  ? 'pointer-events-none opacity-50'
+                  : undefined
+              }
             />
           </PaginationItem>
         </PaginationContent>

@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { LogOut, Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import useDialogState from '@/hooks/use-dialog-state'
 import {
   SidebarMenu,
@@ -10,6 +11,7 @@ import { SignOutDialog } from '@/components/sign-out-dialog'
 
 export function NavUser() {
   const [open, setOpen] = useDialogState()
+  const { t } = useTranslation()
 
   return (
     <>
@@ -17,23 +19,23 @@ export function NavUser() {
         <SidebarMenuItem>
           <SidebarMenuButton
             asChild
-            tooltip='Settings'
+            tooltip={t('Settings')}
             className='text-sidebar-muted-foreground'
           >
             <Link to='/settings'>
               <Settings />
-              <span>Settings</span>
+              <span>{t('Settings')}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton
-            tooltip='Sign out'
+            tooltip={t('Sign out')}
             className='text-sidebar-muted-foreground'
             onClick={() => setOpen(true)}
           >
             <LogOut />
-            <span>Sign out</span>
+            <span>{t('Sign out')}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

@@ -1,5 +1,16 @@
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type Path,
+} from 'react-hook-form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type Option = string | { value: string; label: string }
 
@@ -10,7 +21,11 @@ type FormSelectProps<T extends FieldValues> = {
 }
 
 // shadcn Select bound to react-hook-form, for forms that otherwise use `register`.
-export function FormSelect<T extends FieldValues>({ control, name, options }: FormSelectProps<T>) {
+export function FormSelect<T extends FieldValues>({
+  control,
+  name,
+  options,
+}: FormSelectProps<T>) {
   return (
     <Controller
       control={control}
@@ -22,8 +37,13 @@ export function FormSelect<T extends FieldValues>({ control, name, options }: Fo
           </SelectTrigger>
           <SelectContent>
             {options.map((o) => {
-              const { value, label } = typeof o === 'string' ? { value: o, label: o } : o
-              return <SelectItem key={value} value={value}>{label}</SelectItem>
+              const { value, label } =
+                typeof o === 'string' ? { value: o, label: o } : o
+              return (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              )
             })}
           </SelectContent>
         </Select>

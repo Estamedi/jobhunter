@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { DirectionProvider as RdxDirProvider } from '@radix-ui/react-direction'
+import { useTranslation } from 'react-i18next'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
 export type Direction = 'ltr' | 'rtl'
@@ -18,6 +19,7 @@ type DirectionContextType = {
 const DirectionContext = createContext<DirectionContextType | null>(null)
 
 export function DirectionProvider({ children }: { children: React.ReactNode }) {
+  const { i18n } = useTranslation()
   const [dir, _setDir] = useState<Direction>(
     () => (getCookie(DIRECTION_COOKIE_NAME) as Direction) || DEFAULT_DIRECTION
   )
@@ -25,7 +27,8 @@ export function DirectionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const htmlElement = document.documentElement
     htmlElement.setAttribute('dir', dir)
-  }, [dir])
+    htmlElement.setAttribute('lang', i18n.language)
+  }, [dir, i18n.language])
 
   const setDir = (dir: Direction) => {
     _setDir(dir)

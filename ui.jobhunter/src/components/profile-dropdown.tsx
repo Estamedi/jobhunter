@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { UserRound } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -17,8 +18,9 @@ import { SignOutDialog } from '@/components/sign-out-dialog'
 
 export function ProfileDropdown() {
   const [open, setOpen] = useDialogState()
+  const { t } = useTranslation()
   const email = useAuthStore((state) => state.auth.user?.email)
-  const displayName = email?.split('@')[0] || 'Account'
+  const displayName = email?.split('@')[0] || t('Account')
   const initials = displayName.slice(0, 2).toUpperCase()
 
   return (
@@ -36,7 +38,7 @@ export function ProfileDropdown() {
             <div className='flex flex-col gap-1.5'>
               <p className='text-sm leading-none font-medium'>{displayName}</p>
               <p className='text-xs leading-none text-muted-foreground'>
-                {email || 'Not signed in'}
+                {email || t('Not signed in')}
               </p>
             </div>
           </DropdownMenuLabel>
@@ -44,12 +46,12 @@ export function ProfileDropdown() {
           <DropdownMenuItem asChild>
             <Link to='/profile'>
               <UserRound />
-              My Profile
+              {t('My Profile')}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant='destructive' onClick={() => setOpen(true)}>
-            Sign out
+            {t('Sign out')}
             <DropdownMenuShortcut className='text-current'>
               ⇧⌘Q
             </DropdownMenuShortcut>

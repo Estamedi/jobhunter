@@ -1,10 +1,19 @@
 import { format } from 'date-fns'
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type Path,
+} from 'react-hook-form'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 type DateTimePickerProps = {
   // Local "yyyy-MM-ddTHH:mm" string (the same format a datetime-local input uses).
@@ -22,7 +31,8 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const date = parse(value)
   const time = date ? format(date, 'HH:mm') : '09:00'
 
-  const emit = (day: Date, hhmm: string) => onChange(`${format(day, 'yyyy-MM-dd')}T${hhmm}`)
+  const emit = (day: Date, hhmm: string) =>
+    onChange(`${format(day, 'yyyy-MM-dd')}T${hhmm}`)
 
   return (
     <Popover>
@@ -33,7 +43,11 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
           data-empty={!date}
           className='w-full justify-start text-start font-normal data-[empty=true]:text-muted-foreground'
         >
-          {date ? format(date, 'MMM d, yyyy HH:mm') : <span>Pick date & time</span>}
+          {date ? (
+            format(date, 'MMM d, yyyy HH:mm')
+          ) : (
+            <span>Pick date & time</span>
+          )}
           <CalendarIcon className='ms-auto h-4 w-4 opacity-50' />
         </Button>
       </PopoverTrigger>
@@ -49,7 +63,9 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
           <Input
             type='time'
             value={time}
-            onChange={(e) => emit(date ?? new Date(), e.target.value || '00:00')}
+            onChange={(e) =>
+              emit(date ?? new Date(), e.target.value || '00:00')
+            }
           />
         </div>
       </PopoverContent>
@@ -71,7 +87,9 @@ export function FormDateTime<T extends FieldValues>({
       control={control}
       name={name}
       rules={required ? { required: true } : undefined}
-      render={({ field }) => <DateTimePicker value={field.value} onChange={field.onChange} />}
+      render={({ field }) => (
+        <DateTimePicker value={field.value} onChange={field.onChange} />
+      )}
     />
   )
 }

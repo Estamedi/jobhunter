@@ -1,0 +1,58 @@
+/** Persian translations. Keys are the English source strings. */
+export const fa: Record<string, string> = {
+  // Sidebar groups
+  Overview: 'نمای کلی',
+  Pipeline: 'خط لوله',
+  Documents: 'اسناد',
+  Network: 'شبکه',
+  Setup: 'تنظیمات اولیه',
+  Administration: 'مدیریت',
+  // Sidebar items
+  Dashboard: 'داشبورد',
+  Reports: 'گزارش‌ها',
+  Applications: 'درخواست‌ها',
+  Vacancies: 'موقعیت‌های شغلی',
+  'Follow-Ups': 'پیگیری‌ها',
+  Interviews: 'مصاحبه‌ها',
+  Activities: 'فعالیت‌ها',
+  Companies: 'شرکت‌ها',
+  Contacts: 'مخاطبان',
+  CVs: 'رزومه‌ها',
+  'CV Writer': 'نگارنده رزومه',
+  'CV Score': 'امتیاز رزومه',
+  'My Profile': 'پروفایل من',
+  Notes: 'یادداشت‌ها',
+  Onboarding: 'شروع به کار',
+  'Job Titles': 'عناوین شغلی',
+  Settings: 'تنظیمات',
+  Password: 'گذرواژه',
+  'AI provider': 'ارائه‌دهنده هوش مصنوعی',
+  'Registered Users': 'کاربران ثبت‌شده',
+  Consultations: 'مشاوره‌ها',
+  'Audit log': 'گزارش حسابرسی',
+  Workers: 'پردازشگرها',
+  Hangfire: 'هنگ‌فایر',
+  'Job Hunter CRM': 'مدیریت جست‌وجوی شغل',
+  'Job Search Manager': 'مدیر جست‌وجوی شغل',
+  // Shell
+  Account: 'حساب کاربری',
+  'Not signed in': 'وارد نشده‌اید',
+  'Sign out': 'خروج',
+  'Are you sure you want to sign out? You will need to sign in again to access your account.':
+    'آیا مطمئن هستید که می‌خواهید خارج شوید؟ برای دسترسی به حساب خود باید دوباره وارد شوید.',
+  Cancel: 'انصراف',
+  Light: 'روشن',
+  Dark: 'تیره',
+  System: 'سیستم',
+  'Toggle theme': 'تغییر پوسته',
+  Language: 'زبان',
+  'Change language': 'تغییر زبان',
+  // Theme settings drawer
+  'Open theme settings': 'باز کردن تنظیمات پوسته',
+  'Theme Settings': 'تنظیمات پوسته',
+  'Adjust the appearance and layout to suit your preferences.':
+    'ظاهر و چیدمان را مطابق سلیقه خود تنظیم کنید.',
+  Reset: 'بازنشانی',
+  'Reset all settings to default values':
+    'بازنشانی همه تنظیمات به مقادیر پیش‌فرض',
+}

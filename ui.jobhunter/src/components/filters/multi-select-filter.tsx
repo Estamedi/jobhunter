@@ -27,7 +27,12 @@ type MultiSelectFilterProps = {
 
 // Same visual structure as DataTableFacetedFilter, but driven by plain props instead of a
 // TanStack Table Column — used where the list isn't backed by TanStack Table (e.g. server-filtered lists).
-export function MultiSelectFilter({ title, options, value, onChange }: MultiSelectFilterProps) {
+export function MultiSelectFilter({
+  title,
+  options,
+  value,
+  onChange,
+}: MultiSelectFilterProps) {
   const selectedValues = new Set(value)
 
   return (
@@ -39,19 +44,29 @@ export function MultiSelectFilter({ title, options, value, onChange }: MultiSele
           {selectedValues.size > 0 && (
             <>
               <Separator orientation='vertical' className='mx-2 h-4' />
-              <Badge variant='secondary' className='rounded-sm px-1 font-normal lg:hidden'>
+              <Badge
+                variant='secondary'
+                className='rounded-sm px-1 font-normal lg:hidden'
+              >
                 {selectedValues.size}
               </Badge>
               <div className='hidden space-x-1 lg:flex'>
                 {selectedValues.size > 2 ? (
-                  <Badge variant='secondary' className='rounded-sm px-1 font-normal'>
+                  <Badge
+                    variant='secondary'
+                    className='rounded-sm px-1 font-normal'
+                  >
                     {selectedValues.size} selected
                   </Badge>
                 ) : (
                   options
                     .filter((option) => selectedValues.has(option.value))
                     .map((option) => (
-                      <Badge variant='secondary' key={option.value} className='rounded-sm px-1 font-normal'>
+                      <Badge
+                        variant='secondary'
+                        key={option.value}
+                        className='rounded-sm px-1 font-normal'
+                      >
                         {option.label}
                       </Badge>
                     ))
@@ -82,7 +97,9 @@ export function MultiSelectFilter({ title, options, value, onChange }: MultiSele
                     <div
                       className={cn(
                         'flex size-4 items-center justify-center rounded-sm border border-primary',
-                        isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50 [&_svg]:invisible'
+                        isSelected
+                          ? 'bg-primary text-primary-foreground'
+                          : 'opacity-50 [&_svg]:invisible'
                       )}
                     >
                       <CheckIcon className={cn('h-4 w-4 text-background')} />
@@ -96,7 +113,10 @@ export function MultiSelectFilter({ title, options, value, onChange }: MultiSele
               <>
                 <CommandSeparator />
                 <CommandGroup>
-                  <CommandItem onSelect={() => onChange([])} className='justify-center text-center'>
+                  <CommandItem
+                    onSelect={() => onChange([])}
+                    className='justify-center text-center'
+                  >
                     Clear filters
                   </CommandItem>
                 </CommandGroup>

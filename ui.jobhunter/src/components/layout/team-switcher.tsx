@@ -1,4 +1,5 @@
 import { type ElementType } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar'
 
 type TeamSwitcherProps = {
@@ -10,6 +11,7 @@ type TeamSwitcherProps = {
 }
 
 export function TeamSwitcher({ teams }: TeamSwitcherProps) {
+  const { t } = useTranslation()
   const activeTeam = teams[0]
 
   if (!activeTeam) {
@@ -25,7 +27,7 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
           </div>
           <div className='min-w-0 group-data-[collapsible=icon]:hidden'>
             <span className='block truncate text-sm leading-5 font-semibold tracking-[var(--sidebar-brand-letter-spacing)]'>
-              {activeTeam.name}
+              {t(activeTeam.name)}
             </span>
           </div>
         </div>
