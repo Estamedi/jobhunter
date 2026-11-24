@@ -1,4 +1,5 @@
 import { Link, useSearch } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Card,
   CardContent,
@@ -11,6 +12,7 @@ import { AuthLayout } from '../auth-layout'
 import { ResendConfirmationEmail } from './components/resend-confirmation-email'
 
 export function RegisterComplete() {
+  const { t } = useTranslation()
   const { email } = useSearch({ from: '/(auth)/register-complete' })
 
   return (
@@ -18,16 +20,18 @@ export function RegisterComplete() {
       <Card className='max-w-sm gap-4 sm:min-w-sm'>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
-            Check your email
+            {t('Check your email')}
           </CardTitle>
           <CardDescription>
             {email ? (
               <>
-                We sent a confirmation link to <strong>{email}</strong>.
-                Click the link to confirm your account and continue.
+                {t('We sent a confirmation link to')} <strong>{email}</strong>.{' '}
+                {t('Click the link to confirm your account and continue.')}
               </>
             ) : (
-              'We sent you a confirmation link. Click the link to confirm your account and continue.'
+              t(
+                'We sent you a confirmation link. Click the link to confirm your account and continue.'
+              )
             )}
           </CardDescription>
         </CardHeader>
@@ -36,12 +40,12 @@ export function RegisterComplete() {
         </CardContent>
         <CardFooter>
           <p className='mx-auto px-8 text-center text-sm text-balance text-muted-foreground'>
-            Already confirmed?{' '}
+            {t('Already confirmed?')}{' '}
             <Link
               to='/sign-in'
               className='underline underline-offset-4 hover:text-primary'
             >
-              Sign in
+              {t('Sign in')}
             </Link>
             .
           </p>

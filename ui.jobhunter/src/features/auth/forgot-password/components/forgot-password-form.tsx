@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, Loader2, MailCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -17,11 +18,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import i18n from '@/i18n'
 import { getAuthErrorMessage } from '@/features/auth/lib/auth-error'
 
 const formSchema = z.object({
   email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email.' : undefined),
+    error: (iss) =>
+      iss.input === '' ? i18n.t('Please enter your email.') : undefined,
   }),
 })
 
@@ -29,6 +32,7 @@ export function ForgotPasswordForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [sentTo, setSentTo] = useState<string | null>(null)
 
@@ -49,7 +53,7 @@ export function ForgotPasswordForm({
       setSentTo(data.email)
     } catch (err) {
       toast.error(
-        getAuthErrorMessage(err, 'Could not send the email. Please try again.')
+        getAuthErrorMessage(err, t('Could not send the email. Please try again.'))
       )
     } finally {
       setIsLoading(false)
@@ -62,11 +66,11 @@ export function ForgotPasswordForm({
       <div className='flex flex-col items-center gap-3 py-2 text-center'>
         <MailCheck className='size-8 text-green-600' />
         <p className='text-sm text-muted-foreground'>
-          If an account exists for <strong>{sentTo}</strong>, we sent a link to
-          reset your password. It can take a minute to arrive.
+          {t('If an account exists for')} <strong>{sentTo}</strong>,{' '}
+          {t('we sent a link to reset your password. It can take a minute to arrive.')}
         </p>
         <Button asChild variant='outline' className='mt-2 w-full'>
-          <Link to='/sign-in'>Back to sign in</Link>
+          <Link to='/sign-in'>{t('Back to sign in')}</Link>
         </Button>
       </div>
     )
@@ -84,7 +88,7 @@ export function ForgotPasswordForm({
           name='email'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('Email')}</FormLabel>
               <FormControl>
                 <Input placeholder='name@example.com' {...field} />
               </FormControl>
@@ -93,8 +97,12 @@ export function ForgotPasswordForm({
           )}
         />
         <Button className='mt-2' disabled={isLoading}>
-          Continue
-          {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
+          {t('Continue')}
+          {isLoading ? (
+            <Loader2 className='animate-spin' />
+          ) : (
+            <ArrowRight className='rtl:rotate-180' />
+          )}
         </Button>
       </form>
     </Form>

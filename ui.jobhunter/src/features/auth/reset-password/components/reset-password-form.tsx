@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -17,18 +18,23 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { PasswordInput } from '@/components/password-input'
+import i18n from '@/i18n'
 import { getAuthErrorMessage } from '@/features/auth/lib/auth-error'
 
 const formSchema = z
   .object({
     password: z
       .string()
-      .min(1, 'Please enter a new password.')
-      .min(10, 'Password must be at least 10 characters long.'),
-    confirmPassword: z.string().min(1, 'Please confirm your password.'),
+      .min(1, { error: () => i18n.t('Please enter a new password.') })
+      .min(10, {
+        error: () => i18n.t('Password must be at least 10 characters long.'),
+      }),
+    confirmPassword: z
+      .string()
+      .min(1, { error: () => i18n.t('Please confirm your password.') }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
+    error: () => i18n.t("Passwords don't match."),
     path: ['confirmPassword'],
   })
 
@@ -43,6 +49,7 @@ export function ResetPasswordForm({
   className,
   ...props
 }: ResetPasswordFormProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -59,13 +66,15 @@ export function ResetPasswordForm({
         { email, resetCode: code, newPassword: data.password },
         { headers: { 'Content-Type': 'application/json' } }
       )
-      toast.success('Your password has been changed. Please sign in.')
+      toast.success(t('Your password has been changed. Please sign in.'))
       navigate({ to: '/sign-in', replace: true })
     } catch (err) {
       toast.error(
         getAuthErrorMessage(
           err,
-          'Could not reset your password. The link may have expired; request a new one.'
+          t(
+            'Could not reset your password. The link may have expired; request a new one.'
+          )
         )
       )
     } finally {
@@ -85,7 +94,7 @@ export function ResetPasswordForm({
           name='password'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New password</FormLabel>
+              <FormLabel>{t('New password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -98,7 +107,7 @@ export function ResetPasswordForm({
           name='confirmPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm new password</FormLabel>
+              <FormLabel>{t('Confirm new password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -108,7 +117,7 @@ export function ResetPasswordForm({
         />
         <Button className='mt-2' disabled={isLoading}>
           {isLoading && <Loader2 className='animate-spin' />}
-          Change password
+          {t('Change password')}
         </Button>
       </form>
     </Form>

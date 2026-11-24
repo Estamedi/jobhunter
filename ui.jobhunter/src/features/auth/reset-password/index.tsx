@@ -1,5 +1,6 @@
 import { Link, useSearch } from '@tanstack/react-router'
 import { XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -12,6 +13,7 @@ import { AuthLayout } from '../auth-layout'
 import { ResetPasswordForm } from './components/reset-password-form'
 
 export function ResetPassword() {
+  const { t } = useTranslation()
   const { email, code } = useSearch({ from: '/(auth)/reset-password' })
 
   return (
@@ -19,11 +21,11 @@ export function ResetPassword() {
       <Card className='max-w-sm gap-4 sm:min-w-sm'>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
-            Choose a new password
+            {t('Choose a new password')}
           </CardTitle>
           {email && code && (
             <CardDescription>
-              For <strong>{email}</strong>
+              {t('For')} <strong>{email}</strong>
             </CardDescription>
           )}
         </CardHeader>
@@ -34,10 +36,10 @@ export function ResetPassword() {
             <div className='flex flex-col items-center gap-3 py-2 text-center'>
               <XCircle className='size-8 text-destructive' />
               <p className='text-sm text-muted-foreground'>
-                This reset link is incomplete. Request a new one to continue.
+                {t('This reset link is incomplete. Request a new one to continue.')}
               </p>
               <Button asChild className='mt-2 w-full'>
-                <Link to='/forgot-password'>Request a new link</Link>
+                <Link to='/forgot-password'>{t('Request a new link')}</Link>
               </Button>
             </div>
           )}

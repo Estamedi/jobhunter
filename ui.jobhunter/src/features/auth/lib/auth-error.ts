@@ -1,4 +1,5 @@
 import axios from 'axios'
+import i18n from '@/i18n'
 
 interface ErrorResponse {
   title?: string
@@ -16,7 +17,9 @@ export function getAuthErrorMessage(err: unknown, fallback: string) {
     const taken = errors?.DuplicateEmail ?? errors?.DuplicateUserName
     const takenMessage = Array.isArray(taken) ? taken[0] : taken
     if (takenMessage) {
-      return 'An account with this email already exists. Try signing in instead.'
+      return i18n.t(
+        'An account with this email already exists. Try signing in instead.'
+      )
     }
 
     const firstError = errors

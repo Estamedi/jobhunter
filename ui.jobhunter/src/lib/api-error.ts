@@ -1,4 +1,5 @@
 import axios from 'axios'
+import i18n from '@/i18n'
 
 interface ProblemDetails {
   title?: string
@@ -27,7 +28,10 @@ function friendlyReason(message: string) {
       message
     )
   if (length)
-    return `is too long (${length[2]} characters, the limit is ${length[1]})`
+    return i18n.t('is too long ({{n}} characters, the limit is {{max}})', {
+      n: length[2],
+      max: length[1],
+    })
   return message
 }
 

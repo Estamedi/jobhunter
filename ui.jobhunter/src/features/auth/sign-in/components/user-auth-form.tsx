@@ -5,7 +5,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import i18n from '@/i18n'
 import { IconGoogle } from '@/assets/brand-icons'
 import { authApi } from '@/features/auth/api'
 import { getGoogleIdToken } from '@/features/auth/google-identity'
@@ -25,12 +27,15 @@ import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z.object({
   email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email.' : undefined),
+    error: (iss) =>
+      iss.input === '' ? i18n.t('Please enter your email.') : undefined,
   }),
   password: z
     .string()
-    .min(1, 'Please enter your password.')
-    .min(7, 'Password must be at least 7 characters long.'),
+    .min(1, { error: () => i18n.t('Please enter your password.') })
+    .min(7, {
+      error: () => i18n.t('Password must be at least 7 characters long.'),
+    }),
 })
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -42,6 +47,7 @@ export function UserAuthForm({
   redirectTo,
   ...props
 }: UserAuthFormProps) {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const navigate = useNavigate()
@@ -89,7 +95,7 @@ export function UserAuthForm({
       }
       auth.setAccessToken(accessToken)
       await loadCurrentUser(data.email)
-      toast.success(`Welcome back, ${data.email}!`)
+      toast.success(t('Welcome back, {{email}}!', { email: data.email }))
       navigate({ to: redirectTo || '/', replace: true })
     } catch (err) {
       const detail = axios.isAxiosError(err)
@@ -98,7 +104,9 @@ export function UserAuthForm({
       if (detail === 'NotAllowed') {
         // Identity refuses sign-in until the email is confirmed; send them to the resend screen.
         toast.error(
-          `Please confirm your email first. We sent a link to ${data.email}.`
+          t('Please confirm your email first. We sent a link to {{email}}.', {
+            email: data.email,
+          })
         )
         navigate({
           to: '/register-complete',
@@ -106,11 +114,11 @@ export function UserAuthForm({
           replace: true,
         })
       } else if (detail === 'LockedOut') {
-        toast.error('Too many attempts. Please try again later.')
+        toast.error(t('Too many attempts. Please try again later.'))
       } else if (axios.isAxiosError(err) && err.response?.status === 401) {
-        toast.error('Invalid email or password.')
+        toast.error(t('Invalid email or password.'))
       } else {
-        toast.error('Failed to sign in. Please try again.')
+        toast.error(t('Failed to sign in. Please try again.'))
       }
     } finally {
       setIsLoading(false)
@@ -132,10 +140,10 @@ export function UserAuthForm({
 
       auth.setAccessToken(accessToken)
       await loadCurrentUser('')
-      toast.success('Signed in with Google.')
+      toast.success(t('Signed in with Google.'))
       navigate({ to: redirectTo || '/', replace: true })
     } catch {
-      toast.error('Failed to sign in with Google. Please try again.')
+      toast.error(t('Failed to sign in with Google. Please try again.'))
     } finally {
       setIsGoogleLoading(false)
     }
@@ -161,7 +169,7 @@ export function UserAuthForm({
           ) : (
             <IconGoogle className='h-4 w-4' />
           )}
-          Continue with Google
+          {t('Continue with Google')}
         </Button>
 
         <div className='relative my-2'>
@@ -170,7 +178,7 @@ export function UserAuthForm({
           </div>
           <div className='relative flex justify-center text-xs uppercase'>
             <span className='bg-background px-2 text-muted-foreground'>
-              Or sign in with email
+              {t('Or sign in with email')}
             </span>
           </div>
         </div>
@@ -180,7 +188,7 @@ export function UserAuthForm({
           name='email'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('Email')}</FormLabel>
               <FormControl>
                 <Input placeholder='name@example.com' {...field} />
               </FormControl>
@@ -193,7 +201,7 @@ export function UserAuthForm({
           name='password'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('Password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -206,12 +214,12 @@ export function UserAuthForm({
             to='/forgot-password'
             className='text-sm underline underline-offset-4 hover:text-primary'
           >
-            Forgot password?
+            {t('Forgot password?')}
           </Link>
         </div>
         <Button className='mt-2' data-primary-action disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
-          Sign in
+          {t('Sign in')}
         </Button>
       </form>
     </Form>

@@ -1,4 +1,5 @@
 import { Link, useSearch } from '@tanstack/react-router'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   Check,
@@ -8,6 +9,7 @@ import {
   UserRoundCheck,
 } from 'lucide-react'
 import { Logo } from '@/assets/logo'
+import { LanguageSwitch } from '@/components/language-switch'
 import { CvRewriteScene } from '../cv-rewrite-scene'
 import { UserAuthForm } from './components/user-auth-form'
 
@@ -33,10 +35,14 @@ const pipelineSteps = [
 ]
 
 export function SignIn() {
+  const { t } = useTranslation()
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
 
   return (
-    <main className='min-h-svh bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8'>
+    <main className='relative min-h-svh bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8'>
+      <div className='absolute end-4 top-4 z-10'>
+        <LanguageSwitch />
+      </div>
       <div className='mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]'>
         <section className='relative hidden overflow-hidden rounded-[2rem] border border-border bg-card/55 p-8 shadow-sm backdrop-blur lg:block'>
           <div className='absolute -top-20 -left-16 size-64 rounded-full bg-primary/30 blur-3xl' />
@@ -48,16 +54,17 @@ export function SignIn() {
               className='flex w-fit items-center gap-3'
             >
               <Logo className='size-9' />
-              <span className='text-xl font-bold'>Job Hunter CRM</span>
+              <span className='text-xl font-bold'>{t('Job Hunter CRM')}</span>
             </a>
 
             <div className='space-y-4'>
               <h1 className='max-w-xl text-5xl font-black tracking-tight text-balance'>
-                Continue your job search
+                {t('Continue your job search')}
               </h1>
               <p className='max-w-lg text-lg leading-8 text-muted-foreground'>
-                Sign in to upload your CV, complete your profile, and start
-                applying for jobs with everything organized in one place.
+                {t(
+                  'Sign in to upload your CV, complete your profile, and start applying for jobs with everything organized in one place.'
+                )}
               </p>
             </div>
 
@@ -88,9 +95,9 @@ export function SignIn() {
                     </div>
                     <Icon className='size-5 shrink-0 text-primary' />
                     <div className='min-w-0'>
-                      <p className='text-sm font-bold'>{step.title}</p>
+                      <p className='text-sm font-bold'>{t(step.title)}</p>
                       <p className='text-xs text-muted-foreground'>
-                        {step.description}
+                        {t(step.description)}
                       </p>
                     </div>
                   </div>
@@ -101,18 +108,18 @@ export function SignIn() {
             <div className='grid max-w-lg grid-cols-3 gap-3'>
               <div className='rounded-2xl bg-primary p-4 text-white'>
                 <p className='text-2xl font-black'>3x</p>
-                <p className='mt-1 text-xs text-accent'>faster profile setup</p>
+                <p className='mt-1 text-xs text-accent'>{t('faster profile setup')}</p>
               </div>
               <div className='rounded-2xl border border-border bg-card/80 p-4'>
                 <p className='text-2xl font-black'>1</p>
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  job search workspace
+                  {t('job search workspace')}
                 </p>
               </div>
               <div className='rounded-2xl border border-border bg-card/80 p-4'>
                 <p className='text-2xl font-black'>CV</p>
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  import supported
+                  {t('import supported')}
                 </p>
               </div>
             </div>
@@ -125,14 +132,14 @@ export function SignIn() {
               href='https://applyladder.com'
               className='inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary'
             >
-              <ArrowLeft className='size-4' />
-              Back to website
+              <ArrowLeft className='size-4 rtl:rotate-180' />
+              {t('Back to website')}
             </a>
             <a
               href='https://applyladder.com/#pricing'
               className='text-muted-foreground hover:text-primary'
             >
-              Pricing
+              {t('Pricing')}
             </a>
           </div>
 
@@ -141,21 +148,21 @@ export function SignIn() {
             className='mb-6 flex items-center justify-center gap-3 lg:hidden'
           >
             <Logo className='size-9' />
-            <span className='text-xl font-bold'>Job Hunter CRM</span>
+            <span className='text-xl font-bold'>{t('Job Hunter CRM')}</span>
           </a>
 
           <div className='rounded-[2rem] border border-border bg-card shadow-lg shadow-border/70 dark:shadow-none'>
             <div className='px-7 pt-7 pb-5'>
               <h2 className='text-3xl font-black tracking-tight'>
-                Welcome back
+                {t('Welcome back')}
               </h2>
               <p className='mt-2 text-sm leading-6 text-muted-foreground'>
-                Sign in to continue. No account?{' '}
+                {t('Sign in to continue. No account?')}{' '}
                 <Link
                   to='/sign-up'
                   className='font-semibold text-primary underline-offset-4 hover:underline'
                 >
-                  Sign up
+                  {t('Sign up')}
                 </Link>
               </p>
             </div>
@@ -169,27 +176,31 @@ export function SignIn() {
               <div className='rounded-2xl bg-accent px-4 py-3 dark:bg-primary/20'>
                 <div className='flex gap-3 text-sm text-muted-foreground'>
                   <Check className='mt-0.5 size-4 shrink-0 text-primary' />
-                  After signing in, we'll guide you through completing your
-                  profile.
+                  {t(
+                    "After signing in, we'll guide you through completing your profile."
+                  )}
                 </div>
               </div>
 
               <p className='text-center text-xs leading-5 text-muted-foreground'>
-                By signing in, you agree to our{' '}
-                <a
-                  href='/terms'
-                  className='underline underline-offset-4 hover:text-primary'
-                >
-                  Terms
-                </a>{' '}
-                and{' '}
-                <a
-                  href='/privacy'
-                  className='underline underline-offset-4 hover:text-primary'
-                >
-                  Privacy Policy
-                </a>
-                .
+                <Trans
+                  i18nKey='By signing in, you agree to our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.'
+                  defaults='By signing in, you agree to our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.'
+                  components={{
+                    terms: (
+                      <a
+                        href='/terms'
+                        className='underline underline-offset-4 hover:text-primary'
+                      />
+                    ),
+                    privacy: (
+                      <a
+                        href='/privacy'
+                        className='underline underline-offset-4 hover:text-primary'
+                      />
+                    ),
+                  }}
+                />
               </p>
             </div>
           </div>

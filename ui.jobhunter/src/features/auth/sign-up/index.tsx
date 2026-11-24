@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
+import { Trans, useTranslation } from 'react-i18next'
 import { Check, Circle, FileText, LogIn, UserPlus } from 'lucide-react'
 import { Logo } from '@/assets/logo'
+import { LanguageSwitch } from '@/components/language-switch'
 import { CvRewriteScene } from '../cv-rewrite-scene'
 import { SignUpForm } from './components/sign-up-form'
 
@@ -26,8 +28,12 @@ const setupSteps = [
 ]
 
 export function SignUp() {
+  const { t } = useTranslation()
   return (
-    <main className='min-h-svh bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8'>
+    <main className='relative min-h-svh bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8'>
+      <div className='absolute end-4 top-4 z-10'>
+        <LanguageSwitch />
+      </div>
       <div className='mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1fr_460px]'>
         <section className='relative hidden overflow-hidden rounded-[2rem] border border-border bg-card/55 p-8 shadow-sm backdrop-blur lg:block'>
           <div className='absolute -top-20 -left-16 size-64 rounded-full bg-primary/30 blur-3xl' />
@@ -39,16 +45,17 @@ export function SignUp() {
               className='flex w-fit items-center gap-3'
             >
               <Logo className='size-9' />
-              <span className='text-xl font-bold'>Job Hunter CRM</span>
+              <span className='text-xl font-bold'>{t('Job Hunter CRM')}</span>
             </a>
 
             <div className='space-y-4'>
               <h1 className='max-w-xl text-5xl font-black tracking-tight text-balance'>
-                Start your job search workspace
+                {t('Start your job search workspace')}
               </h1>
               <p className='max-w-lg text-lg leading-8 text-muted-foreground'>
-                Create an account, upload your CV, and keep every application,
-                company, interview, and follow-up organized from day one.
+                {t(
+                  'Create an account, upload your CV, and keep every application, company, interview, and follow-up organized from day one.'
+                )}
               </p>
             </div>
 
@@ -79,9 +86,9 @@ export function SignUp() {
                     </div>
                     <Icon className='size-5 shrink-0 text-primary' />
                     <div className='min-w-0'>
-                      <p className='text-sm font-bold'>{step.title}</p>
+                      <p className='text-sm font-bold'>{t(step.title)}</p>
                       <p className='text-xs text-muted-foreground'>
-                        {step.description}
+                        {t(step.description)}
                       </p>
                     </div>
                   </div>
@@ -92,18 +99,18 @@ export function SignUp() {
             <div className='grid max-w-lg grid-cols-3 gap-3'>
               <div className='rounded-2xl bg-primary p-4 text-white'>
                 <p className='text-2xl font-black'>CV</p>
-                <p className='mt-1 text-xs text-accent'>profile import</p>
+                <p className='mt-1 text-xs text-accent'>{t('profile import')}</p>
               </div>
               <div className='rounded-2xl border border-border bg-card/80 p-4'>
                 <p className='text-2xl font-black'>All</p>
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  applications tracked
+                  {t('applications tracked')}
                 </p>
               </div>
               <div className='rounded-2xl border border-border bg-card/80 p-4'>
                 <p className='text-2xl font-black'>1</p>
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  focused dashboard
+                  {t('focused dashboard')}
                 </p>
               </div>
             </div>
@@ -116,21 +123,21 @@ export function SignUp() {
             className='mb-6 flex items-center justify-center gap-3 lg:hidden'
           >
             <Logo className='size-9' />
-            <span className='text-xl font-bold'>Job Hunter CRM</span>
+            <span className='text-xl font-bold'>{t('Job Hunter CRM')}</span>
           </a>
 
           <div className='rounded-[2rem] border border-border bg-card shadow-lg shadow-border/70 dark:shadow-none'>
             <div className='px-7 pt-7 pb-5'>
               <h2 className='text-3xl font-black tracking-tight'>
-                Create account
+                {t('Create account')}
               </h2>
               <p className='mt-2 text-sm leading-6 text-muted-foreground'>
-                Already have an account?{' '}
+                {t('Already have an account?')}{' '}
                 <Link
                   to='/sign-in'
                   className='font-semibold text-primary underline-offset-4 hover:underline'
                 >
-                  Sign in
+                  {t('Sign in')}
                 </Link>
               </p>
             </div>
@@ -141,27 +148,31 @@ export function SignUp() {
               <div className='rounded-2xl bg-accent px-4 py-3 dark:bg-primary/20'>
                 <div className='flex gap-3 text-sm text-muted-foreground'>
                   <Check className='mt-0.5 size-4 shrink-0 text-primary' />
-                  After creating your account, upload your CV to complete your
-                  profile faster.
+                  {t(
+                    'After creating your account, upload your CV to complete your profile faster.'
+                  )}
                 </div>
               </div>
 
               <p className='text-center text-xs leading-5 text-muted-foreground'>
-                By creating an account, you agree to our{' '}
-                <a
-                  href='/terms'
-                  className='underline underline-offset-4 hover:text-primary'
-                >
-                  Terms
-                </a>{' '}
-                and{' '}
-                <a
-                  href='/privacy'
-                  className='underline underline-offset-4 hover:text-primary'
-                >
-                  Privacy Policy
-                </a>
-                .
+                <Trans
+                  i18nKey='By creating an account, you agree to our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.'
+                  defaults='By creating an account, you agree to our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.'
+                  components={{
+                    terms: (
+                      <a
+                        href='/terms'
+                        className='underline underline-offset-4 hover:text-primary'
+                      />
+                    ),
+                    privacy: (
+                      <a
+                        href='/privacy'
+                        className='underline underline-offset-4 hover:text-primary'
+                      />
+                    ),
+                  }}
+                />
               </p>
             </div>
           </div>

@@ -5,7 +5,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2, UserPlus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import i18n from '@/i18n'
 import { IconGoogle } from '@/assets/brand-icons'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
@@ -28,16 +30,20 @@ const formSchema = z
   .object({
     email: z.email({
       error: (iss) =>
-        iss.input === '' ? 'Please enter your email.' : undefined,
+        iss.input === '' ? i18n.t('Please enter your email.') : undefined,
     }),
     password: z
       .string()
-      .min(1, 'Please enter your password.')
-      .min(10, 'Password must be at least 10 characters long.'),
-    confirmPassword: z.string().min(1, 'Please confirm your password.'),
+      .min(1, { error: () => i18n.t('Please enter your password.') })
+      .min(10, {
+        error: () => i18n.t('Password must be at least 10 characters long.'),
+      }),
+    confirmPassword: z
+      .string()
+      .min(1, { error: () => i18n.t('Please confirm your password.') }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
+    error: () => i18n.t("Passwords don't match."),
     path: ['confirmPassword'],
   })
 
@@ -45,6 +51,7 @@ export function SignUpForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const navigate = useNavigate()
@@ -69,7 +76,7 @@ export function SignUpForm({
         { headers: { 'Content-Type': 'application/json' } }
       )
 
-      toast.success(`Account created for ${data.email}.`)
+      toast.success(t('Account created for {{email}}.', { email: data.email }))
       navigate({
         to: '/register-complete',
         search: { email: data.email },
@@ -77,7 +84,7 @@ export function SignUpForm({
       })
     } catch (err) {
       toast.error(
-        getAuthErrorMessage(err, 'Failed to create account. Please try again.')
+        getAuthErrorMessage(err, t('Failed to create account. Please try again.'))
       )
     } finally {
       setIsLoading(false)
@@ -125,10 +132,10 @@ export function SignUpForm({
 
       auth.setAccessToken(accessToken)
       await loadCurrentUser('')
-      toast.success('Signed up with Google.')
+      toast.success(t('Signed up with Google.'))
       navigate({ to: '/', replace: true })
     } catch {
-      toast.error('Failed to sign up with Google. Please try again.')
+      toast.error(t('Failed to sign up with Google. Please try again.'))
     } finally {
       setIsGoogleLoading(false)
     }
@@ -154,7 +161,7 @@ export function SignUpForm({
           ) : (
             <IconGoogle className='h-4 w-4' />
           )}
-          Continue with Google
+          {t('Continue with Google')}
         </Button>
 
         <div className='relative my-2'>
@@ -163,7 +170,7 @@ export function SignUpForm({
           </div>
           <div className='relative flex justify-center text-xs uppercase'>
             <span className='bg-background px-2 text-muted-foreground'>
-              Or sign up with email
+              {t('Or sign up with email')}
             </span>
           </div>
         </div>
@@ -173,7 +180,7 @@ export function SignUpForm({
           name='email'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('Email')}</FormLabel>
               <FormControl>
                 <Input placeholder='name@example.com' {...field} />
               </FormControl>
@@ -186,7 +193,7 @@ export function SignUpForm({
           name='password'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('Password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -199,7 +206,7 @@ export function SignUpForm({
           name='confirmPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>{t('Confirm Password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -209,7 +216,7 @@ export function SignUpForm({
         />
         <Button className='mt-2' data-primary-action disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <UserPlus />}
-          Create Account
+          {t('Create Account')}
         </Button>
       </form>
     </Form>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Loader2, Mail } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
@@ -13,6 +14,7 @@ interface ResendConfirmationEmailProps {
 export function ResendConfirmationEmail({
   email,
 }: ResendConfirmationEmailProps) {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [cooldown, setCooldown] = useState(0)
 
@@ -28,7 +30,7 @@ export function ResendConfirmationEmail({
 
   async function handleResend() {
     if (!email) {
-      toast.error('Missing email address.')
+      toast.error(t('Missing email address.'))
       return
     }
 
@@ -40,10 +42,12 @@ export function ResendConfirmationEmail({
         { email },
         { headers: { 'Content-Type': 'application/json' } }
       )
-      toast.success('Confirmation email sent.')
+      toast.success(t('Confirmation email sent.'))
       setCooldown(RESEND_COOLDOWN_SECONDS)
     } catch {
-      toast.error('Failed to resend confirmation email. Please try again.')
+      toast.error(
+        t('Failed to resend confirmation email. Please try again.')
+      )
     } finally {
       setIsLoading(false)
     }
@@ -57,7 +61,9 @@ export function ResendConfirmationEmail({
       onClick={handleResend}
     >
       {isLoading ? <Loader2 className='animate-spin' /> : <Mail />}
-      {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend confirmation email'}
+      {cooldown > 0
+        ? t('Resend in {{n}}s', { n: cooldown })
+        : t('Resend confirmation email')}
     </Button>
   )
 }

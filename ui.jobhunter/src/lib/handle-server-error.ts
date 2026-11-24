@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import i18n from '@/i18n'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 export function handleServerError(error: unknown) {
@@ -8,7 +9,7 @@ export function handleServerError(error: unknown) {
     console.log(error)
   }
 
-  let errMsg = 'Something went wrong!'
+  let errMsg = i18n.t('Something went wrong!')
 
   if (
     error &&
@@ -16,7 +17,7 @@ export function handleServerError(error: unknown) {
     'status' in error &&
     Number(error.status) === 204
   ) {
-    errMsg = 'No content.'
+    errMsg = i18n.t('No content.')
   }
 
   if (error instanceof AxiosError) {

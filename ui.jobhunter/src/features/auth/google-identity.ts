@@ -1,3 +1,5 @@
+import i18n from '@/i18n'
+
 interface GoogleTokenResponse {
   access_token?: string
 }
@@ -62,7 +64,7 @@ export async function getGoogleIdToken() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
   if (!clientId) {
-    throw new Error('Google client id is not configured.')
+    throw new Error(i18n.t('Google client id is not configured.'))
   }
 
   await loadGoogleIdentityScript()
@@ -75,13 +77,13 @@ export async function getGoogleIdToken() {
         if (response.access_token) {
           resolve(response.access_token)
         } else {
-          reject(new Error('Google did not return a token.'))
+          reject(new Error(i18n.t('Google did not return a token.')))
         }
       },
     })
 
     if (!tokenClient) {
-      reject(new Error('Google sign-in is not available.'))
+      reject(new Error(i18n.t('Google sign-in is not available.')))
       return
     }
 
