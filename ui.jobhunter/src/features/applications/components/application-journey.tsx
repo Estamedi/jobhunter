@@ -1,4 +1,5 @@
 import { Check, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { STAGE_ACCENTS } from '../data/constants'
 import type { BoardStage } from '../hooks/use-board-stages'
@@ -14,6 +15,7 @@ interface ApplicationJourneyProps {
 // Only stages that aren't a "destructive" outcome (e.g. Rejected) form the linear journey —
 // numbering an outcome that can branch off at any point would misrepresent it as a milestone.
 export function ApplicationJourney({ stages, status, rejectionReason, onChangeStatus, disabled }: ApplicationJourneyProps) {
+  const { t } = useTranslation()
   const forward = stages.filter((s) => s.badgeVariant !== 'destructive')
   const terminal = stages.filter((s) => s.badgeVariant === 'destructive')
   const isTerminal = terminal.some((s) => s.status === status)
@@ -24,10 +26,10 @@ export function ApplicationJourney({ stages, status, rejectionReason, onChangeSt
       <div className='rounded-2xl border border-rose-200 bg-rose-50/60 p-4 dark:border-rose-900 dark:bg-rose-950/20'>
         <div className='flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-400'>
           <XCircle className='size-4' />
-          {currentTerminal?.label ?? 'This one didn’t work out'}
+          {currentTerminal ? t(currentTerminal.label) : t('This one didn’t work out')}
         </div>
         {rejectionReason && <p className='mt-2 text-sm text-muted-foreground'>{rejectionReason}</p>}
-        <p className='mt-3 text-xs text-muted-foreground'>Every application is a rep — reopen it if things change.</p>
+        <p className='mt-3 text-xs text-muted-foreground'>{t('Every application is a rep — reopen it if things change.')}</p>
         <div className='mt-3 flex flex-wrap gap-2'>
           {forward.map((s) => (
             <button
@@ -37,7 +39,7 @@ export function ApplicationJourney({ stages, status, rejectionReason, onChangeSt
               onClick={() => onChangeStatus(s.status)}
               className='rounded-full border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50'
             >
-              Reopen as {s.label}
+              {t('Reopen as {{stage}}', { stage: t(s.label) })}
             </button>
           ))}
         </div>
@@ -72,7 +74,7 @@ export function ApplicationJourney({ stages, status, rejectionReason, onChangeSt
                 {state === 'done' ? <Check className='size-4' /> : i + 1}
               </span>
               <span className={cn('max-w-20 text-center text-xs font-medium', state === 'upcoming' ? 'text-muted-foreground' : 'text-foreground')}>
-                {s.label}
+                {t(s.label)}
               </span>
             </button>
             {i < forward.length - 1 && (
@@ -86,9 +88,9 @@ export function ApplicationJourney({ stages, status, rejectionReason, onChangeSt
           type='button'
           disabled={disabled}
           onClick={() => onChangeStatus(terminal[0].status)}
-          className='ml-3 shrink-0 self-center text-xs font-medium text-muted-foreground transition-colors hover:text-rose-600 disabled:opacity-50'
+          className='ms-3 shrink-0 self-center text-xs font-medium text-muted-foreground transition-colors hover:text-rose-600 disabled:opacity-50'
         >
-          Mark as {terminal[0].label.toLowerCase()}
+          {t('Mark as {{stage}}', { stage: t(terminal[0].label).toLowerCase() })}
         </button>
       )}
     </div>

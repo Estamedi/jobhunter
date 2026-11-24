@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -34,6 +35,7 @@ interface ApplicationVacancyDialogProps {
 
 export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: ApplicationVacancyDialogProps) {
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const [title, setTitle] = useState(jobRole.title)
   const [jobLink, setJobLink] = useState(jobRole.jobLink ?? '')
@@ -71,11 +73,11 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['job-roles', 'detail', jobRole.id] })
       qc.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Vacancy updated')
+      toast.success(t('Vacancy updated'))
       onOpenChange(false)
     },
     onError: (err) => {
-      toast.error(err instanceof Error && err.message === 'missing-title' ? 'Title is required' : 'Failed to update vacancy')
+      toast.error(err instanceof Error && err.message === 'missing-title' ? t('Title is required') : t('Failed to update vacancy'))
     },
   })
 
@@ -83,24 +85,24 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[85vh] max-w-2xl overflow-y-auto rounded-2xl sm:max-w-2xl'>
         <DialogHeader>
-          <DialogTitle>Edit vacancy</DialogTitle>
-          <DialogDescription>Update the role details for this vacancy.</DialogDescription>
+          <DialogTitle>{t('Edit vacancy')}</DialogTitle>
+          <DialogDescription>{t('Update the role details for this vacancy.')}</DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='space-y-1'>
-            <Label>Title *</Label>
+            <Label>{t('Title *')}</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} className='rounded-xl' />
           </div>
 
           <div className='space-y-1'>
-            <Label>Job link</Label>
+            <Label>{t('Job link')}</Label>
             <Input value={jobLink} onChange={(e) => setJobLink(e.target.value)} placeholder='https://' className='rounded-xl' />
           </div>
 
           <div className='grid grid-cols-3 gap-3'>
             <div className='space-y-1'>
-              <Label>Source</Label>
+              <Label>{t('Source')}</Label>
               <Select value={source} onValueChange={setSource}>
                 <SelectTrigger className='w-full rounded-xl'>
                   <SelectValue />
@@ -108,14 +110,14 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
                 <SelectContent>
                   {SOURCES.map((s) => (
                     <SelectItem key={s} value={s}>
-                      {splitWords(s)}
+                      {t(splitWords(s))}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className='space-y-1'>
-              <Label>Work type</Label>
+              <Label>{t('Work type')}</Label>
               <Select value={workType} onValueChange={setWorkType}>
                 <SelectTrigger className='w-full rounded-xl'>
                   <SelectValue />
@@ -123,14 +125,14 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
                 <SelectContent>
                   {WORK_TYPES.map((w) => (
                     <SelectItem key={w} value={w}>
-                      {w}
+                      {t(splitWords(w))}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className='space-y-1'>
-              <Label>Employment type</Label>
+              <Label>{t('Employment type')}</Label>
               <Select value={employmentType} onValueChange={setEmploymentType}>
                 <SelectTrigger className='w-full rounded-xl'>
                   <SelectValue />
@@ -138,7 +140,7 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
                 <SelectContent>
                   {EMPLOYMENT_TYPES.map((e) => (
                     <SelectItem key={e} value={e}>
-                      {splitWords(e)}
+                      {t(splitWords(e))}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -148,15 +150,15 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
 
           <div className='grid grid-cols-3 gap-3'>
             <div className='space-y-1'>
-              <Label>Salary min</Label>
+              <Label>{t('Salary min')}</Label>
               <Input type='number' value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} className='rounded-xl' />
             </div>
             <div className='space-y-1'>
-              <Label>Salary max</Label>
+              <Label>{t('Salary max')}</Label>
               <Input type='number' value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} className='rounded-xl' />
             </div>
             <div className='space-y-1'>
-              <Label>Currency</Label>
+              <Label>{t('Currency')}</Label>
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className='w-full rounded-xl'>
                   <SelectValue />
@@ -173,7 +175,7 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
           </div>
 
           <div className='space-y-1'>
-            <Label>Description</Label>
+            <Label>{t('Description')}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -183,7 +185,7 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
           </div>
 
           <div className='space-y-1'>
-            <Label>Requirements</Label>
+            <Label>{t('Requirements')}</Label>
             <Textarea
               value={requirements}
               onChange={(e) => setRequirements(e.target.value)}
@@ -195,11 +197,11 @@ export function ApplicationVacancyDialog({ open, onOpenChange, jobRole }: Applic
 
         <DialogFooter>
           <Button variant='outline' className='rounded-xl' onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button className='rounded-xl' disabled={save.isPending} onClick={() => save.mutate()}>
-            {save.isPending && <Loader2 className='mr-1.5 size-3.5 animate-spin' />}
-            Save
+            {save.isPending && <Loader2 className='me-1.5 size-3.5 animate-spin' />}
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import {
   Controller,
   type Control,
@@ -28,6 +29,7 @@ const parse = (value: string | undefined) => {
 }
 
 export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
+  const { t } = useTranslation()
   const date = parse(value)
   const time = date ? format(date, 'HH:mm') : '09:00'
 
@@ -46,7 +48,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
           {date ? (
             format(date, 'MMM d, yyyy HH:mm')
           ) : (
-            <span>Pick date & time</span>
+            <span>{t('Pick date & time')}</span>
           )}
           <CalendarIcon className='ms-auto h-4 w-4 opacity-50' />
         </Button>

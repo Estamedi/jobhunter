@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -27,6 +28,7 @@ interface ApplicationCompanyDialogProps {
 
 export function ApplicationCompanyDialog({ open, onOpenChange, company }: ApplicationCompanyDialogProps) {
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const [name, setName] = useState(company.name)
   const [website, setWebsite] = useState(company.website ?? '')
@@ -57,11 +59,11 @@ export function ApplicationCompanyDialog({ open, onOpenChange, company }: Applic
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['companies', 'detail', company.id] })
       qc.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Company updated')
+      toast.success(t('Company updated'))
       onOpenChange(false)
     },
     onError: (err) => {
-      toast.error(err instanceof Error && err.message === 'missing-name' ? 'Company name is required' : 'Failed to update company')
+      toast.error(err instanceof Error && err.message === 'missing-name' ? t('Company name is required') : t('Failed to update company'))
     },
   })
 
@@ -69,23 +71,23 @@ export function ApplicationCompanyDialog({ open, onOpenChange, company }: Applic
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[85vh] max-w-2xl overflow-y-auto rounded-2xl sm:max-w-2xl'>
         <DialogHeader>
-          <DialogTitle>Edit company</DialogTitle>
-          <DialogDescription>Update the company details for this application.</DialogDescription>
+          <DialogTitle>{t('Edit company')}</DialogTitle>
+          <DialogDescription>{t('Update the company details for this application.')}</DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='space-y-1'>
-            <Label>Company name *</Label>
+            <Label>{t('Company name *')}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} className='rounded-xl' />
           </div>
 
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1'>
-              <Label>Website</Label>
+              <Label>{t('Website')}</Label>
               <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder='https://' className='rounded-xl' />
             </div>
             <div className='space-y-1'>
-              <Label>LinkedIn</Label>
+              <Label>{t('LinkedIn')}</Label>
               <Input
                 value={linkedInUrl}
                 onChange={(e) => setLinkedInUrl(e.target.value)}
@@ -94,19 +96,19 @@ export function ApplicationCompanyDialog({ open, onOpenChange, company }: Applic
               />
             </div>
             <div className='space-y-1'>
-              <Label>Country</Label>
+              <Label>{t('Country')}</Label>
               <Input value={country} onChange={(e) => setCountry(e.target.value)} className='rounded-xl' />
             </div>
             <div className='space-y-1'>
-              <Label>City</Label>
+              <Label>{t('City')}</Label>
               <Input value={city} onChange={(e) => setCity(e.target.value)} className='rounded-xl' />
             </div>
             <div className='space-y-1'>
-              <Label>Industry</Label>
+              <Label>{t('Industry')}</Label>
               <Input value={industry} onChange={(e) => setIndustry(e.target.value)} className='rounded-xl' />
             </div>
             <div className='space-y-1'>
-              <Label>Company size</Label>
+              <Label>{t('Company size')}</Label>
               <Input
                 value={companySize}
                 onChange={(e) => setCompanySize(e.target.value)}
@@ -117,7 +119,7 @@ export function ApplicationCompanyDialog({ open, onOpenChange, company }: Applic
           </div>
 
           <div className='space-y-1'>
-            <Label>Priority</Label>
+            <Label>{t('Priority')}</Label>
             <Select value={priority} onValueChange={setPriority}>
               <SelectTrigger className='w-full rounded-xl'>
                 <SelectValue />
@@ -125,7 +127,7 @@ export function ApplicationCompanyDialog({ open, onOpenChange, company }: Applic
               <SelectContent>
                 {COMPANY_PRIORITIES.map((p) => (
                   <SelectItem key={p} value={p}>
-                    {p}
+                    {t(p)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -133,18 +135,18 @@ export function ApplicationCompanyDialog({ open, onOpenChange, company }: Applic
           </div>
 
           <div className='space-y-1'>
-            <Label>Notes</Label>
+            <Label>{t('Notes')}</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className='resize-none rounded-xl' />
           </div>
         </div>
 
         <DialogFooter>
           <Button variant='outline' className='rounded-xl' onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button className='rounded-xl' disabled={save.isPending} onClick={() => save.mutate()}>
-            {save.isPending && <Loader2 className='mr-1.5 size-3.5 animate-spin' />}
-            Save
+            {save.isPending && <Loader2 className='me-1.5 size-3.5 animate-spin' />}
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

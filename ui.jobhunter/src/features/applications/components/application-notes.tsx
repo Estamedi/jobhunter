@@ -2,6 +2,7 @@ import { useState, type KeyboardEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { format, formatDistanceToNowStrict } from 'date-fns'
 import { Loader2, Pencil, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { notesApi, type Note } from '@/features/notes/api'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 export function ApplicationNotes({ applicationId }: { applicationId: number }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const notesKey = ['notes', 'byApplication', applicationId]
 
@@ -29,7 +31,7 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
       qc.invalidateQueries({ queryKey: notesKey })
       setDraft('')
     },
-    onError: () => toast.error('Failed to add note'),
+    onError: () => toast.error(t('Failed to add note')),
   })
 
   const update = useMutation({
@@ -37,20 +39,20 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
       notesApi.update(id, { content, applicationId }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: notesKey })
-      toast.success('Note updated')
+      toast.success(t('Note updated'))
       setEditingId(null)
     },
-    onError: () => toast.error('Failed to update note'),
+    onError: () => toast.error(t('Failed to update note')),
   })
 
   const remove = useMutation({
     mutationFn: (id: number) => notesApi.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: notesKey })
-      toast.success('Note deleted')
+      toast.success(t('Note deleted'))
       setDeleting(null)
     },
-    onError: () => toast.error('Failed to delete note'),
+    onError: () => toast.error(t('Failed to delete note')),
   })
 
   function submitDraft() {
@@ -99,22 +101,22 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleDraftKeyDown}
           rows={2}
-          placeholder='Interview prep, referral details, anything worth remembering...'
+          placeholder={t('Interview prep, referral details, anything worth remembering...')}
           className='resize-none rounded-xl'
           disabled={create.isPending}
         />
         <div className='flex justify-end'>
           <Button size='sm' onClick={submitDraft} disabled={create.isPending || !draft.trim()}>
-            {create.isPending && <Loader2 className='mr-1.5 size-3.5 animate-spin' />}
-            Add note
+            {create.isPending && <Loader2 className='me-1.5 size-3.5 animate-spin' />}
+            {t('Add note')}
           </Button>
         </div>
       </div>
 
       {isLoading ? (
-        <p className='text-sm text-muted-foreground'>Loading notes…</p>
+        <p className='text-sm text-muted-foreground'>{t('Loading notes…')}</p>
       ) : notes.length === 0 ? (
-        <p className='text-sm text-muted-foreground italic'>No notes yet — the first one you add will show up here.</p>
+        <p className='text-sm text-muted-foreground italic'>{t('No notes yet — the first one you add will show up here.')}</p>
       ) : (
         <ul className='space-y-3'>
           {notes.map((note) => (
@@ -132,11 +134,11 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
                   />
                   <div className='flex items-center justify-end gap-2'>
                     <Button variant='outline' size='sm' onClick={() => setEditingId(null)} disabled={update.isPending}>
-                      Cancel
+                      {t('Cancel')}
                     </Button>
                     <Button size='sm' onClick={() => saveEditing(note)} disabled={update.isPending}>
-                      {update.isPending && <Loader2 className='mr-1.5 size-3.5 animate-spin' />}
-                      Save note
+                      {update.isPending && <Loader2 className='me-1.5 size-3.5 animate-spin' />}
+                      {t('Save note')}
                     </Button>
                   </div>
                 </div>
@@ -153,7 +155,7 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
                       variant='ghost'
                       size='icon'
                       className='size-7 text-muted-foreground hover:text-foreground'
-                      aria-label='Edit note'
+                      aria-label={t('Edit note')}
                       onClick={() => startEditing(note)}
                     >
                       <Pencil className='size-3.5' />
@@ -162,7 +164,7 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
                       variant='ghost'
                       size='icon'
                       className='size-7 text-muted-foreground hover:text-destructive'
-                      aria-label='Delete note'
+                      aria-label={t('Delete note')}
                       onClick={() => setDeleting(note)}
                     >
                       <Trash2 className='size-3.5' />
@@ -178,10 +180,10 @@ export function ApplicationNotes({ applicationId }: { applicationId: number }) {
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title='Delete note'
-        desc='Are you sure you want to delete this note? This cannot be undone.'
+        title={t('Delete note')}
+        desc={t('Are you sure you want to delete this note? This cannot be undone.')}
         destructive
-        confirmText='Delete'
+        confirmText={t('Delete')}
         isLoading={remove.isPending}
         handleConfirm={() => deleting && remove.mutate(deleting.id)}
       />

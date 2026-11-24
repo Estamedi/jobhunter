@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { getPageNumbers } from '@/lib/utils'
 import {
   Pagination,
@@ -24,8 +25,10 @@ export function ListPagination({
   total,
   onPageChange,
   itemLabel = 'item',
-  itemLabelPlural = `${itemLabel}s`,
+  itemLabelPlural,
 }: ListPaginationProps) {
+  const { t } = useTranslation()
+  const plural = itemLabelPlural ?? `${itemLabel}s`
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const pageNumbers = getPageNumbers(page, totalPages)
 
@@ -34,7 +37,7 @@ export function ListPagination({
   return (
     <div className='flex items-center justify-between gap-2'>
       <p className='text-sm text-muted-foreground'>
-        {total} {total === 1 ? itemLabel : itemLabelPlural}
+        {total} {t(total === 1 ? itemLabel : plural)}
       </p>
       <Pagination className='mx-0 w-auto'>
         <PaginationContent>

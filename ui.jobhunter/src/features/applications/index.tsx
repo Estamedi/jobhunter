@@ -1,5 +1,6 @@
 import { Fragment, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import { applicationsApi, type JobApplication, type CreateApplicationDto } from './api'
 import { candidatesApi } from '@/features/candidates/api'
@@ -80,6 +81,7 @@ function weekGroup(a: JobApplication): string {
 }
 
 export function Applications() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [filters, setFilters] = useState<ApplicationFilters>(DEFAULT_FILTERS)
   const [page, setPage] = useState(1)
@@ -136,7 +138,7 @@ export function Applications() {
 
   const changeStatus = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => applicationsApi.updateStatus(id, status),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success('Status updated') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success(t('Status updated')) },
   })
 
   function showView(view: 'active' | 'all' | string) {
@@ -152,17 +154,17 @@ export function Applications() {
 
   const create = useMutation({
     mutationFn: applicationsApi.create,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success('Application created'); setDialogOpen(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success(t('Application created')); setDialogOpen(false) },
   })
 
   const update = useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: Partial<CreateApplicationDto> }) => applicationsApi.update(id, dto),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success('Application updated'); setDialogOpen(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success(t('Application updated')); setDialogOpen(false) },
   })
 
   const remove = useMutation({
     mutationFn: applicationsApi.delete,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success('Application deleted') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success(t('Application deleted')) },
   })
 
   function handleSubmit(dto: CreateApplicationDto) {
@@ -179,21 +181,21 @@ export function Applications() {
         <div className='flex flex-wrap items-center justify-between gap-2'>
           <TabsList>
             <TabsTrigger value='all'>
-              <List className='h-4 w-4 mr-1' /> List View
+              <List className='h-4 w-4 me-1' /> {t('List View')}
             </TabsTrigger>
             <TabsTrigger value='board'>
-              <LayoutGrid className='h-4 w-4 mr-1' /> Kanban View
+              <LayoutGrid className='h-4 w-4 me-1' /> {t('Kanban View')}
             </TabsTrigger>
           </TabsList>
           <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
-            <Plus className='h-4 w-4 mr-1' /> Add Application
+            <Plus className='h-4 w-4 me-1' /> {t('Add Application')}
           </Button>
         </div>
 
         <div className='flex flex-wrap items-center gap-x-4 gap-y-2'>
-          <div role='group' aria-label='Status filters' className='inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1'>
+          <div role='group' aria-label={t('Status filters')} className='inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1'>
             <SegmentButton active={!filters.status && !showRejected} onClick={() => showView('active')} count={activeTotal}>
-              Active
+              {t('Active')}
             </SegmentButton>
             <span className='mx-1 h-5 w-px bg-border' aria-hidden />
             {stages.map((st, i) => (
@@ -204,15 +206,15 @@ export function Applications() {
                 count={stageCounts[i]?.data}
                 dot={STAGE_DOT[st.status] ?? 'bg-slate-400'}
               >
-                {st.label}
+                {t(st.label)}
               </SegmentButton>
             ))}
             <span className='mx-1 h-5 w-px bg-border' aria-hidden />
             <SegmentButton active={!filters.status && showRejected} onClick={() => showView('all')} count={allTotal}>
-              All
+              {t('All')}
             </SegmentButton>
           </div>
-          <div role='group' aria-label='Follow-up filters' className='flex flex-wrap items-center gap-2'>
+          <div role='group' aria-label={t('Follow-up filters')} className='flex flex-wrap items-center gap-2'>
             {NEEDS_ACTION.map((n) => {
               const on = filters.followUpStatus === n.value
               const Icon = n.icon
@@ -229,7 +231,7 @@ export function Applications() {
                   )}
                   onClick={() => updateFilters({ followUpStatus: on ? undefined : n.value })}
                 >
-                  <Icon className='h-4 w-4 mr-1' /> {n.label}
+                  <Icon className='h-4 w-4 me-1' /> {t(n.label)}
                 </Button>
               )
             })}
@@ -241,7 +243,7 @@ export function Applications() {
         <TabsContent value='board' className='mt-4 space-y-3'>
           <div className='flex justify-end'>
             <Button variant='outline' size='sm' onClick={() => setCustomizeOpen(true)}>
-              <Settings2 className='h-4 w-4 mr-1' /> Customize board
+              <Settings2 className='h-4 w-4 me-1' /> {t('Customize board')}
             </Button>
           </div>
           <ApplicationsBoard stages={visibleStages} onView={openApplication} filters={filters} />
@@ -252,29 +254,29 @@ export function Applications() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Candidate</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Vacancy</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Applied</TableHead>
-              <TableHead>Follow-Up</TableHead>
-              <TableHead>Resume</TableHead>
+              <TableHead>{t('Candidate')}</TableHead>
+              <TableHead>{t('Company')}</TableHead>
+              <TableHead>{t('Vacancy')}</TableHead>
+              <TableHead>{t('Description')}</TableHead>
+              <TableHead>{t('Status')}</TableHead>
+              <TableHead>{t('Priority')}</TableHead>
+              <TableHead>{t('Applied')}</TableHead>
+              <TableHead>{t('Follow-Up')}</TableHead>
+              <TableHead>{t('Resume')}</TableHead>
               <TableHead className='w-10' />
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={10}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
             {!isLoading && data?.items.length === 0 && (
-              <TableRow><TableCell colSpan={10} className='text-center text-muted-foreground py-8'>No applications found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className='text-center text-muted-foreground py-8'>{t('No applications found.')}</TableCell></TableRow>
             )}
             {data?.items.map((a, idx) => (
               <Fragment key={a.id}>
               {(idx === 0 || weekGroup(data.items[idx - 1]) !== weekGroup(a)) && (
                 <TableRow className='bg-muted/40 hover:bg-muted/40'>
                   <TableCell colSpan={10} className='py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground'>
-                    {weekGroup(a)}
+                    {t(weekGroup(a))}
                   </TableCell>
                 </TableRow>
               )}
@@ -293,17 +295,17 @@ export function Applications() {
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Select value={a.status} onValueChange={(status) => changeStatus.mutate({ id: a.id, status })}>
-                    <SelectTrigger className='h-8 w-[130px] text-xs' aria-label={`Status for ${a.jobRoleTitle ?? 'application'}`}>
-                      <SelectValue>{stageByStatus[a.status]?.label ?? formatStatusLabel(a.status)}</SelectValue>
+                    <SelectTrigger className='h-8 w-[130px] text-xs' aria-label={t('Status for {{title}}', { title: a.jobRoleTitle ?? t('application') })}>
+                      <SelectValue>{t(stageByStatus[a.status]?.label ?? formatStatusLabel(a.status))}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {stages.map((st) => <SelectItem key={st.status} value={st.status}>{st.label}</SelectItem>)}
+                      {stages.map((st) => <SelectItem key={st.status} value={st.status}>{t(st.label)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </TableCell>
                 <TableCell>
                   <Badge variant={a.priority === 'High' ? 'destructive' : 'secondary'} className='text-xs'>
-                    {a.priority}
+                    {t(a.priority)}
                   </Badge>
                 </TableCell>
                 <TableCell className='text-sm text-muted-foreground'>
@@ -314,7 +316,7 @@ export function Applications() {
                     <span className={`text-sm ${FOLLOWUP_COLORS[a.followUpStatus ?? ''] ?? 'text-muted-foreground'}`}>
                       {format(new Date(a.nextFollowUpDate), 'MMM d')}
                       {a.followUpStatus && a.followUpStatus !== 'NotNeeded' && (
-                        <span className='ml-1 text-xs'>({a.followUpStatus})</span>
+                        <span className='ms-1 text-xs'>({t(formatStatusLabel(a.followUpStatus))})</span>
                       )}
                     </span>
                   ) : '—'}
@@ -339,18 +341,18 @@ export function Applications() {
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant='ghost' size='icon' className='h-8 w-8'><MoreHorizontal className='h-4 w-4' /></Button>
+                      <Button variant='ghost' size='icon' className='h-8 w-8' aria-label={t('Actions')}><MoreHorizontal className='h-4 w-4' /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end'>
                       <DropdownMenuItem onClick={() => openApplication(a.id)}>
-                        <Eye className='h-4 w-4 mr-2' /> View details
+                        <Eye className='h-4 w-4 me-2' /> {t('View details')}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setEditing(a); setDialogOpen(true) }}><Pencil className='h-4 w-4 mr-2' /> Edit</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setEditing(a); setDialogOpen(true) }}><Pencil className='h-4 w-4 me-2' /> {t('Edit')}</DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to='/cv-builder' search={{ applicationId: a.id }}><Sparkles className='h-4 w-4 mr-2' /> Tailor CV</Link>
+                        <Link to='/cv-builder' search={{ applicationId: a.id }}><Sparkles className='h-4 w-4 me-2' /> {t('Tailor CV')}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(a.id)}><Trash2 className='h-4 w-4 mr-2' /> Delete</DropdownMenuItem>
+                      <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(a.id)}><Trash2 className='h-4 w-4 me-2' /> {t('Delete')}</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

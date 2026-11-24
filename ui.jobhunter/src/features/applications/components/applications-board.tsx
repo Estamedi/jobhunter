@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { format } from 'date-fns'
 import { ExternalLink } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { IconLinkedin } from '@/assets/brand-icons'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -34,6 +35,7 @@ const OTHER_STATUS = '__other__'
 const OTHER_STAGE: BoardStage = { status: OTHER_STATUS, label: 'Other', badgeVariant: 'outline', visible: true }
 
 function CardContent({ application }: { application: JobApplication }) {
+  const { t } = useTranslation()
   const jobLink = application.jobRoleLink
   const isLinkedIn = jobLink?.toLowerCase().includes('linkedin.com')
 
@@ -50,7 +52,7 @@ function CardContent({ application }: { application: JobApplication }) {
             target='_blank'
             rel='noreferrer'
             onClick={(e) => e.stopPropagation()}
-            title={`Open on ${application.jobRoleSource || 'job site'}`}
+            title={t('Open on {{source}}', { source: application.jobRoleSource || t('job site') })}
             className='shrink-0 text-muted-foreground hover:text-foreground'
           >
             {isLinkedIn ? <IconLinkedin className='h-4 w-4' /> : <ExternalLink className='h-4 w-4' />}
@@ -60,10 +62,10 @@ function CardContent({ application }: { application: JobApplication }) {
       {(application.jobRoleWorkType || application.jobRoleEmploymentType) && (
         <div className='mt-1.5 flex flex-wrap gap-1'>
           {application.jobRoleWorkType && (
-            <Badge variant='outline' className='text-[10px]'>{application.jobRoleWorkType}</Badge>
+            <Badge variant='outline' className='text-[10px]'>{t(application.jobRoleWorkType)}</Badge>
           )}
           {application.jobRoleEmploymentType && (
-            <Badge variant='outline' className='text-[10px]'>{application.jobRoleEmploymentType}</Badge>
+            <Badge variant='outline' className='text-[10px]'>{t(application.jobRoleEmploymentType)}</Badge>
           )}
         </div>
       )}
@@ -72,7 +74,7 @@ function CardContent({ application }: { application: JobApplication }) {
           variant={application.priority === 'High' ? 'destructive' : 'secondary'}
           className='text-[10px]'
         >
-          {application.priority}
+          {t(application.priority)}
         </Badge>
         {application.nextFollowUpDate && (
           <span className='text-[10px] text-muted-foreground'>{format(new Date(application.nextFollowUpDate), 'MMM d')}</span>
@@ -116,6 +118,7 @@ function BoardColumn({
   accent: (typeof STAGE_ACCENTS)[number]
   onView: (id: number) => void
 }) {
+  const { t } = useTranslation()
   const { isOver, setNodeRef } = useDroppable({ id: stage.status })
 
   return (
@@ -123,7 +126,7 @@ function BoardColumn({
       <div className={`flex items-center justify-between gap-2 rounded-t-xl border-t-4 px-3 py-2.5 ${accent.top}`}>
         <div className='flex min-w-0 items-center gap-2'>
           <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
-          <span className='truncate text-sm font-semibold'>{stage.label}</span>
+          <span className='truncate text-sm font-semibold'>{t(stage.label)}</span>
         </div>
         <Badge variant='secondary' className='shrink-0 text-xs font-medium tabular-nums'>
           {applications.length}
@@ -135,7 +138,7 @@ function BoardColumn({
       >
         {applications.length === 0 && (
           <div className='flex flex-1 items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 text-center text-xs text-muted-foreground'>
-            Drag applications here
+            {t('Drag applications here')}
           </div>
         )}
         <AnimatePresence initial={false}>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Controller,
   type Control,
@@ -26,6 +27,7 @@ export function FormSelect<T extends FieldValues>({
   name,
   options,
 }: FormSelectProps<T>) {
+  const { t } = useTranslation()
   return (
     <Controller
       control={control}
@@ -41,7 +43,7 @@ export function FormSelect<T extends FieldValues>({
                 typeof o === 'string' ? { value: o, label: o } : o
               return (
                 <SelectItem key={value} value={value}>
-                  {label}
+                  {t(label)}
                 </SelectItem>
               )
             })}

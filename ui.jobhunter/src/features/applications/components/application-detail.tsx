@@ -23,6 +23,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { IconWhatsapp } from '@/assets/brand-icons'
@@ -70,7 +71,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div className='flex items-start justify-between gap-3 text-sm'>
       <span className='shrink-0 text-muted-foreground'>{label}</span>
-      <span className='text-right font-medium'>{children}</span>
+      <span className='text-end font-medium'>{children}</span>
     </div>
   )
 }
@@ -84,6 +85,7 @@ function toWhatsAppUrl(phone: string) {
 }
 
 function ExpandableText({ text }: { text: string }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [canExpand, setCanExpand] = useState(false)
   const ref = useRef<HTMLParagraphElement>(null)
@@ -104,7 +106,7 @@ function ExpandableText({ text }: { text: string }) {
           className='mt-1 text-xs font-medium text-primary hover:underline dark:text-primary'
           onClick={() => setExpanded((e) => !e)}
         >
-          {expanded ? 'Show less' : 'Show more'}
+          {expanded ? t('Show less') : t('Show more')}
         </button>
       )}
     </div>
@@ -130,6 +132,7 @@ interface ApplicationDetailProps {
 }
 
 export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailProps) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const { stages } = useBoardStages()
   const [editOpen, setEditOpen] = useState(false)
@@ -183,7 +186,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
     },
     onError: (_err, _status, context) => {
       if (context?.previous) qc.setQueryData(detailKey, context.previous)
-      toast.error('Failed to update stage')
+      toast.error(t('Failed to update stage'))
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   })
@@ -212,7 +215,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
     },
     onError: (_err, _priority, context) => {
       if (context?.previous) qc.setQueryData(detailKey, context.previous)
-      toast.error('Failed to update priority')
+      toast.error(t('Failed to update priority'))
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   })
@@ -221,7 +224,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
     mutationFn: (dto: Partial<CreateApplicationDto>) => applicationsApi.update(applicationId, dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Application updated')
+      toast.success(t('Application updated'))
       setEditOpen(false)
     },
   })
@@ -230,7 +233,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
     mutationFn: () => applicationsApi.delete(applicationId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Application deleted')
+      toast.success(t('Application deleted'))
       onClose?.()
     },
   })
@@ -241,7 +244,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
     return (
       <div className='space-y-4'>
         <Panel className='text-center text-sm text-muted-foreground'>
-          We couldn’t find that application. It may have been deleted.
+          {t('We couldn’t find that application. It may have been deleted.')}
         </Panel>
       </div>
     )
@@ -249,7 +252,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
 
   const stageIndex = stages.findIndex((s) => s.status === app.status)
   const stageAccent = stageIndex >= 0 ? STAGE_ACCENTS[stageIndex % STAGE_ACCENTS.length] : UNKNOWN_STAGE_ACCENT
-  const stageLabel = stages.find((s) => s.status === app.status)?.label ?? formatStatusLabel(app.status)
+  const stageLabel = t(stages.find((s) => s.status === app.status)?.label ?? formatStatusLabel(app.status))
   const isTerminalStage = (stages.find((s) => s.status === app.status)?.badgeVariant ?? 'secondary') === 'destructive'
 
   return (
@@ -258,21 +261,21 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
         <div className='flex items-center gap-2'>
           <Button variant='outline' size='sm' asChild>
             <Link to='/cv-builder' search={{ applicationId: app.id }}>
-              <Sparkles className='mr-1.5 size-4' /> Tailor CV
+              <Sparkles className='me-1.5 size-4' /> {t('Tailor CV')}
             </Link>
           </Button>
           <Button variant='outline' size='sm' onClick={() => setEditOpen(true)}>
-            <Pencil className='mr-1.5 size-4' /> Edit
+            <Pencil className='me-1.5 size-4' /> {t('Edit')}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant='outline' size='icon' aria-label='More actions'>
+              <Button variant='outline' size='icon' aria-label={t('More actions')}>
                 <MoreHorizontal className='size-4' />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
               <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate()}>
-                <Trash2 className='mr-2 size-4' /> Delete application
+                <Trash2 className='me-2 size-4' /> {t('Delete application')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -286,16 +289,16 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
               <Building2 className='size-6' />
             </div>
             <div className='min-w-0'>
-              <h1 className='truncate text-2xl font-bold tracking-tight'>{app.jobRoleTitle ?? 'Untitled vacancy'}</h1>
-              <p className='truncate text-muted-foreground'>{app.companyName ?? `Company #${app.companyId}`}</p>
+              <h1 className='truncate text-2xl font-bold tracking-tight'>{app.jobRoleTitle ?? t('Untitled vacancy')}</h1>
+              <p className='truncate text-muted-foreground'>{app.companyName ?? t('Company #{{id}}', { id: app.companyId })}</p>
               <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground'>
                 {jobRole?.workType && (
                   <span className='inline-flex items-center gap-1'>
-                    <MapPin className='size-3' /> {jobRole.workType}
+                    <MapPin className='size-3' /> {t(jobRole.workType)}
                   </span>
                 )}
-                {jobRole?.employmentType && <span>{jobRole.employmentType}</span>}
-                {app.appliedDate && <span>Applied {formatDistanceToNowStrict(new Date(app.appliedDate), { addSuffix: true })}</span>}
+                {jobRole?.employmentType && <span>{t(jobRole.employmentType)}</span>}
+                {app.appliedDate && <span>{t('Applied {{when}}', { when: formatDistanceToNowStrict(new Date(app.appliedDate), { addSuffix: true }) })}</span>}
               </div>
             </div>
           </div>
@@ -308,12 +311,12 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
               <PopoverTrigger asChild>
                 <button type='button' className='inline-flex rounded-md focus-visible:outline-none'>
                   <Badge variant={app.priority === 'High' ? 'destructive' : 'secondary'} className='cursor-pointer text-xs hover:opacity-80'>
-                    {app.priority} priority
+                    {t('{{priority}} priority', { priority: t(app.priority) })}
                   </Badge>
                 </button>
               </PopoverTrigger>
               <PopoverContent className='w-auto p-3' align='end'>
-                <p className='mb-2 text-xs font-medium text-muted-foreground'>Priority</p>
+                <p className='mb-2 text-xs font-medium text-muted-foreground'>{t('Priority')}</p>
                 <PriorityPicker
                   priorities={PRIORITIES}
                   value={app.priority}
@@ -336,7 +339,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
           <div className={cn('flex items-center gap-3 rounded-xl border p-3 text-sm', FOLLOWUP_TINTS[app.followUpStatus ?? ''] ?? DEFAULT_FOLLOWUP_TINT)}>
             <CalendarClock className='size-4 shrink-0' />
             <span>
-              Follow up <span className='font-semibold'>{format(new Date(app.nextFollowUpDate), 'MMM d')}</span> ·{' '}
+              {t('Follow up')} <span className='font-semibold'>{format(new Date(app.nextFollowUpDate), 'MMM d')}</span> ·{' '}
               {formatDistanceToNowStrict(new Date(app.nextFollowUpDate), { addSuffix: true })}
             </span>
           </div>
@@ -348,14 +351,14 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
           <Panel className='space-y-4'>
             <SectionHeading
               icon={Briefcase}
-              title='About the role'
+              title={t('About the role')}
               action={
                 jobRole && (
                   <Button
                     variant='ghost'
                     size='icon'
                     className='size-7 text-muted-foreground hover:text-foreground'
-                    aria-label='Edit vacancy'
+                    aria-label={t('Edit vacancy')}
                     onClick={() => setVacancyDialogOpen(true)}
                   >
                     <Pencil className='size-3.5' />
@@ -364,9 +367,9 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
               }
             />
             <div className='flex flex-wrap gap-2'>
-              {jobRole?.workType && <Badge variant='outline'>{jobRole.workType}</Badge>}
-              {jobRole?.employmentType && <Badge variant='outline'>{jobRole.employmentType}</Badge>}
-              {jobRole?.source && <Badge variant='outline'>via {jobRole.source}</Badge>}
+              {jobRole?.workType && <Badge variant='outline'>{t(jobRole.workType)}</Badge>}
+              {jobRole?.employmentType && <Badge variant='outline'>{t(jobRole.employmentType)}</Badge>}
+              {jobRole?.source && <Badge variant='outline'>{t('via {{source}}', { source: jobRole.source })}</Badge>}
               {(jobRole?.salaryMin || jobRole?.salaryMax) && (
                 <Badge variant='outline'>
                   {jobRole.currency ?? ''} {jobRole.salaryMin ?? '—'} – {jobRole.salaryMax ?? '—'}
@@ -380,53 +383,53 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                 rel='noopener noreferrer'
                 className='inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline dark:text-primary'
               >
-                View original posting <ExternalLink className='size-3.5' />
+                {t('View original posting')} <ExternalLink className='size-3.5' />
               </a>
             )}
             <div>
-              <p className='text-xs font-medium text-muted-foreground'>Description</p>
+              <p className='text-xs font-medium text-muted-foreground'>{t('Description')}</p>
               {app.jobRoleDescription || jobRole?.description ? (
                 <ExpandableText text={jobRole?.description ?? app.jobRoleDescription ?? ''} />
               ) : (
-                <EmptyNote>No description on file for this vacancy yet.</EmptyNote>
+                <EmptyNote>{t('No description on file for this vacancy yet.')}</EmptyNote>
               )}
             </div>
             {jobRole?.requirements && (
               <div>
-                <p className='text-xs font-medium text-muted-foreground'>Requirements</p>
+                <p className='text-xs font-medium text-muted-foreground'>{t('Requirements')}</p>
                 <ExpandableText text={jobRole.requirements} />
               </div>
             )}
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={Users} title='Interviews' />
+            <SectionHeading icon={Users} title={t('Interviews')} />
             <InterviewTimeline interviews={interviews?.items ?? []} />
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={StickyNote} title='Notes' />
+            <SectionHeading icon={StickyNote} title={t('Notes')} />
             <ApplicationNotes applicationId={applicationId} />
           </Panel>
         </div>
 
         <div className='space-y-5'>
           <Panel className='space-y-3'>
-            <SectionHeading icon={CalendarClock} title='Timeline' />
-            <Field label='Applied'>{app.appliedDate ? format(new Date(app.appliedDate), 'MMM d, yyyy') : '—'}</Field>
-            <Field label='Last activity'>{app.lastActivityDate ? format(new Date(app.lastActivityDate), 'MMM d, yyyy') : '—'}</Field>
-            <Field label='Next follow-up'>{app.nextFollowUpDate ? format(new Date(app.nextFollowUpDate), 'MMM d, yyyy') : '—'}</Field>
+            <SectionHeading icon={CalendarClock} title={t('Timeline')} />
+            <Field label={t('Applied')}>{app.appliedDate ? format(new Date(app.appliedDate), 'MMM d, yyyy') : '—'}</Field>
+            <Field label={t('Last activity')}>{app.lastActivityDate ? format(new Date(app.lastActivityDate), 'MMM d, yyyy') : '—'}</Field>
+            <Field label={t('Next follow-up')}>{app.nextFollowUpDate ? format(new Date(app.nextFollowUpDate), 'MMM d, yyyy') : '—'}</Field>
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={Wallet} title='Compensation' />
-            <Field label='Expected salary'>
+            <SectionHeading icon={Wallet} title={t('Compensation')} />
+            <Field label={t('Expected salary')}>
               {app.expectedSalary ? `${app.currency ?? ''} ${app.expectedSalary.toLocaleString()}` : '—'}
             </Field>
             {app.actualOfferSalary != null && (
               <div className='rounded-lg bg-emerald-50 p-2.5 text-sm dark:bg-emerald-500/10'>
                 <span className='font-medium text-emerald-700 dark:text-emerald-400'>
-                  Offer: {app.currency ?? ''} {app.actualOfferSalary.toLocaleString()} 🎉
+                  {t('Offer')}: {app.currency ?? ''} {app.actualOfferSalary.toLocaleString()} 🎉
                 </span>
               </div>
             )}
@@ -435,14 +438,14 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
           <Panel className='space-y-3'>
             <SectionHeading
               icon={Building2}
-              title='Company'
+              title={t('Company')}
               action={
                 company && (
                   <Button
                     variant='ghost'
                     size='icon'
                     className='size-7 text-muted-foreground hover:text-foreground'
-                    aria-label='Edit company'
+                    aria-label={t('Edit company')}
                     onClick={() => setCompanyDialogOpen(true)}
                   >
                     <Pencil className='size-3.5' />
@@ -450,24 +453,24 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                 )
               }
             />
-            {company?.industry && <Field label='Industry'>{company.industry}</Field>}
-            {company?.companySize && <Field label='Size'>{company.companySize}</Field>}
+            {company?.industry && <Field label={t('Industry')}>{company.industry}</Field>}
+            {company?.companySize && <Field label={t('Size')}>{company.companySize}</Field>}
             {(company?.city || company?.country) && (
-              <Field label='Location'>{[company?.city, company?.country].filter(Boolean).join(', ')}</Field>
+              <Field label={t('Location')}>{[company?.city, company?.country].filter(Boolean).join(', ')}</Field>
             )}
             {(company?.website || company?.linkedInUrl) && (
               <div className='flex gap-2 pt-1'>
                 {company?.website && (
                   <Button variant='outline' size='sm' asChild>
                     <a href={company.website} target='_blank' rel='noopener noreferrer'>
-                      <Globe className='mr-1.5 size-3.5' /> Website
+                      <Globe className='me-1.5 size-3.5' /> {t('Website')}
                     </a>
                   </Button>
                 )}
                 {company?.linkedInUrl && (
                   <Button variant='outline' size='sm' asChild>
                     <a href={company.linkedInUrl} target='_blank' rel='noopener noreferrer'>
-                      <ExternalLink className='mr-1.5 size-3.5' /> LinkedIn
+                      <ExternalLink className='me-1.5 size-3.5' /> {t('LinkedIn')}
                     </a>
                   </Button>
                 )}
@@ -478,13 +481,13 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
           <Panel className='space-y-3'>
             <SectionHeading
               icon={Users}
-              title='Main contact'
+              title={t('Main contact')}
               action={
                 <Button
                   variant='ghost'
                   size='icon'
                   className='size-7 text-muted-foreground hover:text-foreground'
-                  aria-label={contact ? 'Edit main contact' : 'Add main contact'}
+                  aria-label={contact ? t('Edit main contact') : t('Add main contact')}
                   onClick={() => setMainContactDialogOpen(true)}
                 >
                   {contact ? <Pencil className='size-3.5' /> : <Plus className='size-3.5' />}
@@ -496,14 +499,14 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                 <p className='text-sm font-semibold'>{contact.fullName}</p>
                 {contact.jobTitle && <p className='text-xs text-muted-foreground'>{contact.jobTitle}</p>}
                 <div className='space-y-1.5 pt-1'>
-                  {contact.email && <Field label='Email'>{contact.email}</Field>}
-                  {contact.phone && <Field label='Phone'>{contact.phone}</Field>}
+                  {contact.email && <Field label={t('Email')}>{contact.email}</Field>}
+                  {contact.phone && <Field label={t('Phone')}>{contact.phone}</Field>}
                 </div>
                 <div className='flex flex-wrap gap-2 pt-1'>
                   {contact.email && (
                     <Button variant='outline' size='sm' asChild>
                       <a href={`mailto:${contact.email}`}>
-                        <Mail className='mr-1.5 size-3.5' /> Email
+                        <Mail className='me-1.5 size-3.5' /> {t('Email')}
                       </a>
                     </Button>
                   )}
@@ -511,12 +514,12 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                     <>
                       <Button variant='outline' size='sm' asChild>
                         <a href={`tel:${contact.phone}`}>
-                          <Phone className='mr-1.5 size-3.5' /> Call
+                          <Phone className='me-1.5 size-3.5' /> {t('Call')}
                         </a>
                       </Button>
                       <Button variant='outline' size='sm' asChild>
                         <a href={toWhatsAppUrl(contact.phone)} target='_blank' rel='noopener noreferrer'>
-                          <IconWhatsapp className='mr-1.5 size-3.5' /> WhatsApp
+                          <IconWhatsapp className='me-1.5 size-3.5' /> {t('WhatsApp')}
                         </a>
                       </Button>
                     </>
@@ -524,19 +527,19 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                   {contact.linkedInUrl && (
                     <Button variant='outline' size='sm' asChild>
                       <a href={contact.linkedInUrl} target='_blank' rel='noopener noreferrer'>
-                        <ExternalLink className='mr-1.5 size-3.5' /> LinkedIn
+                        <ExternalLink className='me-1.5 size-3.5' /> {t('LinkedIn')}
                       </a>
                     </Button>
                   )}
                 </div>
               </>
             ) : (
-              <EmptyNote>No contact added yet — add one above.</EmptyNote>
+              <EmptyNote>{t('No contact added yet — add one above.')}</EmptyNote>
             )}
           </Panel>
 
           <Panel className='space-y-3'>
-            <SectionHeading icon={FileText} title='Documents' />
+            <SectionHeading icon={FileText} title={t('Documents')} />
             {app.cvId && app.cvFileName ? (
               <div className='space-y-2'>
                 <div className='flex items-center gap-2 rounded-lg border p-2.5 text-sm'>
@@ -545,7 +548,7 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                 </div>
                 <div className='flex gap-2'>
                   <Button variant='outline' size='sm' className='flex-1' onClick={() => viewCvFile({ id: app.cvId! })}>
-                    <Eye className='mr-1.5 size-3.5' /> View
+                    <Eye className='me-1.5 size-3.5' /> {t('View')}
                   </Button>
                   <Button
                     variant='outline'
@@ -553,15 +556,15 @@ export function ApplicationDetail({ applicationId, onClose }: ApplicationDetailP
                     className='flex-1'
                     onClick={() => downloadCvFile({ id: app.cvId!, fileName: app.cvFileName! })}
                   >
-                    <Download className='mr-1.5 size-3.5' /> Download
+                    <Download className='me-1.5 size-3.5' /> {t('Download')}
                   </Button>
                 </div>
               </div>
             ) : (
-              <EmptyNote>No resume attached yet.</EmptyNote>
+              <EmptyNote>{t('No resume attached yet.')}</EmptyNote>
             )}
-            {app.resumeVersion && <Field label='Resume version'>{app.resumeVersion}</Field>}
-            {app.coverLetterVersion && <Field label='Cover letter'>{app.coverLetterVersion}</Field>}
+            {app.resumeVersion && <Field label={t('Resume version')}>{app.resumeVersion}</Field>}
+            {app.coverLetterVersion && <Field label={t('Cover letter')}>{app.coverLetterVersion}</Field>}
           </Panel>
         </div>
       </div>

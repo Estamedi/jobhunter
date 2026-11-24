@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ApplicationDetail } from './application-detail'
 
@@ -8,10 +9,11 @@ interface ApplicationDetailDialogProps {
 }
 
 export function ApplicationDetailDialog({ applicationId, open, onOpenChange }: ApplicationDetailDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[90vh] w-[95vw] max-w-6xl overflow-y-auto rounded-2xl sm:max-w-6xl'>
-        <DialogTitle className='sr-only'>Application details</DialogTitle>
+        <DialogTitle className='sr-only'>{t('Application details')}</DialogTitle>
         {applicationId != null && (
           <ApplicationDetail applicationId={applicationId} onClose={() => onOpenChange(false)} />
         )}

@@ -1,5 +1,6 @@
 import { format, isPast } from 'date-fns'
 import { CalendarClock, ExternalLink, Mail, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import type { JobInterview } from '@/features/interviews/api'
@@ -13,10 +14,11 @@ const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
 }
 
 export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }) {
+  const { t } = useTranslation()
   if (interviews.length === 0) {
     return (
       <div className='rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground'>
-        No interviews scheduled yet for this application.
+        {t('No interviews scheduled yet for this application.')}
       </div>
     )
   }
@@ -46,16 +48,16 @@ export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }
             </div>
             <div className='min-w-0 flex-1 pb-1'>
               <div className='flex flex-wrap items-center gap-2'>
-                <span className='text-sm font-semibold'>{iv.round} interview</span>
+                <span className='text-sm font-semibold'>{t('{{round}} interview', { round: t(iv.round) })}</span>
                 <Badge variant={STATUS_COLORS[iv.status] ?? 'secondary'} className='text-[10px]'>
-                  {iv.status}
+                  {t(iv.status)}
                 </Badge>
-                {past && <span className='text-[10px] font-medium text-amber-600'>needs an update</span>}
+                {past && <span className='text-[10px] font-medium text-amber-600'>{t('needs an update')}</span>}
               </div>
               <div className='mt-1 flex items-center gap-1.5 text-xs text-muted-foreground'>
                 <CalendarClock className='size-3.5' />
                 {format(date, 'MMM d, yyyy · h:mm a')}
-                {iv.durationMinutes && <span>· {iv.durationMinutes} min</span>}
+                {iv.durationMinutes && <span>· {t('{{n}} min', { n: iv.durationMinutes })}</span>}
               </div>
               {iv.interviewerName && (
                 <div className='mt-1 flex items-center gap-1.5 text-xs text-muted-foreground'>
@@ -76,7 +78,7 @@ export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }
                   rel='noopener noreferrer'
                   className='mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline dark:text-primary'
                 >
-                  Join meeting <ExternalLink className='size-3' />
+                  {t('Join meeting')} <ExternalLink className='size-3' />
                 </a>
               )}
               {iv.preparationNotes && (
@@ -84,7 +86,7 @@ export function InterviewTimeline({ interviews }: { interviews: JobInterview[] }
               )}
               {iv.feedback && (
                 <p className='mt-2 text-xs text-muted-foreground'>
-                  <span className='font-medium text-foreground'>Feedback: </span>
+                  <span className='font-medium text-foreground'>{t('Feedback')}: </span>
                   {iv.feedback}
                 </p>
               )}

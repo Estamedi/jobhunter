@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +34,7 @@ export function MultiSelectFilter({
   value,
   onChange,
 }: MultiSelectFilterProps) {
+  const { t } = useTranslation()
   const selectedValues = new Set(value)
 
   return (
@@ -56,7 +58,7 @@ export function MultiSelectFilter({
                     variant='secondary'
                     className='rounded-sm px-1 font-normal'
                   >
-                    {selectedValues.size} selected
+                    {t('{{count}} selected', { count: selectedValues.size })}
                   </Badge>
                 ) : (
                   options
@@ -67,7 +69,7 @@ export function MultiSelectFilter({
                         key={option.value}
                         className='rounded-sm px-1 font-normal'
                       >
-                        {option.label}
+                        {t(option.label)}
                       </Badge>
                     ))
                 )}
@@ -80,7 +82,7 @@ export function MultiSelectFilter({
         <Command>
           <CommandInput placeholder={title} />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t('No results found.')}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value)
@@ -104,7 +106,7 @@ export function MultiSelectFilter({
                     >
                       <CheckIcon className={cn('h-4 w-4 text-background')} />
                     </div>
-                    <span>{option.label}</span>
+                    <span>{t(option.label)}</span>
                   </CommandItem>
                 )
               })}
@@ -117,7 +119,7 @@ export function MultiSelectFilter({
                     onSelect={() => onChange([])}
                     className='justify-center text-center'
                   >
-                    Clear filters
+                    {t('Clear filters')}
                   </CommandItem>
                 </CommandGroup>
               </>

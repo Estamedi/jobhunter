@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -37,6 +38,7 @@ export function CustomizeStagesDialog({
   onAdd,
   onReset,
 }: CustomizeStagesDialogProps) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [newLabel, setNewLabel] = useState('')
   const [reassignTarget, setReassignTarget] = useState<string | null>(null)
@@ -62,11 +64,11 @@ export function CustomizeStagesDialog({
     onSuccess: (_data, { from }) => {
       onRemove(from)
       qc.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Applications moved and stage removed')
+      toast.success(t('Applications moved and stage removed'))
       setReassignTarget(null)
       setReassignTo('')
     },
-    onError: () => toast.error('Failed to move applications'),
+    onError: () => toast.error(t('Failed to move applications')),
   })
 
   function handleDeleteClick(status: string) {
@@ -93,7 +95,7 @@ export function CustomizeStagesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader>
-          <DialogTitle>Customize board stages</DialogTitle>
+          <DialogTitle>{t('Customize board stages')}</DialogTitle>
         </DialogHeader>
 
         <div className='max-h-[400px] space-y-2 overflow-y-auto'>
@@ -119,14 +121,14 @@ export function CustomizeStagesDialog({
                   </button>
                 </div>
 
-                <Input value={stage.label} onChange={(e) => onRename(stage.status, e.target.value)} className='h-8 flex-1' />
+                <Input value={t(stage.label)} onChange={(e) => onRename(stage.status, e.target.value)} className='h-8 flex-1' />
 
                 <div className='flex gap-1'>
                   {BADGE_VARIANTS.map((variant) => (
                     <button
                       key={variant}
                       type='button'
-                      title={variant}
+                      title={t(variant)}
                       onClick={() => onColor(stage.status, variant)}
                       className={`rounded-full ring-offset-1 ${stage.badgeVariant === variant ? 'ring-2 ring-ring' : ''}`}
                     >
@@ -135,11 +137,11 @@ export function CustomizeStagesDialog({
                   ))}
                 </div>
 
-                <Button variant='ghost' size='icon' className='h-8 w-8' onClick={() => onToggleVisibility(stage.status)} title={stage.visible ? 'Hide from board' : 'Show on board'}>
+                <Button variant='ghost' size='icon' className='h-8 w-8' onClick={() => onToggleVisibility(stage.status)} title={stage.visible ? t('Hide from board') : t('Show on board')}>
                   {stage.visible ? <Eye className='h-4 w-4' /> : <EyeOff className='h-4 w-4 text-muted-foreground' />}
                 </Button>
 
-                <Button variant='ghost' size='icon' className='h-8 w-8 text-destructive' onClick={() => handleDeleteClick(stage.status)} title='Delete stage'>
+                <Button variant='ghost' size='icon' className='h-8 w-8 text-destructive' onClick={() => handleDeleteClick(stage.status)} title={t('Delete stage')}>
                   <Trash2 className='h-4 w-4' />
                 </Button>
               </div>
@@ -147,7 +149,7 @@ export function CustomizeStagesDialog({
               {reassignTarget === stage.status && (
                 <div className='flex items-center gap-2 rounded-md bg-muted/50 p-2 text-sm'>
                   <span className='text-muted-foreground'>
-                    Move {countByStatus[stage.status] ?? 0} application(s) to
+                    {t('Move {{count}} application(s) to', { count: countByStatus[stage.status] ?? 0 })}
                   </span>
                   <Select value={reassignTo} onValueChange={setReassignTo}>
                     <SelectTrigger className='h-8 w-auto min-w-[120px]'>
@@ -155,15 +157,15 @@ export function CustomizeStagesDialog({
                     </SelectTrigger>
                     <SelectContent>
                       {stages.filter((s) => s.status !== stage.status).map((s) => (
-                        <SelectItem key={s.status} value={s.status}>{s.label}</SelectItem>
+                        <SelectItem key={s.status} value={s.status}>{t(s.label)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <Button size='sm' onClick={handleConfirmReassign} disabled={reassignAndRemove.isPending}>
-                    Move & delete
+                    {t('Move & delete')}
                   </Button>
                   <Button size='sm' variant='ghost' onClick={() => setReassignTarget(null)}>
-                    Cancel
+                    {t('Cancel')}
                   </Button>
                 </div>
               )}
@@ -173,22 +175,22 @@ export function CustomizeStagesDialog({
 
         <div className='flex items-center gap-2 pt-2'>
           <Input
-            placeholder='New stage name...'
+            placeholder={t('New stage name...')}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd() } }}
             className='h-8 flex-1'
           />
           <Button size='sm' variant='outline' onClick={handleAdd}>
-            <Plus className='mr-1 h-4 w-4' /> Add stage
+            <Plus className='me-1 h-4 w-4' /> {t('Add stage')}
           </Button>
         </div>
 
         <DialogFooter className='sm:justify-between'>
           <Button variant='ghost' size='sm' onClick={onReset}>
-            <RotateCcw className='mr-1 h-4 w-4' /> Reset to default
+            <RotateCcw className='me-1 h-4 w-4' /> {t('Reset to default')}
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Done</Button>
+          <Button onClick={() => onOpenChange(false)}>{t('Done')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

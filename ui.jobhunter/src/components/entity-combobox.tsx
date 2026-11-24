@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronsUpDown, Loader2, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -50,14 +51,19 @@ export function EntityCombobox({
   fetchOptions,
   onCreate,
   onSelectOption,
-  placeholder = 'Select...',
-  searchPlaceholder = 'Search...',
-  emptyText = 'No results found.',
-  createLabel = (name) => `Create "${name}"`,
+  placeholder,
+  searchPlaceholder,
+  emptyText,
+  createLabel,
   disabled,
   disabledPlaceholder,
   triggerClassName,
 }: EntityComboboxProps) {
+  const { t } = useTranslation()
+  const placeholderText = placeholder ?? t('Select...')
+  const searchPlaceholderText = searchPlaceholder ?? t('Search...')
+  const emptyLabel = emptyText ?? t('No results found.')
+  const createText = createLabel ?? ((name: string) => t('Create "{{name}}"', { name }))
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -153,14 +159,14 @@ export function EntityCombobox({
         >
           <span
             className={cn(
-              'min-w-0 flex-1 truncate text-left',
+              'min-w-0 flex-1 truncate text-start',
               !value && 'text-muted-foreground'
             )}
           >
             {value?.label ??
-              (disabled ? (disabledPlaceholder ?? placeholder) : placeholder)}
+              (disabled ? (disabledPlaceholder ?? placeholderText) : placeholderText)}
           </span>
-          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+          <ChevronsUpDown className='ms-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -169,21 +175,21 @@ export function EntityCombobox({
       >
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholderText}
             value={search}
             onValueChange={setSearch}
           />
           <CommandList>
             {(isFetching || resolving) && (
               <div className='flex items-center justify-center py-4 text-sm text-muted-foreground'>
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />{' '}
-                {resolving ? 'Adding...' : 'Searching...'}
+                <Loader2 className='me-2 h-4 w-4 animate-spin' />{' '}
+                {resolving ? t('Adding...') : t('Searching...')}
               </div>
             )}
             {!isFetching &&
               !resolving &&
               options.length === 0 &&
-              !showCreate && <CommandEmpty>{emptyText}</CommandEmpty>}
+              !showCreate && <CommandEmpty>{emptyLabel}</CommandEmpty>}
             {!isFetching && !resolving && isFlat && (
               <CommandGroup>
                 {showCreate && (
@@ -197,7 +203,7 @@ export function EntityCombobox({
                     ) : (
                       <Plus className='h-4 w-4' />
                     )}
-                    {createLabel(trimmedSearch)}
+                    {createText(trimmedSearch)}
                   </CommandItem>
                 )}
                 {groups[0][1].map((option) => (
@@ -233,7 +239,7 @@ export function EntityCombobox({
                       ) : (
                         <Plus className='h-4 w-4' />
                       )}
-                      {createLabel(trimmedSearch)}
+                      {createText(trimmedSearch)}
                     </CommandItem>
                   </CommandGroup>
                 )}

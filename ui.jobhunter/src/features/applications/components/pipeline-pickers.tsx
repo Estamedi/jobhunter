@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { formatStatusLabel, STAGE_ACCENTS, UNKNOWN_STAGE_ACCENT } from '../data/constants'
 import type { BoardStage } from '../hooks/use-board-stages'
@@ -40,6 +41,7 @@ interface StagePickerProps {
 }
 
 export function StagePicker({ stages, value, onChange }: StagePickerProps) {
+  const { t } = useTranslation()
   const isKnown = stages.some((s) => s.status === value)
 
   return (
@@ -49,7 +51,7 @@ export function StagePicker({ stages, value, onChange }: StagePickerProps) {
         return (
           <PickerPill
             key={stage.status}
-            label={stage.label}
+            label={t(stage.label)}
             dotClassName={accent.dot}
             selected={value === stage.status}
             selectedClassName={cn(accent.tint, accent.ring)}
@@ -59,7 +61,7 @@ export function StagePicker({ stages, value, onChange }: StagePickerProps) {
       })}
       {value && !isKnown && (
         <PickerPill
-          label={formatStatusLabel(value)}
+          label={t(formatStatusLabel(value))}
           dotClassName={UNKNOWN_STAGE_ACCENT.dot}
           selected
           selectedClassName={cn(UNKNOWN_STAGE_ACCENT.tint, UNKNOWN_STAGE_ACCENT.ring)}
@@ -82,6 +84,7 @@ interface PriorityPickerProps {
 }
 
 export function PriorityPicker({ priorities, value, onChange }: PriorityPickerProps) {
+  const { t } = useTranslation()
   return (
     <div className='flex flex-wrap gap-2'>
       {priorities.map((priority) => {
@@ -89,7 +92,7 @@ export function PriorityPicker({ priorities, value, onChange }: PriorityPickerPr
         return (
           <PickerPill
             key={priority}
-            label={priority}
+            label={t(priority)}
             dotClassName={accent.dot}
             selected={value === priority}
             selectedClassName={cn(accent.tint, accent.ring)}

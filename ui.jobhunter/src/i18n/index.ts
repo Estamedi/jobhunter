@@ -2,6 +2,11 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { getCookie, setCookie } from '@/lib/cookies'
 import { fa } from './fa'
+import { faApplications } from './fa-applications'
+import { faApplicationsBoard } from './fa-applications-board'
+import { faApplicationsDetail } from './fa-applications-detail'
+import { faApplicationsDialogs } from './fa-applications-dialogs'
+import { faCommon } from './fa-common'
 
 export type Language = 'en' | 'fa'
 
@@ -33,7 +38,14 @@ function initialLanguage(): Language {
 void i18n.use(initReactI18next).init({
   lng: initialLanguage(),
   fallbackLng: 'en',
-  resources: { en: { translation: {} }, fa: { translation: fa } },
+  resources: { en: { translation: {} }, fa: { translation: {
+        ...fa,
+        ...faCommon,
+        ...faApplications,
+        ...faApplicationsBoard,
+        ...faApplicationsDialogs,
+        ...faApplicationsDetail,
+      } } },
   keySeparator: false,
   nsSeparator: false,
   interpolation: { escapeValue: false },

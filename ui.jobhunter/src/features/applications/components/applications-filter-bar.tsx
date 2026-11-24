@@ -1,8 +1,10 @@
 import * as React from 'react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { Calendar as CalendarIcon, Search, SlidersHorizontal, X } from 'lucide-react'
 import { PlusCircledIcon } from '@radix-ui/react-icons'
+import { type TFunction } from 'i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/date-picker'
@@ -65,6 +67,7 @@ function DateRangeFilter({
   to?: Date
   onChange: (range: { from?: Date; to?: Date }) => void
 }) {
+  const { t } = useTranslation()
   const active = Boolean(from || to)
   return (
     <Popover>
@@ -85,16 +88,16 @@ function DateRangeFilter({
       <PopoverContent className='w-auto p-3' align='start'>
         <div className='flex flex-col gap-3'>
           <div>
-            <p className='mb-1 text-xs text-muted-foreground'>From</p>
+            <p className='mb-1 text-xs text-muted-foreground'>{t('From')}</p>
             <DatePicker selected={from} onSelect={(date) => onChange({ from: date, to })} />
           </div>
           <div>
-            <p className='mb-1 text-xs text-muted-foreground'>To</p>
+            <p className='mb-1 text-xs text-muted-foreground'>{t('To')}</p>
             <DatePicker selected={to} onSelect={(date) => onChange({ from, to: date })} />
           </div>
           {active && (
             <Button variant='ghost' size='sm' onClick={() => onChange({ from: undefined, to: undefined })}>
-              Clear
+              {t('Clear')}
             </Button>
           )}
         </div>
@@ -114,13 +117,14 @@ function SalaryRangeFilter({
   onChange: (range: { min?: number; max?: number }) => void
   resetSignal: number
 }) {
+  const { t } = useTranslation()
   const active = min !== undefined || max !== undefined
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant='outline' size='sm' className='h-9 border-dashed justify-start'>
           <PlusCircledIcon className='size-4' />
-          Salary
+          {t('Salary')}
           {active && (
             <>
               <Separator orientation='vertical' className='mx-2 h-4' />
@@ -135,21 +139,21 @@ function SalaryRangeFilter({
         <div className='flex flex-col gap-2'>
           <DebouncedInput
             type='number'
-            placeholder='Min'
+            placeholder={t('Min')}
             value={min?.toString() ?? ''}
             resetSignal={resetSignal}
             onDebouncedChange={(v) => onChange({ min: Number.isFinite(Number(v)) && v !== '' ? Number(v) : undefined, max })}
           />
           <DebouncedInput
             type='number'
-            placeholder='Max'
+            placeholder={t('Max')}
             value={max?.toString() ?? ''}
             resetSignal={resetSignal}
             onDebouncedChange={(v) => onChange({ min, max: Number.isFinite(Number(v)) && v !== '' ? Number(v) : undefined })}
           />
           {active && (
             <Button variant='ghost' size='sm' onClick={() => onChange({ min: undefined, max: undefined })}>
-              Clear
+              {t('Clear')}
             </Button>
           )}
         </div>
@@ -180,19 +184,23 @@ const CLEARED: Partial<ApplicationFilters> = {
 }
 
 // Filters that live in the "Filters" sheet. Search and the status / follow-up chips are always visible.
-function advancedChips(f: ApplicationFilters, onChange: (patch: Partial<ApplicationFilters>) => void) {
+function advancedChips(
+  f: ApplicationFilters,
+  onChange: (patch: Partial<ApplicationFilters>) => void,
+  t: TFunction
+) {
   const chips: { key: string; label: string; clear: () => void }[] = []
-  f.priority.forEach((v) => chips.push({ key: `p-${v}`, label: `Priority: ${v}`, clear: () => onChange({ priority: f.priority.filter((x) => x !== v) }) }))
-  f.workType.forEach((v) => chips.push({ key: `w-${v}`, label: v, clear: () => onChange({ workType: f.workType.filter((x) => x !== v) }) }))
-  f.employmentType.forEach((v) => chips.push({ key: `e-${v}`, label: v, clear: () => onChange({ employmentType: f.employmentType.filter((x) => x !== v) }) }))
-  if (f.country) chips.push({ key: 'country', label: `Country: ${f.country}`, clear: () => onChange({ country: '' }) })
-  if (f.jobTitle) chips.push({ key: 'title', label: `Title: ${f.jobTitle}`, clear: () => onChange({ jobTitle: '' }) })
+  f.priority.forEach((v) => chips.push({ key: `p-${v}`, label: t('Priority: {{value}}', { value: t(v) }), clear: () => onChange({ priority: f.priority.filter((x) => x !== v) }) }))
+  f.workType.forEach((v) => chips.push({ key: `w-${v}`, label: t(v), clear: () => onChange({ workType: f.workType.filter((x) => x !== v) }) }))
+  f.employmentType.forEach((v) => chips.push({ key: `e-${v}`, label: t(v), clear: () => onChange({ employmentType: f.employmentType.filter((x) => x !== v) }) }))
+  if (f.country) chips.push({ key: 'country', label: t('Country: {{value}}', { value: f.country }), clear: () => onChange({ country: '' }) })
+  if (f.jobTitle) chips.push({ key: 'title', label: t('Title: {{value}}', { value: f.jobTitle }), clear: () => onChange({ jobTitle: '' }) })
   if (f.salaryMin !== undefined || f.salaryMax !== undefined)
-    chips.push({ key: 'salary', label: `Salary: ${f.salaryMin ?? '…'} – ${f.salaryMax ?? '…'}`, clear: () => onChange({ salaryMin: undefined, salaryMax: undefined }) })
+    chips.push({ key: 'salary', label: t('Salary: {{range}}', { range: `${f.salaryMin ?? '…'} – ${f.salaryMax ?? '…'}` }), clear: () => onChange({ salaryMin: undefined, salaryMax: undefined }) })
   if (f.appliedFrom || f.appliedTo)
-    chips.push({ key: 'applied', label: `Applied: ${f.appliedFrom ? format(f.appliedFrom, 'MMM d') : '…'} – ${f.appliedTo ? format(f.appliedTo, 'MMM d') : '…'}`, clear: () => onChange({ appliedFrom: undefined, appliedTo: undefined }) })
+    chips.push({ key: 'applied', label: t('Applied: {{range}}', { range: `${f.appliedFrom ? format(f.appliedFrom, 'MMM d') : '…'} – ${f.appliedTo ? format(f.appliedTo, 'MMM d') : '…'}` }), clear: () => onChange({ appliedFrom: undefined, appliedTo: undefined }) })
   if (f.followUpFrom || f.followUpTo)
-    chips.push({ key: 'followup', label: `Follow-up: ${f.followUpFrom ? format(f.followUpFrom, 'MMM d') : '…'} – ${f.followUpTo ? format(f.followUpTo, 'MMM d') : '…'}`, clear: () => onChange({ followUpFrom: undefined, followUpTo: undefined }) })
+    chips.push({ key: 'followup', label: t('Follow-up: {{range}}', { range: `${f.followUpFrom ? format(f.followUpFrom, 'MMM d') : '…'} – ${f.followUpTo ? format(f.followUpTo, 'MMM d') : '…'}` }), clear: () => onChange({ followUpFrom: undefined, followUpTo: undefined }) })
   return chips
 }
 
@@ -212,8 +220,9 @@ export function ApplicationsFilterBar({
   filters: ApplicationFilters
   onChange: (patch: Partial<ApplicationFilters>) => void
 }) {
+  const { t } = useTranslation()
   const [resetSignal, setResetSignal] = useState(0)
-  const chips = advancedChips(filters, onChange)
+  const chips = advancedChips(filters, onChange, t)
 
   function clearAll() {
     setResetSignal((s) => s + 1)
@@ -229,10 +238,10 @@ export function ApplicationsFilterBar({
     <div className='space-y-2'>
       <div className='flex flex-wrap items-center gap-2'>
         <div className='relative flex-1 min-w-[200px] max-w-sm'>
-          <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+          <Search className='absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
           <DebouncedInput
-            placeholder='Search applications...'
-            className='pl-8'
+            placeholder={t('Search applications...')}
+            className='ps-8'
             value={filters.search}
             resetSignal={resetSignal}
             onDebouncedChange={(search) => onChange({ search })}
@@ -242,10 +251,10 @@ export function ApplicationsFilterBar({
         <Sheet>
           <SheetTrigger asChild>
             <Button variant='outline' size='sm' className='h-9 font-medium'>
-              <SlidersHorizontal className='h-4 w-4 mr-1' />
-              Filters
+              <SlidersHorizontal className='h-4 w-4 me-1' />
+              {t('Filters')}
               {chips.length > 0 && (
-                <span className='ml-1 min-w-5 rounded-full bg-primary px-1.5 text-center text-xs font-semibold tabular-nums text-primary-foreground'>
+                <span className='ms-1 min-w-5 rounded-full bg-primary px-1.5 text-center text-xs font-semibold tabular-nums text-primary-foreground'>
                   {chips.length}
                 </span>
               )}
@@ -253,25 +262,25 @@ export function ApplicationsFilterBar({
           </SheetTrigger>
           <SheetContent className='flex w-full flex-col gap-0 sm:max-w-md'>
             <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-              <SheetDescription>Results update as you change them.</SheetDescription>
+              <SheetTitle>{t('Filters')}</SheetTitle>
+              <SheetDescription>{t('Results update as you change them.')}</SheetDescription>
             </SheetHeader>
             <div className='flex-1 space-y-6 overflow-y-auto px-4 pb-4'>
-              <Section title='Role'>
+              <Section title={t('Role')}>
                 <DebouncedInput
-                  placeholder='Job title'
+                  placeholder={t('Job title')}
                   value={filters.jobTitle}
                   resetSignal={resetSignal}
                   onDebouncedChange={(jobTitle) => onChange({ jobTitle })}
                 />
                 <DebouncedInput
-                  placeholder='Country'
+                  placeholder={t('Country')}
                   value={filters.country}
                   resetSignal={resetSignal}
                   onDebouncedChange={(country) => onChange({ country })}
                 />
-                <MultiSelectFilter title='Work type' options={WORK_TYPE_OPTIONS} value={filters.workType} onChange={(workType) => onChange({ workType })} />
-                <MultiSelectFilter title='Employment type' options={EMPLOYMENT_TYPE_OPTIONS} value={filters.employmentType} onChange={(employmentType) => onChange({ employmentType })} />
+                <MultiSelectFilter title={t('Work type')} options={WORK_TYPE_OPTIONS} value={filters.workType} onChange={(workType) => onChange({ workType })} />
+                <MultiSelectFilter title={t('Employment type')} options={EMPLOYMENT_TYPE_OPTIONS} value={filters.employmentType} onChange={(employmentType) => onChange({ employmentType })} />
                 <SalaryRangeFilter
                   min={filters.salaryMin}
                   max={filters.salaryMax}
@@ -279,17 +288,17 @@ export function ApplicationsFilterBar({
                   onChange={({ min, max }) => onChange({ salaryMin: min, salaryMax: max })}
                 />
               </Section>
-              <Section title='Priority'>
-                <MultiSelectFilter title='Priority' options={PRIORITY_OPTIONS} value={filters.priority} onChange={(priority) => onChange({ priority })} />
+              <Section title={t('Priority')}>
+                <MultiSelectFilter title={t('Priority')} options={PRIORITY_OPTIONS} value={filters.priority} onChange={(priority) => onChange({ priority })} />
               </Section>
-              <Section title='Dates'>
-                <DateRangeFilter label='Applied' from={filters.appliedFrom} to={filters.appliedTo} onChange={({ from, to }) => onChange({ appliedFrom: from, appliedTo: to })} />
-                <DateRangeFilter label='Follow-up' from={filters.followUpFrom} to={filters.followUpTo} onChange={({ from, to }) => onChange({ followUpFrom: from, followUpTo: to })} />
+              <Section title={t('Dates')}>
+                <DateRangeFilter label={t('Applied')} from={filters.appliedFrom} to={filters.appliedTo} onChange={({ from, to }) => onChange({ appliedFrom: from, appliedTo: to })} />
+                <DateRangeFilter label={t('Follow-up')} from={filters.followUpFrom} to={filters.followUpTo} onChange={({ from, to }) => onChange({ followUpFrom: from, followUpTo: to })} />
               </Section>
             </div>
             <SheetFooter className='border-t'>
               <Button variant='outline' disabled={chips.length === 0} onClick={clearAdvanced}>
-                Clear filters
+                {t('Clear filters')}
               </Button>
             </SheetFooter>
           </SheetContent>
@@ -297,19 +306,19 @@ export function ApplicationsFilterBar({
 
         {hasActiveFilters(filters) && (
           <Button variant='ghost' size='sm' onClick={clearAll}>
-            <X className='h-4 w-4 mr-1' /> Reset all
+            <X className='h-4 w-4 me-1' /> {t('Reset all')}
           </Button>
         )}
       </div>
 
       {chips.length > 0 && (
-        <div className='flex flex-wrap items-center gap-2' aria-label='Active filters'>
+        <div className='flex flex-wrap items-center gap-2' aria-label={t('Active filters')}>
           {chips.map((c) => (
-            <Badge key={c.key} variant='secondary' className='gap-1 rounded-full py-1 pl-2.5 pr-1 text-xs font-medium'>
+            <Badge key={c.key} variant='secondary' className='gap-1 rounded-full py-1 ps-2.5 pe-1 text-xs font-medium'>
               {c.label}
               <button
                 type='button'
-                aria-label={`Remove filter ${c.label}`}
+                aria-label={t('Remove filter {{label}}', { label: c.label })}
                 onClick={c.clear}
                 className='rounded-full p-0.5 hover:bg-foreground/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
               >

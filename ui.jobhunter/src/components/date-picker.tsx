@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -17,8 +18,9 @@ type DatePickerProps = {
 export function DatePicker({
   selected,
   onSelect,
-  placeholder = 'Pick a date',
+  placeholder,
 }: DatePickerProps) {
+  const { t } = useTranslation()
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -30,7 +32,7 @@ export function DatePicker({
           {selected ? (
             format(selected, 'MMM d, yyyy')
           ) : (
-            <span>{placeholder}</span>
+            <span>{placeholder ?? t('Pick a date')}</span>
           )}
           <CalendarIcon className='ms-auto h-4 w-4 opacity-50' />
         </Button>

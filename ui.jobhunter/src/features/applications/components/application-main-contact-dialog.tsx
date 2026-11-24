@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,6 +40,7 @@ export function ApplicationMainContactDialog({
   contact,
 }: ApplicationMainContactDialogProps) {
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const [selected, setSelected] = useState<EntityOption | null>(
     contact ? { value: contact.id, label: contact.fullName } : null
@@ -119,11 +121,11 @@ export function ApplicationMainContactDialog({
       qc.invalidateQueries({ queryKey: ['contacts', 'detail', contact?.id] })
       qc.invalidateQueries({ queryKey: ['contacts', 'detail', selected?.value] })
       qc.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Main contact updated')
+      toast.success(t('Main contact updated'))
       onOpenChange(false)
     },
     onError: (err) => {
-      toast.error(err instanceof Error && err.message === 'missing-name' ? 'Contact name is required' : 'Failed to update main contact')
+      toast.error(err instanceof Error && err.message === 'missing-name' ? t('Contact name is required') : t('Failed to update main contact'))
     },
   })
 
@@ -131,20 +133,20 @@ export function ApplicationMainContactDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-lg rounded-2xl sm:max-w-lg'>
         <DialogHeader>
-          <DialogTitle>{contact ? 'Edit main contact' : 'Add main contact'}</DialogTitle>
-          <DialogDescription>Who&apos;s your point of contact for this application?</DialogDescription>
+          <DialogTitle>{contact ? t('Edit main contact') : t('Add main contact')}</DialogTitle>
+          <DialogDescription>{t("Who's your point of contact for this application?")}</DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='space-y-1'>
-            <Label>Contact</Label>
+            <Label>{t('Contact')}</Label>
             <EntityCombobox
               value={selected}
               onChange={handleSelect}
               queryKey={['contacts', 'combobox', application.companyId]}
-              placeholder='Select contact...'
-              searchPlaceholder='Search contacts...'
-              createLabel={(name) => `Create contact "${name}"`}
+              placeholder={t('Select contact...')}
+              searchPlaceholder={t('Search contacts...')}
+              createLabel={(name) => t('Create contact "{{name}}"', { name })}
               triggerClassName='rounded-xl'
               fetchOptions={(search) =>
                 contactsApi
@@ -159,7 +161,7 @@ export function ApplicationMainContactDialog({
                 className='pt-1 text-xs text-muted-foreground hover:text-foreground hover:underline'
                 onClick={() => setSelected(null)}
               >
-                Remove main contact
+                {t('Remove main contact')}
               </button>
             )}
           </div>
@@ -167,23 +169,23 @@ export function ApplicationMainContactDialog({
           {editableSource && (
             <div className='grid grid-cols-2 gap-3 rounded-xl border bg-muted/30 p-3'>
               <div className='col-span-2 space-y-1'>
-                <Label>Full name *</Label>
+                <Label>{t('Full name *')}</Label>
                 <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className='rounded-xl bg-background' />
               </div>
               <div className='col-span-2 space-y-1'>
-                <Label>Job title</Label>
+                <Label>{t('Job title')}</Label>
                 <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className='rounded-xl bg-background' />
               </div>
               <div className='space-y-1'>
-                <Label>Email</Label>
+                <Label>{t('Email')}</Label>
                 <Input type='email' value={email} onChange={(e) => setEmail(e.target.value)} className='rounded-xl bg-background' />
               </div>
               <div className='space-y-1'>
-                <Label>Phone</Label>
+                <Label>{t('Phone')}</Label>
                 <Input value={phone} onChange={(e) => setPhone(e.target.value)} className='rounded-xl bg-background' />
               </div>
               <div className='col-span-2 space-y-1'>
-                <Label>LinkedIn</Label>
+                <Label>{t('LinkedIn')}</Label>
                 <Input value={linkedInUrl} onChange={(e) => setLinkedInUrl(e.target.value)} className='rounded-xl bg-background' />
               </div>
             </div>
@@ -192,11 +194,11 @@ export function ApplicationMainContactDialog({
 
         <DialogFooter>
           <Button variant='outline' className='rounded-xl' onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button className='rounded-xl' disabled={save.isPending} onClick={() => save.mutate()}>
-            {save.isPending && <Loader2 className='mr-1.5 size-3.5 animate-spin' />}
-            Save
+            {save.isPending && <Loader2 className='me-1.5 size-3.5 animate-spin' />}
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Puzzle, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
 const CHROME_EXTENSION_URL =
@@ -15,6 +16,7 @@ function isDismissed() {
 }
 
 export function ExtensionBanner() {
+  const { t } = useTranslation()
   const [dismissed, setDismissed] = useState(isDismissed)
   if (dismissed) return null
 
@@ -31,19 +33,19 @@ export function ExtensionBanner() {
     <div className='flex items-start gap-3 rounded-lg border bg-muted/40 p-4'>
       <Puzzle className='mt-0.5 h-5 w-5 shrink-0 text-primary' />
       <div className='flex-1 space-y-1'>
-        <p className='text-sm font-medium'>Save jobs in one click with the Chrome extension</p>
+        <p className='text-sm font-medium'>{t('Save jobs in one click with the Chrome extension')}</p>
         <p className='text-sm text-muted-foreground'>
-          Install ApplyLadder Job Saver to capture postings from LinkedIn, Indeed and any career page. AI fills in the
-          title, company, salary and requirements, and nothing is saved until you confirm. It only reads a page when you
-          click it.
+          {t(
+            'Install ApplyLadder Job Saver to capture postings from LinkedIn, Indeed and any career page. AI fills in the title, company, salary and requirements, and nothing is saved until you confirm. It only reads a page when you click it.'
+          )}
         </p>
         <Button asChild size='sm' className='mt-2'>
           <a href={CHROME_EXTENSION_URL} target='_blank' rel='noopener noreferrer'>
-            Add to Chrome
+            {t('Add to Chrome')}
           </a>
         </Button>
       </div>
-      <Button variant='ghost' size='icon' className='h-7 w-7' onClick={dismiss} aria-label='Dismiss'>
+      <Button variant='ghost' size='icon' className='h-7 w-7' onClick={dismiss} aria-label={t('Dismiss')}>
         <X className='h-4 w-4' />
       </Button>
     </div>
