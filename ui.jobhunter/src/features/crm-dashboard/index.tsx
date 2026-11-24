@@ -1,4 +1,5 @@
 import { useState, type ElementType } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
@@ -25,6 +26,7 @@ import { dashboardApi } from './api'
 import { notesApi, type Note } from '@/features/notes/api'
 import { applicationsApi, type JobApplication } from '@/features/applications/api'
 import { cvsApi, type Cv } from '@/features/cvs/api'
+import { formatStatusLabel } from '@/features/applications/data/constants'
 
 const statCards = [
   {
@@ -73,16 +75,17 @@ function initialsFor(name: string) {
 
 type StatValue = (typeof statCards)[number]['value']
 
-function getGreeting() {
+function getGreetingKey() {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return 'Good morning, {{name}}.'
+  if (hour < 18) return 'Good afternoon, {{name}}.'
+  return 'Good evening, {{name}}.'
 }
 
 export function CrmDashboard() {
+  const { t } = useTranslation()
   const email = useAuthStore((state) => state.auth.user?.email)
-  const name = email?.split('@')[0] || 'there'
+  const name = email?.split('@')[0] || t('there')
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'overall'],
     queryFn: dashboardApi.overall,
@@ -112,10 +115,13 @@ export function CrmDashboard() {
     <div className='mx-auto max-w-[1016px] space-y-4 font-inter text-tapinti-foreground'>
       <header className='space-y-0.5'>
         <h1 className='text-xl leading-7 font-bold'>
-          {getGreeting()}, {name}.
+          {t(getGreetingKey(), { name })}
         </h1>
         <p className='text-xs leading-4 text-tapinti-muted-foreground'>
-          {activeApplications} active applications · {cvsCountResult?.total ?? 0} CV versions
+          {t('{{apps}} active applications · {{cvs}} CV versions', {
+            apps: activeApplications,
+            cvs: cvsCountResult?.total ?? 0,
+          })}
         </p>
       </header>
 
@@ -123,7 +129,7 @@ export function CrmDashboard() {
         {statCards.map((stat) => (
           <StatCard
             key={stat.label}
-            label={stat.label}
+            label={t(stat.label)}
             value={values[stat.value]}
             icon={stat.icon}
           />
@@ -194,6 +200,7 @@ function StatCard({
 }
 
 function ApplicationsPanel() {
+  const { t } = useTranslation()
   const { data, isLoading } = useQuery({
     queryKey: ['applications', 'recent'],
     queryFn: () => applicationsApi.list({ pageSize: RECENT_APPLICATIONS_COUNT }),
@@ -202,7 +209,7 @@ function ApplicationsPanel() {
 
   return (
     <Card className='min-h-[420px] gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:min-h-[678px]'>
-      <PanelHeader title='Recent Applications' action='Add applicant' actionHref='/applications' />
+      <PanelHeader title={t('Recent Applications')} action={t('Add applicant')} actionHref='/applications' />
       <CardContent className='px-0'>
         {isLoading && (
           <div className='space-y-2 p-4'>
@@ -213,7 +220,7 @@ function ApplicationsPanel() {
         )}
         {!isLoading && applications.length === 0 && (
           <p className='px-4 py-8 text-center text-xs text-tapinti-muted-foreground'>
-            No applications yet.
+            {t('No applications yet.')}
           </p>
         )}
         {applications.map((application, index) => (
@@ -262,6 +269,7 @@ function ApplicationRow({
   application: JobApplication
   bordered: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <div
       className={cn(
@@ -271,14 +279,14 @@ function ApplicationRow({
     >
       <div className='flex min-w-0 items-center gap-3'>
         <span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-tapinti-surface-muted text-xs leading-4 font-semibold text-tapinti-muted-foreground'>
-          {initialsFor(application.companyName ?? 'Company')}
+          {initialsFor(application.companyName ?? t('Company'))}
         </span>
         <div className='min-w-0'>
           <p className='truncate text-sm leading-5 font-medium text-tapinti-foreground'>
-            {application.companyName ?? 'Company'}
+            {application.companyName ?? t('Company')}
           </p>
           <p className='truncate text-xs leading-4 text-tapinti-muted-foreground'>
-            {application.jobRoleTitle ?? 'Role'}
+            {application.jobRoleTitle ?? t('Role')}
             {application.appliedDate ? ` · ${format(new Date(application.appliedDate), 'MMM d')}` : ''}
           </p>
         </div>
@@ -289,6 +297,7 @@ function ApplicationRow({
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
   const statusClass = STATUS_STYLES[status] ?? 'bg-tapinti-surface-muted text-tapinti-muted-foreground'
 
   return (
@@ -298,12 +307,13 @@ function StatusBadge({ status }: { status: string }) {
         statusClass
       )}
     >
-      {status}
+      {t(formatStatusLabel(status))}
     </span>
   )
 }
 
 function CvPanel() {
+  const { t } = useTranslation()
   const { data, isLoading } = useQuery({
     queryKey: ['cvs', 'recent'],
     queryFn: () => cvsApi.list({ pageSize: RECENT_CVS_COUNT }),
@@ -321,7 +331,7 @@ function CvPanel() {
       setPreviewUrl(URL.createObjectURL(blob))
       setPreviewCv(cv)
     } catch {
-      toast.error('Failed to load CV preview.')
+      toast.error(t('Failed to load CV preview.'))
     } finally {
       setLoadingId(null)
     }
@@ -335,7 +345,7 @@ function CvPanel() {
 
   return (
     <Card className='h-auto gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:h-[202px]'>
-      <PanelHeader title='CVs' action='Add CV' actionHref='/cvs' />
+      <PanelHeader title={t('CVs')} action={t('Add CV')} actionHref='/cvs' />
       <CardContent className='px-0'>
         {isLoading && (
           <div className='space-y-2 p-3'>
@@ -346,7 +356,7 @@ function CvPanel() {
         )}
         {!isLoading && cvs.length === 0 && (
           <p className='px-4 py-6 text-center text-xs text-tapinti-muted-foreground'>
-            No CVs uploaded yet.
+            {t('No CVs uploaded yet.')}
           </p>
         )}
         {cvs.map((cv, index) => (
@@ -389,6 +399,7 @@ function CvRow({
   isLoadingPreview: boolean
   onView: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div
       className={cn(
@@ -410,7 +421,8 @@ function CvRow({
       <button
         onClick={onView}
         disabled={isLoadingPreview}
-        title='View CV'
+        title={t('View CV')}
+        aria-label={t('View CV')}
         className='flex size-7 shrink-0 items-center justify-center rounded-[10px] text-tapinti-muted-foreground hover:bg-tapinti-surface-muted hover:text-tapinti-foreground disabled:opacity-50'
       >
         {isLoadingPreview ? <Loader2 className='size-3.5 animate-spin' /> : <Eye className='size-3.5' />}
@@ -422,6 +434,7 @@ function CvRow({
 const RECENT_NOTES_COUNT = 5
 
 function NotesPanel() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [draft, setDraft] = useState('')
   const [editingNote, setEditingNote] = useState<Note | null>(null)
@@ -441,7 +454,7 @@ function NotesPanel() {
       invalidateNotes()
       setDraft('')
     },
-    onError: () => toast.error('Failed to add note'),
+    onError: () => toast.error(t('Failed to add note')),
   })
 
   const update = useMutation({
@@ -451,13 +464,13 @@ function NotesPanel() {
       invalidateNotes()
       setEditingNote(null)
     },
-    onError: () => toast.error('Failed to update note'),
+    onError: () => toast.error(t('Failed to update note')),
   })
 
   const remove = useMutation({
     mutationFn: (id: number) => notesApi.delete(id),
     onSuccess: () => invalidateNotes(),
-    onError: () => toast.error('Failed to delete note'),
+    onError: () => toast.error(t('Failed to delete note')),
   })
 
   function submitDraft() {
@@ -479,7 +492,7 @@ function NotesPanel() {
 
   return (
     <Card className='h-auto gap-0 overflow-hidden rounded-[14px] border-tapinti-border bg-tapinti-surface py-0 shadow-none xl:h-[460px]'>
-      <PanelHeader title='Notes' />
+      <PanelHeader title={t('Notes')} />
       <CardContent className='px-0'>
         <div className='flex min-h-[55px] items-center gap-2 border-b border-tapinti-border px-3 py-2.5'>
           <input
@@ -491,11 +504,12 @@ function NotesPanel() {
                 submitDraft()
               }
             }}
-            placeholder='Jot something down...'
+            placeholder={t('Jot something down...')}
             className='flex h-[34px] min-w-0 flex-1 items-center rounded-[10px] border border-tapinti-border bg-tapinti-surface-muted px-3 text-xs leading-[14.5px] text-tapinti-foreground outline-none placeholder:text-tapinti-muted-foreground/50 focus:ring-1 focus:ring-tapinti-primary'
           />
           <button
             onClick={submitDraft}
+            aria-label={t('Add note')}
             disabled={create.isPending || !draft.trim()}
             className={cn(
               'flex size-7 shrink-0 items-center justify-center rounded-[10px] transition-colors disabled:opacity-50',
@@ -516,7 +530,7 @@ function NotesPanel() {
           )}
           {!isLoading && notes.length === 0 && (
             <p className='px-3 py-8 text-center text-xs text-tapinti-muted-foreground'>
-              No notes yet.
+              {t('No notes yet.')}
             </p>
           )}
           {notes.map((note, index) => (
@@ -563,6 +577,7 @@ function NoteRow({
   onDelete: () => void
   isSaving: boolean
 }) {
+  const { t } = useTranslation()
   if (isEditing) {
     return (
       <div
@@ -581,12 +596,14 @@ function NoteRow({
         <div className='flex justify-end gap-1'>
           <button
             onClick={onCancelEdit}
+            aria-label={t('Cancel')}
             className='flex size-6 items-center justify-center rounded-[8px] text-tapinti-muted-foreground hover:bg-tapinti-surface-muted'
           >
             <X className='size-3.5' />
           </button>
           <button
             onClick={onSaveEdit}
+            aria-label={t('Save')}
             disabled={isSaving || !editingContent.trim()}
             className={cn(
               'flex size-6 items-center justify-center rounded-[8px] transition-colors disabled:opacity-50',
@@ -616,12 +633,14 @@ function NoteRow({
         <div className='flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
           <button
             onClick={onStartEdit}
+            aria-label={t('Edit')}
             className='flex size-5 items-center justify-center rounded text-tapinti-muted-foreground hover:text-tapinti-foreground'
           >
             <Pencil className='size-3.5' />
           </button>
           <button
             onClick={onDelete}
+            aria-label={t('Delete')}
             className='flex size-5 items-center justify-center rounded text-tapinti-muted-foreground hover:text-destructive'
           >
             <Trash2 className='size-3.5' />
