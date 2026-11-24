@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2, Sparkles } from 'lucide-react'
+import { Trans, useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -48,6 +49,7 @@ export function ImportDialog({
   onOpenChange: (open: boolean) => void
   onImported: (added: number) => void
 }) {
+  const { t } = useTranslation()
   const [step, setStep] = useState<Step>('choose')
   const [file, setFile] = useState<File | null>(null)
   const [cvId, setCvId] = useState<number | null>(null)
@@ -92,14 +94,14 @@ export function ImportDialog({
     toast.error(
       error instanceof ImportFailedError
         ? error.message
-        : 'Could not read this CV. Use a text-based PDF or DOCX and try again.'
+        : t('Could not read this CV. Use a text-based PDF or DOCX and try again.')
     )
 
   // The CV is read in the background on the server, so this only starts the job and waits for it.
   const analyze = useMutation({
     mutationFn: async () => {
       const id = file ? await cvsApi.upload({ candidateId, file }) : cvId
-      if (!id) throw new Error('No CV selected')
+      if (!id) throw new Error(t('No CV selected'))
       const result = await analyzeCv(id)
       return { id, result }
     },
@@ -190,7 +192,7 @@ export function ImportDialog({
       })
     },
     onSuccess: (added) => onImported(added),
-    onError: () => toast.error('Failed to import the profile'),
+    onError: () => toast.error(t('Failed to import the profile')),
   })
 
   const toggleIn = (
@@ -216,11 +218,15 @@ export function ImportDialog({
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[90vh] max-w-2xl overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>Import from CV</DialogTitle>
+          <DialogTitle>{t('Import from CV')}</DialogTitle>
           <DialogDescription>
             {step === 'choose'
-              ? 'Upload your current CV (PDF or DOCX) and we will fill in your profile. You review everything before it is saved.'
-              : 'Check what was found. Uncheck anything you do not want to import.'}
+              ? t(
+                  'Upload your current CV (PDF or DOCX) and we will fill in your profile. You review everything before it is saved.'
+                )
+              : t(
+                  'Check what was found. Uncheck anything you do not want to import.'
+                )}
           </DialogDescription>
         </DialogHeader>
 
@@ -239,21 +245,25 @@ export function ImportDialog({
             {finished && (
               <div className='flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 p-3 text-sm'>
                 <p>
-                  We already read <strong>{finished.fileName}</strong>. Pick up
-                  where you left off.
+                  <Trans
+                    i18nKey='We already read <strong>{{fileName}}</strong>. Pick up where you left off.'
+                    defaults='We already read <strong>{{fileName}}</strong>. Pick up where you left off.'
+                    values={{ fileName: finished.fileName }}
+                    components={{ strong: <strong /> }}
+                  />
                 </p>
                 <Button
                   type='button'
                   size='sm'
                   onClick={() => showResult(finished.cvId, finished.result!)}
                 >
-                  Continue
+                  {t('Continue')}
                 </Button>
               </div>
             )}
             <LinkedinPdfGuide />
             <div className='space-y-1'>
-              <Label htmlFor='import-file'>Upload a new CV</Label>
+              <Label htmlFor='import-file'>{t('Upload a new CV')}</Label>
               <Input
                 id='import-file'
                 type='file'
@@ -267,7 +277,7 @@ export function ImportDialog({
 
             {(cvs?.items.length ?? 0) > 0 && (
               <div className='space-y-2'>
-                <Label>Or use one you already uploaded</Label>
+                <Label>{t('Or use one you already uploaded')}</Label>
                 <RadioGroup
                   value={cvId ? String(cvId) : ''}
                   onValueChange={(v) => {
@@ -311,12 +321,14 @@ export function ImportDialog({
 
             <div className='space-y-2'>
               <p className='text-sm font-medium'>
-                Experience ({selected.size} of {parsed.experiences.length}{' '}
-                selected)
+                {t('Experience ({{n}} of {{total}} selected)', {
+                  n: selected.size,
+                  total: parsed.experiences.length,
+                })}
               </p>
               {parsed.experiences.length === 0 && (
                 <p className='text-sm text-muted-foreground'>
-                  No experience was found in this CV.
+                  {t('No experience was found in this CV.')}
                 </p>
               )}
               {parsed.experiences.map((e, i) => {
@@ -337,8 +349,8 @@ export function ImportDialog({
                       <p>{e.company}</p>
                       <p className='text-muted-foreground'>
                         {ok
-                          ? `${formatMonthYear(e.startDate)} - ${e.isCurrent || !e.endDate ? 'Present' : formatMonthYear(e.endDate)}`
-                          : 'Start date missing - add this role manually'}
+                          ? `${formatMonthYear(e.startDate)} - ${e.isCurrent || !e.endDate ? t('Present') : formatMonthYear(e.endDate)}`
+                          : t('Start date missing - add this role manually')}
                       </p>
                       {e.description && (
                         <p className='mt-1 line-clamp-3 whitespace-pre-line text-muted-foreground'>
@@ -353,12 +365,14 @@ export function ImportDialog({
 
             <div className='space-y-2'>
               <p className='text-sm font-medium'>
-                Education ({selectedEdu.size} of {parsed.educations.length}{' '}
-                selected)
+                {t('Education ({{n}} of {{total}} selected)', {
+                  n: selectedEdu.size,
+                  total: parsed.educations.length,
+                })}
               </p>
               {parsed.educations.length === 0 && (
                 <p className='text-sm text-muted-foreground'>
-                  No education was found in this CV.
+                  {t('No education was found in this CV.')}
                 </p>
               )}
               {parsed.educations.map((e, i) => (
@@ -398,7 +412,7 @@ export function ImportDialog({
                     checked={importSkills}
                     onCheckedChange={(v) => setImportSkills(v === true)}
                   />
-                  Skills ({parsed.skills.length})
+                  {t('Skills ({{n}})', { n: parsed.skills.length })}
                 </label>
                 <div className='flex flex-wrap gap-2'>
                   {parsed.skills.map((sk, i) => (
@@ -416,8 +430,10 @@ export function ImportDialog({
             {parsed.projects.length > 0 && (
               <div className='space-y-2'>
                 <p className='text-sm font-medium'>
-                  Projects ({selectedProjects.size} of {parsed.projects.length}{' '}
-                  selected)
+                  {t('Projects ({{n}} of {{total}} selected)', {
+                    n: selectedProjects.size,
+                    total: parsed.projects.length,
+                  })}
                 </p>
                 {parsed.projects.map((p, i) => (
                   <label
@@ -445,8 +461,10 @@ export function ImportDialog({
             {parsed.certifications.length > 0 && (
               <div className='space-y-2'>
                 <p className='text-sm font-medium'>
-                  Certifications ({selectedCerts.size} of{' '}
-                  {parsed.certifications.length} selected)
+                  {t('Certifications ({{n}} of {{total}} selected)', {
+                    n: selectedCerts.size,
+                    total: parsed.certifications.length,
+                  })}
                 </p>
                 {parsed.certifications.map((c, i) => (
                   <label
@@ -476,7 +494,7 @@ export function ImportDialog({
                     checked={importLanguages}
                     onCheckedChange={(v) => setImportLanguages(v === true)}
                   />
-                  Languages ({parsed.languages.length})
+                  {t('Languages ({{n}})', { n: parsed.languages.length })}
                 </label>
                 <div className='flex flex-wrap gap-2'>
                   {parsed.languages.map((l, i) => (
@@ -498,7 +516,7 @@ export function ImportDialog({
                     checked={importLinks}
                     onCheckedChange={(v) => setImportLinks(v === true)}
                   />
-                  Links ({parsed.links.length})
+                  {t('Links ({{n}})', { n: parsed.links.length })}
                 </label>
                 <div className='flex flex-wrap gap-2'>
                   {parsed.links.map((l, i) => (
@@ -515,7 +533,7 @@ export function ImportDialog({
 
             <div className='space-y-2'>
               <p className='text-sm font-medium'>
-                If you already have content on your profile
+                {t('If you already have content on your profile')}
               </p>
               <RadioGroup
                 value={mode}
@@ -524,13 +542,13 @@ export function ImportDialog({
                 <div className='flex items-center gap-2'>
                   <RadioGroupItem value='Merge' id='mode-merge' />
                   <Label htmlFor='mode-merge' className='font-normal'>
-                    Merge: add only what is not there yet
+                    {t('Merge: add only what is not there yet')}
                   </Label>
                 </div>
                 <div className='flex items-center gap-2'>
                   <RadioGroupItem value='Replace' id='mode-replace' />
                   <Label htmlFor='mode-replace' className='font-normal'>
-                    Replace: clear everything on my profile first
+                    {t('Replace: clear everything on my profile first')}
                   </Label>
                 </div>
               </RadioGroup>
@@ -540,7 +558,7 @@ export function ImportDialog({
 
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           {step === 'choose' ? (
             <Button
@@ -548,11 +566,11 @@ export function ImportDialog({
               onClick={() => analyze.mutate()}
             >
               {analyze.isPending ? (
-                <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                <Loader2 className='me-1 h-4 w-4 animate-spin' />
               ) : (
-                <Sparkles className='mr-1 h-4 w-4' />
+                <Sparkles className='me-1 h-4 w-4' />
               )}
-              {analyze.isPending ? 'Reading your CV…' : 'Analyze CV'}
+              {analyze.isPending ? t('Reading your CV…') : t('Analyze CV')}
             </Button>
           ) : (
             <Button
@@ -571,9 +589,9 @@ export function ImportDialog({
               onClick={() => save.mutate()}
             >
               {save.isPending && (
-                <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                <Loader2 className='me-1 h-4 w-4 animate-spin' />
               )}
-              Import
+              {t('Import')}
             </Button>
           )}
         </DialogFooter>

@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import { Pencil, Plus, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { type CvContent, type CvScoreLocation, type CvSection } from '../api'
 import {
   headerLinkLabel,
@@ -106,6 +107,7 @@ function SectionActions({
   onEdit?: (section: CvSection) => void
   onRefine?: (section: CvSection) => void
 }) {
+  const { t } = useTranslation()
   if (!onEdit && !onRefine) return null
   const button =
     'flex items-center gap-1 rounded border bg-white px-1.5 py-0.5 text-[11px] text-gray-600 hover:bg-gray-50'
@@ -114,21 +116,21 @@ function SectionActions({
       {onEdit && (
         <button
           type='button'
-          title={`Edit ${title} by hand`}
+          title={t('Edit {{title}} by hand', { title: t(title) })}
           onClick={() => onEdit(section)}
           className={button}
         >
-          <Pencil className='h-3 w-3' /> Edit
+          <Pencil className='h-3 w-3' /> {t('Edit')}
         </button>
       )}
       {onRefine && (
         <button
           type='button'
-          title={`Refine ${title} with AI`}
+          title={t('Refine {{title}} with AI', { title: t(title) })}
           onClick={() => onRefine(section)}
           className={button}
         >
-          <Sparkles className='h-3 w-3' /> Refine
+          <Sparkles className='h-3 w-3' /> {t('Refine')}
         </button>
       )}
     </div>
@@ -202,6 +204,7 @@ export function CvPreview({
   // The photo template shows this link as a QR code and as text, so it is not repeated further down.
   const headerLink = look.photoHeader ? pickHeaderLink(content.links) : null
   const otherLinks = content.links.filter((l) => l !== headerLink)
+  const { t } = useTranslation()
   const page = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -282,12 +285,12 @@ export function CvPreview({
             {photoUrl ? (
               <img
                 src={photoUrl}
-                alt='Your photo'
+                alt={t('Your photo')}
                 className='h-[120px] w-[90px] shrink-0 object-cover'
               />
             ) : (
               <div className='flex h-[120px] w-[90px] shrink-0 items-center justify-center border border-dashed p-1 text-center text-[10px] text-gray-400'>
-                Add your photo on the profile page
+                {t('Add your photo on the profile page')}
               </div>
             )}
             <div className='min-w-0 flex-1'>
@@ -326,7 +329,7 @@ export function CvPreview({
             {headerLink && headerLink.toLowerCase().includes('linkedin.com') && (
               <div
                 className='flex h-[82px] w-[82px] shrink-0 items-center justify-center border text-center text-[10px] text-gray-500'
-                title='The PDF and Word file show a scannable QR code of this link here'
+                title={t('The PDF and Word file show a scannable QR code of this link here')}
               >
                 QR code
               </div>
@@ -576,7 +579,7 @@ export function CvPreview({
       </article>
       {onEdit && missing.length > 0 && (
         <div className='mx-auto mt-3 flex w-full max-w-[794px] flex-wrap items-center gap-2 text-xs'>
-          <span className='text-muted-foreground'>Add a section:</span>
+          <span className='text-muted-foreground'>{t('Add a section:')}</span>
           {missing.map((m) => (
             <button
               key={m.section}
@@ -584,7 +587,7 @@ export function CvPreview({
               onClick={() => onEdit(m.section)}
               className='flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-muted-foreground hover:bg-muted'
             >
-              <Plus className='h-3 w-3' /> {m.label}
+              <Plus className='h-3 w-3' /> {t(m.label)}
             </button>
           ))}
         </div>

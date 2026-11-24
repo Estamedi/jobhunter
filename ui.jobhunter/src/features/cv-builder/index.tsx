@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import i18n from '@/i18n'
 import { applicationsApi } from '@/features/applications/api'
 import { candidatesApi } from '@/features/candidates/api'
 import { cvsApi, type Cv } from '@/features/cvs/api'
@@ -73,10 +75,11 @@ function showWarnings(warnings?: string[] | null) {
   if (!warnings || warnings.length === 0) return
   const shown = warnings.slice(0, 5)
   const extra = warnings.length - shown.length
-  toast.warning('Please check the CV', {
-    description: [...shown, ...(extra > 0 ? [`and ${extra} more`] : [])].join(
-      '\n'
-    ),
+  toast.warning(i18n.t('Please check the CV'), {
+    description: [
+      ...shown,
+      ...(extra > 0 ? [i18n.t('and {{n}} more', { n: extra })] : []),
+    ].join('\n'),
     duration: 12000,
   })
 }
@@ -154,6 +157,7 @@ function GenerateForm({
   initial?: { jobTitle: string; jobDescription: string }
   onSubmit: (data: GenerateFormData) => void
 }) {
+  const { t } = useTranslation()
   const [jobTitle, setJobTitle] = useState(initial?.jobTitle ?? '')
   const [jobDescription, setJobDescription] = useState(
     initial?.jobDescription ?? ''
@@ -184,69 +188,74 @@ function GenerateForm({
       }}
     >
       <div className='space-y-1'>
-        <Label>Job title *</Label>
+        <Label>{t('Job title *')}</Label>
         <Input
           required
           value={jobTitle}
           onChange={(e) => setJobTitle(e.target.value)}
-          placeholder='e.g. Senior AI Engineer'
+          placeholder={t('e.g. Senior AI Engineer')}
         />
       </div>
       <div className='space-y-1'>
-        <Label>Job description</Label>
+        <Label>{t('Job description')}</Label>
         <Textarea
           rows={6}
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          placeholder='Paste the job posting'
+          placeholder={t('Paste the job posting')}
         />
         {!jobDescription.trim() && (
           <p className='text-xs text-muted-foreground'>
-            Without a job description the CV will be general, not tailored to a
-            job.
+            {t(
+              'Without a job description the CV will be general, not tailored to a job.'
+            )}
           </p>
         )}
       </div>
       <div className='rounded-md bg-muted/50 p-3 text-sm'>
         {profileRoles > 0 ? (
           <p>
-            Writing from your profile ({profileRoles}{' '}
-            {profileRoles === 1 ? 'role' : 'roles'}).{' '}
+            {profileRoles === 1
+              ? t('Writing from your profile (1 role).')
+              : t('Writing from your profile ({{n}} roles).', {
+                  n: profileRoles,
+                })}{' '}
             <Link to='/profile' className='underline'>
-              Edit profile
+              {t('Edit profile')}
             </Link>
           </p>
         ) : (
           <p>
-            Your profile has no experience yet.{' '}
+            {t('Your profile has no experience yet.')}{' '}
             <Link to='/profile' className='underline'>
-              Fill it in or import your CV
+              {t('Fill it in or import your CV')}
             </Link>
-            , or paste your CV text below.
+            {t(', or paste your CV text below.')}
           </p>
         )}
         {gaps.length > 0 && (
-          <ul className='mt-2 list-disc space-y-0.5 pl-5 text-muted-foreground'>
+          <ul className='mt-2 list-disc space-y-0.5 ps-5 text-muted-foreground'>
             {gaps.map((g) => (
               <li key={g.id}>
                 {g.message}{' '}
                 <Link to='/profile' className='underline'>
-                  Add it to your profile
+                  {t('Add it to your profile')}
                 </Link>
               </li>
             ))}
           </ul>
         )}
         <p className='mt-2 text-xs text-muted-foreground'>
-          To write the CV, your profile (without your email and phone), the job
-          description and your notes are sent to our AI provider.
+          {t(
+            'To write the CV, your profile (without your email and phone), the job description and your notes are sent to our AI provider.'
+          )}
         </p>
       </div>
       <div className='space-y-1'>
         <Label>
           {profileRoles > 0
-            ? 'Extra notes (optional)'
-            : 'About you (experience, education, skills) *'}
+            ? t('Extra notes (optional)')
+            : t('About you (experience, education, skills) *')}
         </Label>
         <Textarea
           required={profileRoles === 0}
@@ -255,20 +264,24 @@ function GenerateForm({
           onChange={(e) => setBackgroundText(e.target.value)}
           placeholder={
             profileRoles > 0
-              ? 'Anything not on your profile that this CV should mention. Saved in this browser.'
-              : 'Paste your current CV text. The AI only uses facts from here. Saved in this browser.'
+              ? t(
+                  'Anything not on your profile that this CV should mention. Saved in this browser.'
+                )
+              : t(
+                  'Paste your current CV text. The AI only uses facts from here. Saved in this browser.'
+                )
           }
         />
       </div>
       {cvs.length > 0 && (
         <div className='space-y-1'>
-          <Label>Also use an uploaded CV (optional)</Label>
+          <Label>{t('Also use an uploaded CV (optional)')}</Label>
           <Select value={sourceCvId} onValueChange={setSourceCvId}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='none'>Profile only</SelectItem>
+              <SelectItem value='none'>{t('Profile only')}</SelectItem>
               {cvs.map((cv) => (
                 <SelectItem key={cv.id} value={String(cv.id)}>
                   {cv.fileName}
@@ -277,39 +290,41 @@ function GenerateForm({
             </SelectContent>
           </Select>
           <p className='text-xs text-muted-foreground'>
-            Its text backs up your profile; the profile wins when they differ.
+            {t(
+              'Its text backs up your profile; the profile wins when they differ.'
+            )}
           </p>
         </div>
       )}
       <div className='space-y-1'>
-        <Label>Instructions</Label>
+        <Label>{t('Instructions')}</Label>
         <Textarea
           rows={3}
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          placeholder='e.g. Emphasise leadership, keep it to one page'
+          placeholder={t('e.g. Emphasise leadership, keep it to one page')}
         />
       </div>
       <div className='grid grid-cols-2 gap-2'>
         <div className='space-y-1'>
-          <Label>Tone</Label>
+          <Label>{t('Tone')}</Label>
           <Input
             value={tone}
             onChange={(e) => setTone(e.target.value)}
-            placeholder='professional'
+            placeholder={t('professional')}
           />
         </div>
         <div className='space-y-1'>
-          <Label>Language</Label>
+          <Label>{t('Language')}</Label>
           <Input
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            placeholder='English'
+            placeholder={t('English')}
           />
         </div>
       </div>
       <div className='space-y-1'>
-        <Label>Language level</Label>
+        <Label>{t('Language level')}</Label>
         <Select value={languageLevel} onValueChange={setLanguageLevel}>
           <SelectTrigger>
             <SelectValue />
@@ -317,23 +332,24 @@ function GenerateForm({
           <SelectContent>
             {LANGUAGE_LEVELS.map((l) => (
               <SelectItem key={l.value} value={l.value}>
-                {l.label}
+                {t(l.label)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <p className='text-xs text-muted-foreground'>
-          How plain or sophisticated the wording is. Technical terms and job
-          keywords are not simplified.
+          {t(
+            'How plain or sophisticated the wording is. Technical terms and job keywords are not simplified.'
+          )}
         </p>
       </div>
       <Button type='submit' className='w-full' disabled={isPending}>
         {isPending ? (
-          <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+          <Loader2 className='me-1 h-4 w-4 animate-spin' />
         ) : (
-          <Sparkles className='mr-1 h-4 w-4' />
+          <Sparkles className='me-1 h-4 w-4' />
         )}
-        {isPending ? 'Writing your CV…' : 'Generate CV'}
+        {isPending ? t('Writing your CV…') : t('Generate CV')}
       </Button>
     </form>
   )
@@ -346,6 +362,7 @@ export function CvBuilder({
   applicationId?: number
   jobRoleId?: number
 }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const navigate = useNavigate()
   // No draft open is the list view; an open draft is the workspace.
@@ -496,22 +513,23 @@ export function CvBuilder({
       setEditing(false)
       setNewCvOpen(false)
       clearPrefill()
-      toast.info('Your CV is being written', {
-        description:
-          'It appears here when it is ready. You can leave this page.',
+      toast.info(t('Your CV is being written'), {
+        description: t(
+          'It appears here when it is ready. You can leave this page.'
+        ),
       })
     },
     onError: (error) =>
-      toast.error(serverDetail(error, 'Failed to generate CV')),
+      toast.error(serverDetail(error, t('Failed to generate CV'))),
   })
 
   const retry = useMutation({
     mutationFn: (id: number) => cvBuilderApi.retry(id),
     onSuccess: (updated) => {
       applyDraft(updated)
-      toast.info('Trying again')
+      toast.info(t('Trying again'))
     },
-    onError: (error) => toast.error(serverDetail(error, 'Failed to try again')),
+    onError: (error) => toast.error(serverDetail(error, t('Failed to try again'))),
   })
 
   // Says so once when a draft that was being written finishes, whether the page noticed by polling or
@@ -523,12 +541,12 @@ export function CvBuilder({
     lastStatus.current.set(draft.id, draftStatus)
     if (event) qc.invalidateQueries({ queryKey: ['cv-drafts'] })
     if (event === 'ready') {
-      toast.success('CV ready')
+      toast.success(t('CV ready'))
       showWarnings(draft.warnings)
     } else if (event === 'failed') {
-      toast.error(draft.error ?? 'The CV could not be written')
+      toast.error(draft.error ?? t('The CV could not be written'))
     }
-  }, [draft, draftStatus, qc])
+  }, [draft, draftStatus, qc, t])
 
   // A push from the server: read the draft again. A draft the user is not looking at gets a toast
   // with a way to open it.
@@ -536,9 +554,9 @@ export function CvBuilder({
     qc.invalidateQueries({ queryKey: ['cv-draft', event.draftId] })
     qc.invalidateQueries({ queryKey: ['cv-drafts'] })
     if (event.draftId !== selectedId && event.status === 'Completed') {
-      toast.success('A CV is ready', {
+      toast.success(t('A CV is ready'), {
         action: {
-          label: 'Open',
+          label: t('Open'),
           onClick: () => {
             openDraft(event.draftId)
           },
@@ -564,7 +582,7 @@ export function CvBuilder({
         try {
           await cvBuilderApi.generate({
             candidateId: candidate!.id,
-            jobTitle: a.jobRoleTitle ?? 'Job',
+            jobTitle: a.jobRoleTitle ?? t('Job'),
             title: a.companyName
               ? `${a.jobRoleTitle} - ${a.companyName}`
               : undefined,
@@ -585,16 +603,21 @@ export function CvBuilder({
       return result
     },
     onSuccess: (r) => {
-      if (r.failed === 0) toast.success(`Queued ${r.total} CVs`)
-      else toast.warning(`Queued ${r.total - r.failed} of ${r.total} CVs`)
+      if (r.failed === 0) toast.success(t('Queued {{n}} CVs', { n: r.total }))
+      else toast.warning(
+          t('Queued {{done}} of {{total}} CVs', {
+            done: r.total - r.failed,
+            total: r.total,
+          })
+        )
     },
-    onError: () => toast.error('Failed to queue the CVs'),
+    onError: () => toast.error(t('Failed to queue the CVs')),
   })
 
   // Every hand edit, refine and restore saves the content it replaced; Undo puts exactly that back.
   const undoAction = (versionId?: number | null) =>
     versionId
-      ? { label: 'Undo', onClick: () => restore.mutate(versionId) }
+      ? { label: t('Undo'), onClick: () => restore.mutate(versionId) }
       : undefined
 
   const restore = useMutation({
@@ -603,12 +626,12 @@ export function CvBuilder({
     onSuccess: (updated) => {
       applyDraft(updated)
       setHistoryOpen(false)
-      toast.success('Earlier version restored', {
+      toast.success(t('Earlier version restored'), {
         action: undoAction(updated.previousVersionId),
       })
     },
     onError: (error) =>
-      toast.error(serverDetail(error, 'Failed to restore the version')),
+      toast.error(serverDetail(error, t('Failed to restore the version'))),
   })
 
   // Only the photo template needs the picture, so it is downloaded only for a draft that uses it.
@@ -627,9 +650,11 @@ export function CvBuilder({
       }),
     onSuccess: (updated) => {
       applyDraft(updated)
-      toast.success(`Template: ${templateLabel(updated.templateId)}`)
+      toast.success(
+        t('Template: {{name}}', { name: templateLabel(updated.templateId) })
+      )
     },
-    onError: () => toast.error('Failed to change the template'),
+    onError: () => toast.error(t('Failed to change the template')),
   })
 
   const save = useMutation({
@@ -643,11 +668,11 @@ export function CvBuilder({
       applyDraft(updated)
       setEditing(false)
       setEditingSection(null)
-      toast.success('Changes saved', {
+      toast.success(t('Changes saved'), {
         action: undoAction(updated.previousVersionId),
       })
     },
-    onError: () => toast.error('Failed to save changes'),
+    onError: () => toast.error(t('Failed to save changes')),
   })
 
   const refine = useMutation({
@@ -661,13 +686,13 @@ export function CvBuilder({
       applyDraft(updated)
       setRefining(null)
       setInstruction('')
-      toast.success('Section updated', {
+      toast.success(t('Section updated'), {
         action: undoAction(updated.previousVersionId),
       })
       showWarnings(updated.warnings)
     },
     onError: (error) =>
-      toast.error(serverDetail(error, 'Failed to refine section')),
+      toast.error(serverDetail(error, t('Failed to refine section'))),
   })
 
   // Shares its request with the score panel, so it costs nothing extra.
@@ -687,7 +712,11 @@ export function CvBuilder({
       let done = 0
       for (const [section, list] of groups) {
         setFixStep(
-          `Fixing the ${SECTION_LABELS[section].toLowerCase()} (${done + 1} of ${groups.size})`
+          t('Fixing the {{section}} ({{n}} of {{total}})', {
+            section: t(SECTION_LABELS[section]),
+            n: done + 1,
+            total: groups.size,
+          })
         )
         last = await cvBuilderApi.regenerateSection(draft!.id, {
           section,
@@ -701,18 +730,20 @@ export function CvBuilder({
       if (!last) throw new Error('nothing to fix')
       return { last, fixed }
     },
-    onMutate: () => setFixStep('Starting'),
+    onMutate: () => setFixStep(t('Starting')),
     onSuccess: ({ last, fixed }) => {
       qc.invalidateQueries({ queryKey: ['cv-draft-score'] })
       setRefining(null)
       toast.success(
-        `Fixed ${fixed} ${fixed === 1 ? 'issue' : 'issues'}. The score is updating.`,
+        fixed === 1
+          ? t('Fixed 1 issue. The score is updating.')
+          : t('Fixed {{n}} issues. The score is updating.', { n: fixed }),
         { id: FIX_TOAST, action: undoAction(last.previousVersionId) }
       )
       showWarnings(last.warnings)
     },
     onError: (error) =>
-      toast.error(serverDetail(error, 'Could not fix the issues'), {
+      toast.error(serverDetail(error, t('Could not fix the issues')), {
         id: FIX_TOAST,
       }),
   })
@@ -733,34 +764,41 @@ export function CvBuilder({
     },
     onSuccess: (result, format) => {
       const label = format === 'docx' ? 'DOCX' : 'PDF'
+      const savedMsg = t('{{label}} saved to your CVs', { label })
       qc.invalidateQueries({ queryKey: ['cvs'] })
       qc.invalidateQueries({ queryKey: ['applications'] })
 
       if (result.attachedApplicationId) {
-        toast.success(`${label} saved and attached to the application`)
+        toast.success(
+          t('{{label}} saved and attached to the application', { label })
+        )
       } else if (result.existingCvKept && draft?.jobApplicationId) {
         // The application already has a CV; replacing it is the user's call.
         const applicationId = draft.jobApplicationId
-        toast(`${label} saved to your CVs`, {
-          description: 'The application already has a CV attached.',
+        toast(savedMsg, {
+          description: t('The application already has a CV attached.'),
           action: {
-            label: 'Use this one instead',
+            label: t('Use this one instead'),
             onClick: () =>
               applicationsApi
                 .attachCv(applicationId, result.cvId)
                 .then(() => {
                   qc.invalidateQueries({ queryKey: ['applications'] })
-                  toast.success('CV replaced on the application')
+                  toast.success(t('CV replaced on the application'))
                 })
-                .catch(() => toast.error('Failed to replace the CV')),
+                .catch(() => toast.error(t('Failed to replace the CV'))),
           },
         })
       } else {
-        toast.success(`${label} saved to your CVs`)
+        toast.success(savedMsg)
       }
     },
     onError: (_, format) =>
-      toast.error(`Failed to export ${format === 'docx' ? 'DOCX' : 'PDF'}`),
+      toast.error(
+        t('Failed to export {{label}}', {
+          label: format === 'docx' ? 'DOCX' : 'PDF',
+        })
+      ),
   })
 
   const remove = useMutation({
@@ -769,15 +807,15 @@ export function CvBuilder({
       qc.invalidateQueries({ queryKey: ['cv-drafts'] })
       if (selectedId === id) setSelectedId(null)
       setDeleting(null)
-      toast.success('Draft deleted')
+      toast.success(t('Draft deleted'))
     },
-    onError: () => toast.error('Failed to delete draft'),
+    onError: () => toast.error(t('Failed to delete draft')),
   })
 
   if (!candidateLoading && !candidate) {
     return (
       <div className='rounded-md border py-12 text-center text-muted-foreground'>
-        No candidate profile found for your account yet.
+        {t('No candidate profile found for your account yet.')}
       </div>
     )
   }
@@ -825,8 +863,10 @@ export function CvBuilder({
   const tools = review ?? (
     <div className='rounded-md border border-dashed p-4 text-sm text-muted-foreground'>
       {editing
-        ? 'The score and job match are paused while you edit the whole CV. Save or cancel to continue.'
-        : 'The score and job match appear here when your CV is ready.'}
+        ? t(
+            'The score and job match are paused while you edit the whole CV. Save or cancel to continue.'
+          )
+        : t('The score and job match appear here when your CV is ready.')}
     </div>
   )
 
@@ -847,7 +887,8 @@ export function CvBuilder({
         <>
           <div className='flex flex-wrap items-center gap-2'>
             <Button variant='ghost' size='sm' onClick={() => openDraft(null)}>
-              <ArrowLeft className='mr-1 h-4 w-4' /> All drafts
+              <ArrowLeft className='me-1 h-4 w-4 rtl:rotate-180' />{' '}
+              {t('All drafts')}
             </Button>
             <Select
               value={String(selectedId)}
@@ -855,7 +896,7 @@ export function CvBuilder({
             >
               <SelectTrigger
                 className='h-8 w-72 max-w-full'
-                aria-label='Switch draft'
+                aria-label={t('Switch draft')}
               >
                 <SelectValue />
               </SelectTrigger>
@@ -868,7 +909,7 @@ export function CvBuilder({
               </SelectContent>
             </Select>
             {draft && candidate && ready && (
-              <div className='ml-auto'>
+              <div className='ms-auto'>
                 <DraftToolbar
                   templateId={draft.templateId || 'classic'}
                   templateBusy={changeTemplate.isPending}
@@ -885,7 +926,7 @@ export function CvBuilder({
           </div>
 
           <div className='grid gap-6 lg:grid-cols-[360px_1fr]'>
-            <div className='order-2 flex flex-col gap-6 lg:sticky lg:top-4 lg:order-1 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pr-1'>
+            <div className='order-2 flex flex-col gap-6 lg:sticky lg:top-4 lg:order-1 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:pe-1'>
               {tools}
             </div>
 
@@ -894,7 +935,7 @@ export function CvBuilder({
                 {draftLoading && <Skeleton className='h-[32rem] w-full' />}
                 {!draftLoading && !draft && (
                   <p className='py-12 text-center text-sm text-muted-foreground'>
-                    This draft could not be opened. It may have been deleted.
+                    {t('This draft could not be opened. It may have been deleted.')}
                   </p>
                 )}
                 {writing && (
@@ -908,10 +949,10 @@ export function CvBuilder({
                     className='space-y-3 rounded-md border border-destructive/40 bg-background p-6'
                   >
                     <p className='font-semibold'>
-                      This CV could not be written
+                      {t('This CV could not be written')}
                     </p>
                     <p className='text-sm text-muted-foreground'>
-                      {draft.error ?? 'Something went wrong while writing it.'}
+                      {draft.error ?? t('Something went wrong while writing it.')}
                     </p>
                     <div className='flex gap-2'>
                       <Button
@@ -920,16 +961,16 @@ export function CvBuilder({
                         disabled={retry.isPending}
                       >
                         {retry.isPending && (
-                          <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                          <Loader2 className='me-1 h-4 w-4 animate-spin' />
                         )}
-                        Try again
+                        {t('Try again')}
                       </Button>
                       <Button
                         size='sm'
                         variant='outline'
                         onClick={() => setDeleting(draft)}
                       >
-                        <Trash2 className='mr-1 h-4 w-4' /> Delete
+                        <Trash2 className='me-1 h-4 w-4' /> {t('Delete')}
                       </Button>
                     </div>
                   </div>
@@ -937,7 +978,7 @@ export function CvBuilder({
                 {draft && candidate && ready && editing && (
                   <div className='space-y-3'>
                     <p className='flex items-center gap-2 text-sm font-medium'>
-                      <Pencil className='h-4 w-4' /> Editing the whole CV
+                      <Pencil className='h-4 w-4' /> {t('Editing the whole CV')}
                     </p>
                     <div className='rounded-md border bg-background p-4'>
                       <CvEditor
@@ -952,22 +993,25 @@ export function CvBuilder({
                 {draft && candidate && ready && !editing && (
                   <>
                     <p className='mb-3 text-center text-xs text-muted-foreground'>
-                      Hover a section to Edit it by hand or Refine it with AI.
-                      Preview and exported PDF use A4 page size (210 × 297 mm).{' '}
+                      {t(
+                        'Hover a section to Edit it by hand or Refine it with AI. Preview and exported PDF use A4 page size (210 × 297 mm).'
+                      )}{' '}
                       {draft.templateId === 'photo' ? (
                         photoUrl || photoLoading ? (
-                          'The photo comes from your profile.'
+                          t('The photo comes from your profile.')
                         ) : (
                           <>
-                            This template has no photo yet.{' '}
+                            {t('This template has no photo yet.')}{' '}
                             <Link to='/profile' className='underline'>
-                              Add one on your profile
+                              {t('Add one on your profile')}
                             </Link>
                             .
                           </>
                         )
                       ) : (
-                        'This template has no photo; choose “With photo” to add yours.'
+                        t(
+                          'This template has no photo; choose “With photo” to add yours.'
+                        )
                       )}
                     </p>
                     <CvPreview
@@ -1003,7 +1047,7 @@ export function CvBuilder({
       >
         <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-2xl'>
           <DialogHeader>
-            <DialogTitle>New CV</DialogTitle>
+            <DialogTitle>{t('New CV')}</DialogTitle>
           </DialogHeader>
           {prefillLoading || profileLoading ? (
             <Skeleton className='h-64 w-full' />
@@ -1036,7 +1080,7 @@ export function CvBuilder({
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>Fixing your CV</DialogTitle>
+            <DialogTitle>{t('Fixing your CV')}</DialogTitle>
           </DialogHeader>
           <div
             className='flex flex-col items-center gap-3 py-2'
@@ -1046,8 +1090,9 @@ export function CvBuilder({
             <Loader2 className='h-8 w-8 animate-spin text-primary' />
             <p className='text-sm'>{fixStep}</p>
             <p className='text-xs text-muted-foreground'>
-              Please wait and do not close or leave this page. This can take a
-              few seconds.
+              {t(
+                'Please wait and do not close or leave this page. This can take a few seconds.'
+              )}
             </p>
           </div>
         </DialogContent>
@@ -1065,38 +1110,42 @@ export function CvBuilder({
         <DialogContent className='max-w-lg'>
           <DialogHeader>
             <DialogTitle>
-              Refine {refining ? SECTION_LABELS[refining] : ''}
+              {t('Refine {{section}}', {
+                section: refining ? t(SECTION_LABELS[refining]) : '',
+              })}
             </DialogTitle>
           </DialogHeader>
           <Textarea
             rows={4}
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
-            placeholder='What should change? e.g. Make it shorter and focus on cloud work'
+            placeholder={t(
+              'What should change? e.g. Make it shorter and focus on cloud work'
+            )}
           />
           <DialogFooter>
             <Button variant='outline' onClick={() => setRefining(null)}>
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button
               variant='secondary'
               disabled={fixable.length === 0 || fix.isPending}
-              title='Rewrites this section to fix the issues in the writing score'
+              title={t('Rewrites this section to fix the issues in the writing score')}
               onClick={() => fix.mutate(fixable)}
             >
               {fix.isPending && (
-                <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                <Loader2 className='me-1 h-4 w-4 animate-spin' />
               )}
-              Fix issues ({fixable.length})
+              {t('Fix issues ({{n}})', { n: fixable.length })}
             </Button>
             <Button
               disabled={!instruction.trim() || refine.isPending}
               onClick={() => refining && refine.mutate(refining)}
             >
               {refine.isPending && (
-                <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                <Loader2 className='me-1 h-4 w-4 animate-spin' />
               )}
-              Rewrite
+              {t('Rewrite')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1129,14 +1178,16 @@ export function CvBuilder({
         <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-2xl'>
           <DialogHeader>
             <DialogTitle>
-              Edit {editingSection ? SECTION_LABELS[editingSection] : ''}
+              {t('Edit {{section}}', {
+                section: editingSection ? t(SECTION_LABELS[editingSection]) : '',
+              })}
             </DialogTitle>
           </DialogHeader>
           {editingSection === 'headline' && (
             <p className='text-sm text-muted-foreground'>
-              Your name and contact details come from your profile.{' '}
+              {t('Your name and contact details come from your profile.')}{' '}
               <Link to='/profile' className='underline'>
-                Edit profile
+                {t('Edit profile')}
               </Link>
             </p>
           )}
@@ -1156,10 +1207,13 @@ export function CvBuilder({
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title='Delete draft'
-        desc={`Are you sure you want to delete "${deleting?.title}"? Exported PDFs in your CVs are kept.`}
+        title={t('Delete draft')}
+        desc={t(
+          'Are you sure you want to delete "{{title}}"? Exported PDFs in your CVs are kept.',
+          { title: deleting?.title }
+        )}
         destructive
-        confirmText='Delete'
+        confirmText={t('Delete')}
         isLoading={remove.isPending}
         handleConfirm={() => deleting && remove.mutate(deleting.id)}
       />

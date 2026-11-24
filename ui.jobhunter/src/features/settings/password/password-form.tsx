@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -41,32 +42,34 @@ function getPasswordErrorMessage(err: unknown, fallback: string) {
   return fallback
 }
 
-const newPasswordSchema = z
-  .string()
-  .min(1, 'Please enter a password.')
-  .min(10, 'Password must be at least 10 characters long.')
+type TFn = (key: string) => string
 
-function buildFormSchema(hasPassword: boolean) {
+function buildFormSchema(hasPassword: boolean, t: TFn) {
+  const newPasswordSchema = z
+    .string()
+    .min(1, t('Please enter a password.'))
+    .min(10, t('Password must be at least 10 characters long.'))
   return z
     .object({
       oldPassword: hasPassword
-        ? z.string().min(1, 'Please enter your current password.')
+        ? z.string().min(1, t('Please enter your current password.'))
         : z.string().optional(),
       newPassword: newPasswordSchema,
-      confirmPassword: z.string().min(1, 'Please confirm your password.'),
+      confirmPassword: z.string().min(1, t('Please confirm your password.')),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
-      message: "Passwords don't match.",
+      message: t("Passwords don't match."),
       path: ['confirmPassword'],
     })
 }
 
 export function PasswordForm() {
+  const { t } = useTranslation()
   const { auth } = useAuthStore()
   const hasPassword = auth.user?.hasPassword ?? false
   const [isLoading, setIsLoading] = useState(false)
 
-  const formSchema = buildFormSchema(hasPassword)
+  const formSchema = buildFormSchema(hasPassword, t)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { oldPassword: '', newPassword: '', confirmPassword: '' },
@@ -80,12 +83,12 @@ export function PasswordForm() {
       form.reset({ oldPassword: '', newPassword: '', confirmPassword: '' })
       toast.success(
         hasPassword
-          ? 'Password updated.'
-          : 'Password set. You can now sign in with your email and password.'
+          ? t('Password updated.')
+          : t('Password set. You can now sign in with your email and password.')
       )
     } catch (err) {
       toast.error(
-        getPasswordErrorMessage(err, 'Failed to update password. Please try again.')
+        getPasswordErrorMessage(err, t('Failed to update password. Please try again.'))
       )
     } finally {
       setIsLoading(false)
@@ -101,7 +104,7 @@ export function PasswordForm() {
             name='oldPassword'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current password</FormLabel>
+                <FormLabel>{t('Current password')}</FormLabel>
                 <FormControl>
                   <PasswordInput placeholder='********' {...field} />
                 </FormControl>
@@ -115,7 +118,7 @@ export function PasswordForm() {
           name='newPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New password</FormLabel>
+              <FormLabel>{t('New password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -128,7 +131,7 @@ export function PasswordForm() {
           name='confirmPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm new password</FormLabel>
+              <FormLabel>{t('Confirm new password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -138,7 +141,7 @@ export function PasswordForm() {
         />
         <Button type='submit' disabled={isLoading}>
           {isLoading && <Loader2 className='animate-spin' />}
-          {hasPassword ? 'Update password' : 'Set password'}
+          {hasPassword ? t('Update password') : t('Set password')}
         </Button>
       </form>
     </Form>

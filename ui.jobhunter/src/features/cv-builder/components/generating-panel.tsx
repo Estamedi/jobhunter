@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // The server does not report progress, so the steps are paced by time and worded as what is being
@@ -15,6 +16,7 @@ const STEPS = [
 // `since` is when the draft was queued, so the clock is right after a reload or when the page is
 // opened later. Without it the clock starts when the panel appears.
 export function GeneratingPanel({ since }: { since?: string }) {
+  const { t } = useTranslation()
   const [start] = useState(() =>
     since ? new Date(since).getTime() : Date.now()
   )
@@ -37,11 +39,12 @@ export function GeneratingPanel({ since }: { since?: string }) {
     >
       <div>
         <p className='flex items-center gap-2 font-semibold'>
-          <Loader2 className='h-4 w-4 animate-spin' /> Writing your CV…
+          <Loader2 className='h-4 w-4 animate-spin' /> {t('Writing your CV…')}
         </p>
         <p className='text-sm text-muted-foreground'>
-          This usually takes 1–2 minutes. It is written in the background, so
-          you can leave this page: the CV appears here when it is ready.
+          {t(
+            'This usually takes 1–2 minutes. It is written in the background, so you can leave this page: the CV appears here when it is ready.'
+          )}
         </p>
       </div>
 
@@ -60,7 +63,7 @@ export function GeneratingPanel({ since }: { since?: string }) {
             ) : (
               <span className='h-4 w-4 rounded-full border' />
             )}
-            <span className={i === current ? 'font-medium' : ''}>{s.text}</span>
+            <span className={i === current ? 'font-medium' : ''}>{t(s.text)}</span>
           </li>
         ))}
       </ul>
@@ -73,8 +76,8 @@ export function GeneratingPanel({ since }: { since?: string }) {
       </div>
 
       <p className='text-xs text-muted-foreground'>
-        {seconds}s elapsed
-        {seconds > 150 && ' – taking longer than usual, still working.'}
+        {t('{{n}}s elapsed', { n: seconds })}
+        {seconds > 150 && ` – ${t('taking longer than usual, still working.')}`}
       </p>
     </div>
   )

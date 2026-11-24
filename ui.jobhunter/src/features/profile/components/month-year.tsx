@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -21,6 +22,7 @@ export function MonthYear({
   year: number | null
   onChange: (month: number | null, year: number | null) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className='space-y-1'>
       <Label>
@@ -33,12 +35,12 @@ export function MonthYear({
           onValueChange={(v) => onChange(Number(v), year)}
         >
           <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Month' />
+            <SelectValue placeholder={t('Month')} />
           </SelectTrigger>
           <SelectContent>
             {MONTHS.map((m, i) => (
               <SelectItem key={m} value={String(i + 1)}>
-                {m}
+                {t(m)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -48,7 +50,7 @@ export function MonthYear({
           onValueChange={(v) => onChange(month, Number(v))}
         >
           <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Year' />
+            <SelectValue placeholder={t('Year')} />
           </SelectTrigger>
           <SelectContent>
             {YEARS.map((y) => (

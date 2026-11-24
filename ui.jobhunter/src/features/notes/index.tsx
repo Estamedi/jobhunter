@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import {
@@ -56,6 +57,7 @@ function NoteForm({
   defaultValues?: { content: string; applicationId?: number }
   onSubmit: (data: SaveNoteDto) => void
 }) {
+  const { t } = useTranslation()
   const [content, setContent] = useState(defaultValues?.content ?? '')
   const [applicationId, setApplicationId] = useState(
     defaultValues?.applicationId ? String(defaultValues.applicationId) : ''
@@ -75,17 +77,17 @@ function NoteForm({
       }}
     >
       <div className='space-y-1'>
-        <Label>Note *</Label>
+        <Label>{t('Note')} *</Label>
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={5}
-          placeholder='Jot something down...'
+          placeholder={t('Jot something down...')}
           required
         />
       </div>
       <div className='space-y-1'>
-        <Label>Link to Application</Label>
+        <Label>{t('Link to Application')}</Label>
         <Select
           value={applicationId || NONE}
           onValueChange={(v) => setApplicationId(v === NONE ? '' : v)}
@@ -94,7 +96,7 @@ function NoteForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NONE}>None</SelectItem>
+            <SelectItem value={NONE}>{t('None')}</SelectItem>
             {applications.map((a) => (
               <SelectItem key={a.id} value={String(a.id)}>{a.label}</SelectItem>
             ))}
@@ -106,6 +108,7 @@ function NoteForm({
 }
 
 export function Notes() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -129,7 +132,7 @@ export function Notes() {
   const applicationLabels = new Map(
     (applicationsResult?.items ?? []).map((a) => [
       a.id,
-      `${a.companyName ?? 'Company'} — ${a.jobRoleTitle ?? 'Role'}`,
+      `${a.companyName ?? t('Company')} — ${a.jobRoleTitle ?? t('Role')}`,
     ])
   )
 
@@ -137,33 +140,33 @@ export function Notes() {
     mutationFn: (dto: SaveNoteDto) => notesApi.create(dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notes'] })
-      toast.success('Note created')
+      toast.success(t('Note created'))
       setDialogOpen(false)
       setPage(1)
     },
-    onError: () => toast.error('Failed to create note'),
+    onError: () => toast.error(t('Failed to create note')),
   })
 
   const update = useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: SaveNoteDto }) => notesApi.update(id, dto),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notes'] })
-      toast.success('Note updated')
+      toast.success(t('Note updated'))
       setDialogOpen(false)
       setEditing(null)
     },
-    onError: () => toast.error('Failed to update note'),
+    onError: () => toast.error(t('Failed to update note')),
   })
 
   const remove = useMutation({
     mutationFn: notesApi.delete,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notes'] })
-      toast.success('Note deleted')
+      toast.success(t('Note deleted'))
       setDeleting(null)
       if (notes?.length === 1 && page > 1) setPage(page - 1)
     },
-    onError: () => toast.error('Failed to delete note'),
+    onError: () => toast.error(t('Failed to delete note')),
   })
 
   function openCreate() {
@@ -190,7 +193,7 @@ export function Notes() {
     <div className='space-y-4'>
       <div className='flex items-center justify-end'>
         <Button onClick={openCreate}>
-          <Plus className='h-4 w-4 mr-1' /> Add Note
+          <Plus className='h-4 w-4 me-1' /> {t('Add Note')}
         </Button>
       </div>
 
@@ -198,9 +201,9 @@ export function Notes() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Note</TableHead>
-              <TableHead>Linked Application</TableHead>
-              <TableHead>Updated</TableHead>
+              <TableHead>{t('Note')}</TableHead>
+              <TableHead>{t('Linked Application')}</TableHead>
+              <TableHead>{t('Updated')}</TableHead>
               <TableHead className='w-10' />
             </TableRow>
           </TableHeader>
@@ -212,7 +215,7 @@ export function Notes() {
             )}
             {!isLoading && notes?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className='text-center text-muted-foreground py-8'>No notes yet.</TableCell>
+                <TableCell colSpan={4} className='text-center text-muted-foreground py-8'>{t('No notes yet.')}</TableCell>
               </TableRow>
             )}
             {notes?.map((note) => (
@@ -230,17 +233,17 @@ export function Notes() {
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant='ghost' size='icon' className='h-8 w-8'>
+                      <Button variant='ghost' size='icon' className='h-8 w-8' aria-label={t('Actions')}>
                         <MoreHorizontal className='h-4 w-4' />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end'>
                       <DropdownMenuItem onClick={() => openEdit(note)}>
-                        <Pencil className='h-4 w-4 mr-2' /> Edit
+                        <Pencil className='h-4 w-4 me-2' /> {t('Edit')}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className='text-destructive' onClick={() => setDeleting(note)}>
-                        <Trash2 className='h-4 w-4 mr-2' /> Delete
+                        <Trash2 className='h-4 w-4 me-2' /> {t('Delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -254,7 +257,12 @@ export function Notes() {
       {total > 0 && (
         <div className='flex items-center justify-between'>
           <p className='text-sm text-muted-foreground'>
-            Page {page} of {totalPages} ({total} {total === 1 ? 'note' : 'notes'})
+            {t('Page {{page}} of {{totalPages}} ({{total}} {{noun}})', {
+              page,
+              totalPages,
+              total,
+              noun: total === 1 ? t('note') : t('notes'),
+            })}
           </p>
           <div className='flex items-center gap-2'>
             <Button
@@ -263,7 +271,7 @@ export function Notes() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
             >
-              <ChevronLeft className='h-4 w-4 mr-1' /> Previous
+              <ChevronLeft className='h-4 w-4 me-1 rtl:rotate-180' /> {t('Previous')}
             </Button>
             <Button
               variant='outline'
@@ -271,7 +279,7 @@ export function Notes() {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
             >
-              Next <ChevronRight className='h-4 w-4 ml-1' />
+              {t('Next')} <ChevronRight className='h-4 w-4 ms-1 rtl:rotate-180' />
             </Button>
           </div>
         </div>
@@ -280,7 +288,7 @@ export function Notes() {
       <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditing(null) }}>
         <DialogContent className='max-w-lg'>
           <DialogHeader>
-            <DialogTitle>{editing ? 'Edit Note' : 'Add Note'}</DialogTitle>
+            <DialogTitle>{editing ? t('Edit Note') : t('Add Note')}</DialogTitle>
           </DialogHeader>
           <NoteForm
             applications={[...applicationLabels.entries()].map(([id, label]) => ({ id, label }))}
@@ -288,9 +296,9 @@ export function Notes() {
             onSubmit={handleSubmit}
           />
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button variant='outline' onClick={() => setDialogOpen(false)}>{t('Cancel')}</Button>
             <Button type='submit' form='note-form' disabled={isBusy}>
-              {editing ? 'Save' : 'Add Note'}
+              {editing ? t('Save') : t('Add Note')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -299,10 +307,10 @@ export function Notes() {
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title='Delete Note'
-        desc='Are you sure you want to delete this note? This cannot be undone.'
+        title={t('Delete Note')}
+        desc={t('Are you sure you want to delete this note? This cannot be undone.')}
         destructive
-        confirmText='Delete'
+        confirmText={t('Delete')}
         isLoading={remove.isPending}
         handleConfirm={() => deleting && remove.mutate(deleting.id)}
       />

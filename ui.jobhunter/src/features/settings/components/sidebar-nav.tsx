@@ -1,4 +1,5 @@
 import { useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
@@ -20,6 +21,7 @@ type SidebarNavProps = React.HTMLAttributes<HTMLElement> & {
 }
 
 export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
+  const { t } = useTranslation()
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [val, setVal] = useState(pathname ?? '/settings')
@@ -34,7 +36,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
       <div className='p-1 md:hidden'>
         <Select value={val} onValueChange={handleSelect}>
           <SelectTrigger className='h-12 sm:w-48'>
-            <SelectValue placeholder='Theme' />
+            <SelectValue placeholder={t('Settings')} />
           </SelectTrigger>
           <SelectContent>
             {items.map((item) => (
@@ -56,7 +58,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
       >
         <nav
           className={cn(
-            'flex space-x-2 py-1 lg:flex-col lg:space-y-1 lg:space-x-0',
+            'flex gap-x-2 py-1 lg:flex-col lg:gap-y-1 lg:gap-x-0',
             className
           )}
           {...props}

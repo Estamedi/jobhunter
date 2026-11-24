@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Pencil, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -48,6 +49,7 @@ function LevelSelect({
   onChange: (value: string) => void
   className?: string
 }) {
+  const { t } = useTranslation()
   return (
     <Select
       value={value || NOT_SET}
@@ -55,15 +57,15 @@ function LevelSelect({
     >
       <SelectTrigger
         className={className}
-        aria-label='How do you know this skill?'
+        aria-label={t('How do you know this skill?')}
       >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NOT_SET}>Level: not set</SelectItem>
+        <SelectItem value={NOT_SET}>{t('Level: not set')}</SelectItem>
         {SKILL_EVIDENCE_LEVELS.map((l) => (
           <SelectItem key={l.value} value={l.value}>
-            {l.label} ({l.hint.toLowerCase()})
+            {t(l.label)} ({t(l.hint)})
           </SelectItem>
         ))}
       </SelectContent>
@@ -80,6 +82,7 @@ function EditSkill({
   isUpdating: boolean
   onUpdate: (id: number, dto: SaveSkillDto) => void
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [level, setLevel] = useState(skill.evidenceLevel ?? '')
   const [note, setNote] = useState(skill.note ?? '')
@@ -96,7 +99,7 @@ function EditSkill({
       }}
     >
       <PopoverTrigger asChild>
-        <button type='button' aria-label={`Edit ${skill.name}`}>
+        <button type='button' aria-label={t('Edit {{name}}', { name: skill.name })}>
           <Pencil className='h-3 w-3' />
         </button>
       </PopoverTrigger>
@@ -107,7 +110,7 @@ function EditSkill({
           value={note}
           maxLength={MAX_SKILL_NOTE_LENGTH}
           onChange={(e) => setNote(e.target.value)}
-          placeholder='Where did you use it? (optional)'
+          placeholder={t('Where did you use it? (optional)')}
         />
         <Button
           type='button'
@@ -123,7 +126,7 @@ function EditSkill({
             setOpen(false)
           }}
         >
-          Save
+          {t('Save')}
         </Button>
       </PopoverContent>
     </Popover>
@@ -148,6 +151,7 @@ export function SkillsSection({
   // Goes up when the page asks for the "add" dialog to open (the header's Add section menu).
   openAddSignal?: number
 }) {
+  const { t } = useTranslation()
   const [adding, setAdding] = useState(false)
   // Opens the dialog when the page's signal goes up, adjusted while rendering as React recommends.
   const [seenSignal, setSeenSignal] = useState(openAddSignal)
@@ -190,13 +194,13 @@ export function SkillsSection({
   return (
     <ProfileCard
       id='section-skills'
-      title='Skills'
-      addLabel='Add skill'
+      title={t('Skills')}
+      addLabel={t('Add skill')}
       onAdd={() => setAdding(true)}
     >
       {skills.length === 0 && (
         <p className='text-sm text-muted-foreground'>
-          No skills yet. Add the ones you want on your CV.
+          {t('No skills yet. Add the ones you want on your CV.')}
         </p>
       )}
 
@@ -204,7 +208,7 @@ export function SkillsSection({
         {[...groups.entries()].map(([group, items]) => (
           <div key={group}>
             <p className='mb-1.5 text-xs font-medium text-muted-foreground uppercase'>
-              {group}
+              {t(group)}
             </p>
             <div className='flex flex-wrap gap-2'>
               {items.map((s) => {
@@ -218,7 +222,7 @@ export function SkillsSection({
                     {s.name}
                     {levelLabel && (
                       <span className='text-xs font-normal text-muted-foreground'>
-                        · {levelLabel}
+                        · {t(levelLabel)}
                       </span>
                     )}
                     <EditSkill
@@ -228,7 +232,7 @@ export function SkillsSection({
                     />
                     <button
                       type='button'
-                      aria-label={`Remove ${s.name}`}
+                      aria-label={t('Remove {{name}}', { name: s.name })}
                       onClick={() => onRemove(s)}
                     >
                       <X className='h-3 w-3' />
@@ -244,9 +248,9 @@ export function SkillsSection({
       <Dialog open={adding} onOpenChange={setAdding}>
         <DialogContent className='max-w-lg'>
           <DialogHeader>
-            <DialogTitle>Add skill</DialogTitle>
+            <DialogTitle>{t('Add skill')}</DialogTitle>
             <DialogDescription>
-              Say how you know it, and where you used it, if you like.
+              {t('Say how you know it, and where you used it, if you like.')}
             </DialogDescription>
           </DialogHeader>
           <div className='space-y-3'>
@@ -254,15 +258,15 @@ export function SkillsSection({
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={onEnter}
-              placeholder='Skill, for example Terraform'
-              aria-label='Skill'
+              placeholder={t('Skill, for example Terraform')}
+              aria-label={t('Skill')}
             />
             <Input
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               onKeyDown={onEnter}
-              placeholder='Group (optional)'
-              aria-label='Group'
+              placeholder={t('Group (optional)')}
+              aria-label={t('Group')}
             />
             <LevelSelect value={level} onChange={setLevel} className='w-full' />
             <Input
@@ -270,16 +274,16 @@ export function SkillsSection({
               maxLength={MAX_SKILL_NOTE_LENGTH}
               onChange={(e) => setNote(e.target.value)}
               onKeyDown={onEnter}
-              placeholder='Where did you use it? (optional)'
-              aria-label='Where did you use it?'
+              placeholder={t('Where did you use it? (optional)')}
+              aria-label={t('Where did you use it?')}
             />
           </div>
           <DialogFooter>
             <Button variant='outline' onClick={() => setAdding(false)}>
-              Done
+              {t('Done')}
             </Button>
             <Button disabled={!name.trim() || isAdding} onClick={submit}>
-              Add skill
+              {t('Add skill')}
             </Button>
           </DialogFooter>
         </DialogContent>

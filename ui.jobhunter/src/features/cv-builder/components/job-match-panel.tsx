@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { Loader2, Plus, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,7 @@ const GROUPS: { status: RequirementStatus; title: string; hint: string }[] = [
 ]
 
 function Badge({ mustHave }: { mustHave: boolean }) {
+  const { t } = useTranslation()
   return (
     <span
       className={
@@ -40,7 +42,7 @@ function Badge({ mustHave }: { mustHave: boolean }) {
           : 'rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground'
       }
     >
-      {mustHave ? 'Must have' : 'Nice to have'}
+      {mustHave ? t('Must have') : t('Nice to have')}
     </span>
   )
 }
@@ -61,6 +63,7 @@ export function JobMatchPanel({
   candidateId: number
   onRefine: (section: CvSection, instruction: string) => void
 }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
 
   const match = useQuery({
@@ -89,22 +92,28 @@ export function JobMatchPanel({
       qc.invalidateQueries({ queryKey: ['cv-draft-match', draftId] })
       setSelected([])
       toast.success(
-        `Added ${added.length} skill${added.length === 1 ? '' : 's'} to your profile`
+        t(
+          added.length === 1
+            ? 'Added {{n}} skill to your profile'
+            : 'Added {{n}} skills to your profile',
+          { n: added.length }
+        )
       )
-      if (failed > 0) toast.error(`${failed} could not be added`)
+      if (failed > 0) toast.error(t('{{n}} could not be added', { n: failed }))
       onRefine(
         'skills',
         `Include these skills, which I have added to my profile, where they are relevant to the job: ${added.join(', ')}.`
       )
     },
-    onError: () => toast.error('Failed to add the skills to your profile'),
+    onError: () => toast.error(t('Failed to add the skills to your profile')),
   })
 
   if (!hasJobDescription) {
     return (
       <div className='rounded-md border p-4 text-sm text-muted-foreground'>
-        Job match: this draft has no job description, so there is nothing to
-        compare it with.
+        {t(
+          'Job match: this draft has no job description, so there is nothing to compare it with.'
+        )}
       </div>
     )
   }
@@ -112,11 +121,11 @@ export function JobMatchPanel({
   if (match.isLoading) {
     return (
       <div className='space-y-2 rounded-md border p-4'>
-        <p className='text-sm font-medium'>Job match</p>
+        <p className='text-sm font-medium'>{t('Job match')}</p>
         <Skeleton className='h-4 w-2/3' />
         <Skeleton className='h-4 w-1/2' />
         <p className='text-xs text-muted-foreground'>
-          Reading the job description…
+          {t('Reading the job description…')}
         </p>
       </div>
     )
@@ -125,12 +134,12 @@ export function JobMatchPanel({
   if (match.isError || !match.data) {
     return (
       <div className='space-y-2 rounded-md border p-4 text-sm'>
-        <p className='font-medium'>Job match</p>
+        <p className='font-medium'>{t('Job match')}</p>
         <p className='text-destructive'>
-          {serverDetail(match.error, 'Could not check the CV against the job.')}
+          {serverDetail(match.error, t('Could not check the CV against the job.'))}
         </p>
         <Button variant='outline' size='sm' onClick={() => match.refetch()}>
-          Try again
+          {t('Try again')}
         </Button>
       </div>
     )
@@ -156,19 +165,24 @@ export function JobMatchPanel({
   }
 
   const notes = [
-    fit.skillsOnly > 0 && `${fit.skillsOnly} only in the Skills list`,
-    fit.inProfile > 0 && `${fit.inProfile} on your profile but not in this CV`,
-    fit.missing > 0 && `${fit.missing} not on your profile`,
+    fit.skillsOnly > 0 &&
+      t('{{n}} only in the Skills list', { n: fit.skillsOnly }),
+    fit.inProfile > 0 &&
+      t('{{n}} on your profile but not in this CV', { n: fit.inProfile }),
+    fit.missing > 0 && t('{{n}} not on your profile', { n: fit.missing }),
   ].filter(Boolean)
 
   return (
     <div className='flex flex-col gap-3 rounded-md border p-4'>
       <div>
-        <p className='text-sm font-medium'>Job match</p>
+        <p className='text-sm font-medium'>{t('Job match')}</p>
         <p className='text-sm'>
           {fit.total > 0
-            ? `${fit.inCv} of ${fit.total} must-have skills are in your summary or experience.`
-            : 'The job description does not list specific must-have skills.'}
+            ? t(
+                '{{inCv}} of {{total}} must-have skills are in your summary or experience.',
+                { inCv: fit.inCv, total: fit.total }
+              )
+            : t('The job description does not list specific must-have skills.')}
         </p>
         {notes.length > 0 && (
           <p className='text-xs text-muted-foreground'>{notes.join(' · ')}</p>
@@ -189,10 +203,10 @@ export function JobMatchPanel({
         return (
           <div key={group.status} className='flex flex-col gap-1'>
             <p className='text-xs font-medium'>
-              {group.title} ({items.length})
+              {t(group.title)} ({items.length})
             </p>
             {group.hint && (
-              <p className='text-xs text-muted-foreground'>{group.hint}</p>
+              <p className='text-xs text-muted-foreground'>{t(group.hint)}</p>
             )}
 
             {(adds || works) && (
@@ -214,8 +228,8 @@ export function JobMatchPanel({
                   }
                 >
                   {ticked.length === items.length
-                    ? 'Clear selection'
-                    : 'Select all'}
+                    ? t('Clear selection')
+                    : t('Select all')}
                 </Button>
                 {adds ? (
                   <Button
@@ -225,12 +239,13 @@ export function JobMatchPanel({
                     onClick={() => addSkills.mutate(ticked.map((r) => r.name))}
                   >
                     {busy ? (
-                      <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                      <Loader2 className='me-1 h-3 w-3 animate-spin' />
                     ) : (
-                      <Plus className='mr-1 h-3 w-3' />
+                      <Plus className='me-1 h-3 w-3' />
                     )}
-                    Add {ticked.length > 0 ? `${ticked.length} ` : ''}to my
-                    profile
+                    {ticked.length > 0
+                      ? t('Add {{n}} to my profile', { n: ticked.length })
+                      : t('Add to my profile')}
                   </Button>
                 ) : (
                   <Button
@@ -239,16 +254,17 @@ export function JobMatchPanel({
                     disabled={ticked.length === 0}
                     onClick={workIn}
                   >
-                    <Sparkles className='mr-1 h-3 w-3' />
-                    Work {ticked.length > 0 ? `${ticked.length} ` : ''}into my
-                    CV
+                    <Sparkles className='me-1 h-3 w-3' />
+                    {ticked.length > 0
+                      ? t('Work {{n}} into my CV', { n: ticked.length })
+                      : t('Work into my CV')}
                   </Button>
                 )}
                 {ticked.length === 0 && (
                   <span className='text-xs text-muted-foreground'>
                     {adds
-                      ? 'Tick the skills you really have.'
-                      : 'Tick the skills to add to your experience.'}
+                      ? t('Tick the skills you really have.')
+                      : t('Tick the skills to add to your experience.')}
                   </span>
                 )}
               </div>
@@ -293,8 +309,8 @@ export function JobMatchPanel({
 
       {otherRequirements.length > 0 && (
         <div className='flex flex-col gap-1'>
-          <p className='text-xs font-medium'>Also in the job description</p>
-          <ul className='list-disc pl-5 text-sm text-muted-foreground'>
+          <p className='text-xs font-medium'>{t('Also in the job description')}</p>
+          <ul className='list-disc ps-5 text-sm text-muted-foreground'>
             {otherRequirements.map((o) => (
               <li key={o}>{o}</li>
             ))}
@@ -303,10 +319,11 @@ export function JobMatchPanel({
       )}
 
       <p className='text-xs text-muted-foreground'>
-        Compared with your CV and your profile. Extra notes typed in the CV
-        Writer are not checked.{' '}
+        {t(
+          'Compared with your CV and your profile. Extra notes typed in the CV Writer are not checked.'
+        )}{' '}
         <Link to='/profile' className='underline'>
-          Edit profile
+          {t('Edit profile')}
         </Link>
       </p>
     </div>

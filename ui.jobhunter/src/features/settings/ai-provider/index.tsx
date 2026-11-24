@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { http } from '@/lib/http'
@@ -60,6 +61,7 @@ const aiSettingsApi = {
 }
 
 export function SettingsAiProvider() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ['ai-settings'],
@@ -73,16 +75,18 @@ export function SettingsAiProvider() {
     mutationFn: aiSettingsApi.update,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ai-settings'] })
-      toast.success('AI provider updated')
+      toast.success(t('AI provider updated'))
     },
-    onError: () => toast.error('Could not change the AI provider'),
+    onError: () => toast.error(t('Could not change the AI provider')),
     onSettled: () => setSelected(null),
   })
 
   return (
     <ContentSection
-      title='AI provider'
-      desc='Choose which service handles CV writing, job extraction and profile import, and add its API key.'
+      title={t('AI provider')}
+      desc={t(
+        'Choose which service handles CV writing, job extraction and profile import, and add its API key.'
+      )}
     >
       {isLoading || !data ? (
         <Skeleton className='h-40 w-full' />
@@ -121,23 +125,25 @@ export function SettingsAiProvider() {
                       </Badge>
                     </span>
                     <span className='text-sm text-muted-foreground'>
-                      {DESCRIPTIONS[p.name]}
+                      {DESCRIPTIONS[p.name] ? t(DESCRIPTIONS[p.name]) : null}
                     </span>
                   </Label>
                 </div>
                 {value === p.name && !p.configured && (
                   <p
                     role='alert'
-                    className='flex items-start gap-2 pl-7 text-sm text-amber-700 dark:text-amber-500'
+                    className='flex items-start gap-2 ps-7 text-sm text-amber-700 dark:text-amber-500'
                   >
                     <AlertTriangle className='mt-0.5 h-4 w-4 shrink-0' />
                     <span>
-                      No key for {p.name}, so requests use the next provider
-                      that has one. Save a key below to use {p.name}.
+                      {t(
+                        'No key for {{name}}, so requests use the next provider that has one. Save a key below to use {{name}}.',
+                        { name: p.name }
+                      )}
                     </span>
                   </p>
                 )}
-                <div className='pl-7'>
+                <div className='ps-7'>
                   <KeyForm provider={p} />
                 </div>
               </div>
@@ -157,6 +163,7 @@ function ActionOverrides({
   data: AiSettings
   defaultProvider: string
 }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [edits, setEdits] = useState<Record<string, ActionChoice>>({})
   const current = (a: AiAction): ActionChoice =>
@@ -184,7 +191,7 @@ function ActionOverrides({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ai-settings'] })
       setEdits({})
-      toast.success('Changes saved')
+      toast.success(t('Changes saved'))
     },
   })
 
@@ -193,41 +200,44 @@ function ActionOverrides({
 
   return (
     <Collapsible defaultOpen={anyOverride} className='rounded-lg border'>
-      <CollapsibleTrigger className='group flex w-full items-center justify-between p-4 text-left'>
+      <CollapsibleTrigger className='group flex w-full items-center justify-between p-4 text-start'>
         <span>
           <span className='block font-medium'>
-            Advanced: provider and model per action
+            {t('Advanced: provider and model per action')}
           </span>
           <span className='block text-sm text-muted-foreground'>
             {anyOverride
-              ? 'Some actions use their own provider or model.'
-              : `All actions use ${defaultProvider} and its default models.`}
+              ? t('Some actions use their own provider or model.')
+              : t('All actions use {{provider}} and its default models.', {
+                  provider: defaultProvider,
+                })}
           </span>
         </span>
         <ChevronDown className='h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180' />
       </CollapsibleTrigger>
       <CollapsibleContent className='space-y-3 border-t p-4'>
         <p className='text-sm text-muted-foreground'>
-          Overrides the default for one action. If the chosen provider has no
-          key or is down, another provider with a key is used.
+          {t(
+            'Overrides the default for one action. If the chosen provider has no key or is down, another provider with a key is used.'
+          )}
         </p>
         <div className='hidden grid-cols-[1fr_12rem_1fr] gap-3 px-1 text-xs font-medium text-muted-foreground sm:grid'>
-          <span>Action</span>
-          <span>Provider</span>
-          <span>Model</span>
+          <span>{t('Action')}</span>
+          <span>{t('Provider')}</span>
+          <span>{t('Model')}</span>
         </div>
         {data.actions.map((a) => {
           const c = current(a)
           const shownProvider = c.provider ?? defaultProvider
-          const defaultModel = a.defaultModels[shownProvider] ?? 'Model'
+          const defaultModel = a.defaultModels[shownProvider] ?? t('Model')
           return (
             <div
               key={a.action}
               className='grid gap-2 border-t pt-3 first:border-t-0 first:pt-0 sm:grid-cols-[1fr_12rem_1fr] sm:items-center sm:gap-3'
             >
               <div>
-                <div className='text-sm font-medium'>{a.label}</div>
-                <p className='text-xs text-muted-foreground'>{a.description}</p>
+                <div className='text-sm font-medium'>{t(a.label)}</div>
+                <p className='text-xs text-muted-foreground'>{t(a.description)}</p>
               </div>
               <Select
                 value={c.provider ?? USE_DEFAULT}
@@ -241,24 +251,24 @@ function ActionOverrides({
                   }))
                 }
               >
-                <SelectTrigger aria-label={`${a.label} provider`}>
+                <SelectTrigger aria-label={t('{{label}} provider', { label: t(a.label) })}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={USE_DEFAULT}>
-                    Default ({defaultProvider})
+                    {t('Default ({{provider}})', { provider: defaultProvider })}
                   </SelectItem>
                   {data.providers.map((p) => (
                     <SelectItem key={p.name} value={p.name}>
                       {p.name}
-                      {p.configured ? '' : ' (no key)'}
+                      {p.configured ? '' : ` (${t('no key')})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {c.provider ? (
                 <ModelCombobox
-                  label={`${a.label} model`}
+                  label={t('{{label}} model', { label: t(a.label) })}
                   provider={c.provider}
                   value={c.model}
                   placeholder={defaultModel}
@@ -272,7 +282,7 @@ function ActionOverrides({
               ) : (
                 // On the default provider there is no model to pick: show the one that will be used, as plain text.
                 <p className='px-1 text-sm text-muted-foreground'>
-                  Uses {defaultModel}
+                  {t('Uses {{model}}', { model: defaultModel })}
                 </p>
               )}
             </div>
@@ -283,7 +293,7 @@ function ActionOverrides({
             disabled={save.isPending || !dirty}
             onClick={() => save.mutate()}
           >
-            Save changes
+            {t('Save changes')}
           </Button>
           <Button
             variant='outline'
@@ -299,11 +309,11 @@ function ActionOverrides({
               )
             }
           >
-            Reset to defaults
+            {t('Reset to defaults')}
           </Button>
           {dirty && (
             <span className='self-center text-sm text-muted-foreground'>
-              Unsaved changes
+              {t('Unsaved changes')}
             </span>
           )}
         </div>

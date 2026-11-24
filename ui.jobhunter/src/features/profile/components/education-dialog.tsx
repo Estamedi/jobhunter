@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -32,6 +33,7 @@ function YearSelect({
   value: number | null
   onChange: (year: number | null) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className='space-y-1'>
       <Label>{label}</Label>
@@ -40,10 +42,10 @@ function YearSelect({
         onValueChange={(v) => onChange(v === NONE ? null : Number(v))}
       >
         <SelectTrigger className='w-full'>
-          <SelectValue placeholder='Year' />
+          <SelectValue placeholder={t('Year')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={NONE}>Year</SelectItem>
+          <SelectItem value={NONE}>{t('Year')}</SelectItem>
           {YEARS.map((y) => (
             <SelectItem key={y} value={String(y)}>
               {y}
@@ -70,6 +72,7 @@ export function EducationDialog({
   onSave: (dto: SaveEducationDto) => void
   onDelete: () => void
 }) {
+  const { t } = useTranslation()
   const [institution, setInstitution] = useState(education?.institution ?? '')
   const [degree, setDegree] = useState(education?.degree ?? '')
   const [field, setField] = useState(education?.fieldOfStudy ?? '')
@@ -89,7 +92,7 @@ export function EducationDialog({
       <DialogContent className='max-h-[90vh] max-w-xl overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>
-            {education ? 'Edit education' : 'Add education'}
+            {education ? t('Edit education') : t('Add education')}
           </DialogTitle>
         </DialogHeader>
 
@@ -110,64 +113,64 @@ export function EducationDialog({
             })
           }}
         >
-          <p className='text-xs text-muted-foreground'>* Indicates required</p>
+          <p className='text-xs text-muted-foreground'>{t('* Indicates required')}</p>
           <div className='space-y-1'>
-            <Label htmlFor='edu-school'>School*</Label>
+            <Label htmlFor='edu-school'>{t('School*')}</Label>
             <Input
               id='edu-school'
               required
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
-              placeholder='Ex: Boston University'
+              placeholder={t('Ex: Boston University')}
             />
           </div>
           <div className='space-y-1'>
-            <Label htmlFor='edu-degree'>Degree*</Label>
+            <Label htmlFor='edu-degree'>{t('Degree*')}</Label>
             <Input
               id='edu-degree'
               required
               value={degree}
               onChange={(e) => setDegree(e.target.value)}
-              placeholder="Ex: Bachelor's"
+              placeholder={t("Ex: Bachelor's")}
             />
           </div>
           <div className='space-y-1'>
-            <Label htmlFor='edu-field'>Field of study</Label>
+            <Label htmlFor='edu-field'>{t('Field of study')}</Label>
             <Input
               id='edu-field'
               value={field}
               onChange={(e) => setField(e.target.value)}
-              placeholder='Ex: Computer Software Engineering'
+              placeholder={t('Ex: Computer Software Engineering')}
             />
           </div>
           <div className='grid grid-cols-2 gap-3'>
             <YearSelect
-              label='Start year'
+              label={t('Start year')}
               value={startYear}
               onChange={setStartYear}
             />
             <YearSelect
-              label='End year (or expected)'
+              label={t('End year (or expected)')}
               value={endYear}
               onChange={setEndYear}
             />
           </div>
           {endBeforeStart && (
             <p className='text-sm text-destructive'>
-              End year cannot be before the start year.
+              {t('End year cannot be before the start year.')}
             </p>
           )}
           <div className='space-y-1'>
-            <Label htmlFor='edu-details'>Description</Label>
+            <Label htmlFor='edu-details'>{t('Description')}</Label>
             <Textarea
               id='edu-details'
               rows={4}
               maxLength={DETAILS_MAX}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder='Grade, activities, honours'
+              placeholder={t('Grade, activities, honours')}
             />
-            <p className='text-right text-xs text-muted-foreground'>
+            <p className='text-end text-xs text-muted-foreground'>
               {details.length}/{DETAILS_MAX.toLocaleString()}
             </p>
           </div>
@@ -182,7 +185,7 @@ export function EducationDialog({
               disabled={isDeleting}
               onClick={onDelete}
             >
-              Delete
+              {t('Delete')}
             </Button>
           ) : (
             <span />
@@ -192,7 +195,7 @@ export function EducationDialog({
             form='education-form'
             disabled={!canSave || isSaving}
           >
-            Save
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

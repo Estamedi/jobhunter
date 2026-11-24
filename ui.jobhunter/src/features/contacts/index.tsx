@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { contactsApi, type JobContact, type CreateContactDto } from './api'
 import { ContactDetailDialog } from './components/contact-detail-dialog'
@@ -23,41 +24,42 @@ const WARMTH_COLORS: Record<string, 'default' | 'secondary' | 'destructive'> = {
 }
 
 function ContactForm({ defaultValues, onSubmit }: { defaultValues?: Partial<CreateContactDto>; onSubmit: (d: CreateContactDto) => void }) {
+  const { t } = useTranslation()
   const { register, handleSubmit, control } = useForm<CreateContactDto>({ defaultValues })
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' id='contact-form'>
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1 col-span-2'>
-          <Label>Full Name *</Label>
+          <Label>{t('Full Name')} *</Label>
           <Input {...register('fullName')} required />
         </div>
         <div className='space-y-1'>
-          <Label>Email</Label>
+          <Label>{t('Email')}</Label>
           <Input type='email' {...register('email')} />
         </div>
         <div className='space-y-1'>
-          <Label>Phone</Label>
+          <Label>{t('Phone')}</Label>
           <Input {...register('phone')} />
         </div>
         <div className='space-y-1'>
-          <Label>Job Title</Label>
+          <Label>{t('Job Title')}</Label>
           <Input {...register('jobTitle')} />
         </div>
         <div className='space-y-1'>
-          <Label>LinkedIn URL</Label>
+          <Label>{t('LinkedIn URL')}</Label>
           <Input {...register('linkedInUrl')} />
         </div>
         <div className='space-y-1'>
-          <Label>Type</Label>
-          <FormSelect control={control} name='type' options={['Recruiter', 'HiringManager', 'Referral', 'NetworkConnection', 'Other'].map((t) => ({ value: t, label: t.replace(/([A-Z])/g, ' $1').trim() }))} />
+          <Label>{t('Type')}</Label>
+          <FormSelect control={control} name='type' options={['Recruiter', 'HiringManager', 'Referral', 'NetworkConnection', 'Other'].map((v) => ({ value: v, label: v.replace(/([A-Z])/g, ' $1').trim() }))} />
         </div>
         <div className='space-y-1'>
-          <Label>Warmth</Label>
-          <FormSelect control={control} name='warmth' options={['Cold', 'Warm', 'Hot']} />
+          <Label>{t('Warmth')}</Label>
+          <FormSelect control={control} name='warmth' options={['Cold', 'Warm', 'Hot'].map((v) => ({ value: v, label: v }))} />
         </div>
       </div>
       <div className='space-y-1'>
-        <Label>Notes</Label>
+        <Label>{t('Notes')}</Label>
         <Textarea {...register('notes')} rows={3} />
       </div>
     </form>
@@ -65,6 +67,7 @@ function ContactForm({ defaultValues, onSubmit }: { defaultValues?: Partial<Crea
 }
 
 export function Contacts() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -84,17 +87,17 @@ export function Contacts() {
 
   const create = useMutation({
     mutationFn: contactsApi.create,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); toast.success('Contact created'); setDialogOpen(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); toast.success(t('Contact created')); setDialogOpen(false) },
   })
 
   const update = useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: Partial<CreateContactDto> }) => contactsApi.update(id, dto),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); toast.success('Contact updated'); setDialogOpen(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); toast.success(t('Contact updated')); setDialogOpen(false) },
   })
 
   const remove = useMutation({
     mutationFn: contactsApi.delete,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); toast.success('Contact deleted') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); toast.success(t('Contact deleted')) },
   })
 
   function handleSubmit(dto: CreateContactDto) {
@@ -108,11 +111,11 @@ export function Contacts() {
     <div className='space-y-4'>
       <div className='flex items-center gap-2'>
         <div className='relative flex-1 max-w-sm'>
-          <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-          <Input placeholder='Search contacts...' className='pl-8' value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Search className='absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+          <Input placeholder={t('Search contacts...')} className='ps-8' value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Button onClick={() => { setEditing(null); setDialogOpen(true) }} className='ml-auto'>
-          <Plus className='h-4 w-4 mr-1' /> Add Contact
+        <Button onClick={() => { setEditing(null); setDialogOpen(true) }} className='ms-auto'>
+          <Plus className='h-4 w-4 me-1' /> {t('Add Contact')}
         </Button>
       </div>
 
@@ -120,27 +123,27 @@ export function Contacts() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Warmth</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>{t('Name')}</TableHead>
+              <TableHead>{t('Company')}</TableHead>
+              <TableHead>{t('Title')}</TableHead>
+              <TableHead>{t('Type')}</TableHead>
+              <TableHead>{t('Warmth')}</TableHead>
+              <TableHead>{t('Email')}</TableHead>
               <TableHead className='w-10' />
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={7}><Skeleton className='h-8 w-full' /></TableCell></TableRow>}
             {!isLoading && data?.items.length === 0 && (
-              <TableRow><TableCell colSpan={7} className='text-center text-muted-foreground py-8'>No contacts found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className='text-center text-muted-foreground py-8'>{t('No contacts found.')}</TableCell></TableRow>
             )}
             {data?.items.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className='font-medium'>{c.fullName}</TableCell>
                 <TableCell className='text-sm'>{c.companyName || '—'}</TableCell>
                 <TableCell className='text-sm'>{c.jobTitle || '—'}</TableCell>
-                <TableCell><Badge variant='outline' className='text-xs'>{c.type}</Badge></TableCell>
-                <TableCell><Badge variant={WARMTH_COLORS[c.warmth] ?? 'secondary'}>{c.warmth}</Badge></TableCell>
+                <TableCell><Badge variant='outline' className='text-xs'>{t(c.type.replace(/([A-Z])/g, ' $1').trim())}</Badge></TableCell>
+                <TableCell><Badge variant={WARMTH_COLORS[c.warmth] ?? 'secondary'}>{t(c.warmth)}</Badge></TableCell>
                 <TableCell className='text-sm text-muted-foreground'>{c.email || '—'}</TableCell>
                 <TableCell>
                   <div className='flex items-center justify-end gap-1'>
@@ -148,19 +151,19 @@ export function Contacts() {
                       variant='ghost'
                       size='icon'
                       className='h-8 w-8'
-                      aria-label='View contact'
+                      aria-label={t('View contact')}
                       onClick={() => openContact(c.id)}
                     >
                       <Eye className='h-4 w-4' />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' size='icon' className='h-8 w-8'><MoreHorizontal className='h-4 w-4' /></Button>
+                        <Button variant='ghost' size='icon' className='h-8 w-8' aria-label={t('Actions')}><MoreHorizontal className='h-4 w-4' /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align='end'>
-                        <DropdownMenuItem onClick={() => { setEditing(c); setDialogOpen(true) }}><Pencil className='h-4 w-4 mr-2' /> Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setEditing(c); setDialogOpen(true) }}><Pencil className='h-4 w-4 me-2' /> {t('Edit')}</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(c.id)}><Trash2 className='h-4 w-4 mr-2' /> Delete</DropdownMenuItem>
+                        <DropdownMenuItem className='text-destructive' onClick={() => remove.mutate(c.id)}><Trash2 className='h-4 w-4 me-2' /> {t('Delete')}</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -173,11 +176,11 @@ export function Contacts() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className='max-w-lg'>
-          <DialogHeader><DialogTitle>{editing ? 'Edit Contact' : 'Add Contact'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? t('Edit Contact') : t('Add Contact')}</DialogTitle></DialogHeader>
           <ContactForm defaultValues={editing ?? undefined} onSubmit={handleSubmit} />
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button type='submit' form='contact-form' disabled={isBusy}>{editing ? 'Save Changes' : 'Create'}</Button>
+            <Button variant='outline' onClick={() => setDialogOpen(false)}>{t('Cancel')}</Button>
+            <Button type='submit' form='contact-form' disabled={isBusy}>{editing ? t('Save Changes') : t('Create')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import {
   profileApi,
   type ParsedProfile,
@@ -31,7 +32,7 @@ const wait = (ms: number) =>
 // put back in the queue). More than this and the connection is treated as lost.
 const MAX_POLL_FAILURES = 5
 
-const COME_BACK = 'Come back in a moment to pick up the result.'
+const comeBack = () => i18n.t('Come back in a moment to pick up the result.')
 
 // Polls a job until it is Completed (returns the parsed profile) or Failed (throws its message).
 export async function waitForImport(
@@ -50,12 +51,12 @@ export async function waitForImport(
     if (current.status === 'Completed' && current.result) return current.result
     if (current.status === 'Failed') {
       throw new ImportFailedError(
-        current.error || 'Could not read this CV. Try again.'
+        current.error || i18n.t('Could not read this CV. Try again.')
       )
     }
     if (waited >= timeoutMs) {
       throw new ImportFailedError(
-        `Reading your CV is taking longer than expected. ${COME_BACK}`
+        `${i18n.t('Reading your CV is taking longer than expected.')} ${comeBack()}`
       )
     }
     await sleep(intervalMs)
@@ -68,7 +69,7 @@ export async function waitForImport(
       failures += 1
       if (failures >= MAX_POLL_FAILURES) {
         throw new ImportFailedError(
-          `The connection was lost, but your CV is still being read. ${COME_BACK}`
+          `${i18n.t('The connection was lost, but your CV is still being read.')} ${comeBack()}`
         )
       }
     }

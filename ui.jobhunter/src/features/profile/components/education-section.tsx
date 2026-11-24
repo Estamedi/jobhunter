@@ -1,4 +1,5 @@
 import { GraduationCap, Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { type ProfileEducation } from '../api'
 import { educationRange } from '../lib/experience'
@@ -14,16 +15,17 @@ export function EducationSection({
   onAdd: () => void
   onEdit: (education: ProfileEducation) => void
 }) {
+  const { t } = useTranslation()
   return (
     <ProfileCard
       id='section-education'
-      title='Education'
-      addLabel='Add education'
+      title={t('Education')}
+      addLabel={t('Add education')}
       onAdd={onAdd}
     >
       {educations.length === 0 && (
         <p className='text-sm text-muted-foreground'>
-          No education yet. Add your degrees and schools.
+          {t('No education yet. Add your degrees and schools.')}
         </p>
       )}
 
@@ -53,7 +55,7 @@ export function EducationSection({
                 variant='ghost'
                 size='icon'
                 className='h-8 w-8 shrink-0 rounded-full'
-                title='Edit education'
+                title={t('Edit education')}
                 onClick={() => onEdit(e)}
               >
                 <Pencil className='h-4 w-4' />

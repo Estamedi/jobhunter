@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -52,6 +53,7 @@ export function FieldDialog({
   onSave: (values: FieldValues) => void
   onDelete: () => void
 }) {
+  const { t } = useTranslation()
   const [values, setValues] = useState<FieldValues>(initial ?? {})
   const set = (name: string, value: string) =>
     setValues((v) => ({ ...v, [name]: value }))
@@ -76,7 +78,7 @@ export function FieldDialog({
           {fields.map((f) => (
             <div key={f.name} className='space-y-1'>
               <Label htmlFor={`field-${f.name}`}>
-                {f.label}
+                {t(f.label)}
                 {f.required && '*'}
               </Label>
               {f.type === 'text' && (
@@ -85,7 +87,7 @@ export function FieldDialog({
                   required={f.required}
                   value={values[f.name] ?? ''}
                   onChange={(e) => set(f.name, e.target.value)}
-                  placeholder={f.placeholder}
+                  placeholder={f.placeholder ? t(f.placeholder) : undefined}
                 />
               )}
               {f.type === 'textarea' && (
@@ -95,7 +97,7 @@ export function FieldDialog({
                   maxLength={2000}
                   value={values[f.name] ?? ''}
                   onChange={(e) => set(f.name, e.target.value)}
-                  placeholder={f.placeholder}
+                  placeholder={f.placeholder ? t(f.placeholder) : undefined}
                 />
               )}
               {f.type === 'select' && (
@@ -104,15 +106,15 @@ export function FieldDialog({
                   onValueChange={(v) => set(f.name, v === NONE ? '' : v)}
                 >
                   <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='Please select' />
+                    <SelectValue placeholder={t('Please select')} />
                   </SelectTrigger>
                   <SelectContent>
                     {!f.required && (
-                      <SelectItem value={NONE}>Please select</SelectItem>
+                      <SelectItem value={NONE}>{t('Please select')}</SelectItem>
                     )}
                     {f.options?.map((o) => (
                       <SelectItem key={o.value} value={o.value}>
-                        {o.label}
+                        {t(o.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -124,10 +126,10 @@ export function FieldDialog({
                   onValueChange={(v) => set(f.name, v === NONE ? '' : v)}
                 >
                   <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='Year' />
+                    <SelectValue placeholder={t('Year')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NONE}>Year</SelectItem>
+                    <SelectItem value={NONE}>{t('Year')}</SelectItem>
                     {YEARS.map((y) => (
                       <SelectItem key={y} value={String(y)}>
                         {y}
@@ -149,7 +151,7 @@ export function FieldDialog({
               disabled={isDeleting}
               onClick={onDelete}
             >
-              Delete
+              {t('Delete')}
             </Button>
           ) : (
             <span />
@@ -159,7 +161,7 @@ export function FieldDialog({
             form='field-form'
             disabled={!canSave || isSaving}
           >
-            Save
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

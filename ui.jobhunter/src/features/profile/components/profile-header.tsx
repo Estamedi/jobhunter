@@ -11,6 +11,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -70,6 +71,7 @@ export function ProfileHeader({
   onImport: () => void
   onAddSection: (key: string) => void
 }) {
+  const { t } = useTranslation()
   const input = useRef<HTMLInputElement>(null)
   useImperativeHandle(
     ref,
@@ -105,14 +107,14 @@ export function ProfileHeader({
               <button
                 type='button'
                 disabled={photoBusy}
-                aria-label='Change profile photo'
-                title='Change profile photo'
+                aria-label={t('Change profile photo')}
+                title={t('Change profile photo')}
                 className='group relative block h-full w-full overflow-hidden rounded-full border-4 border-card bg-muted shadow-sm focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
               >
                 {photoUrl ? (
                   <img
                     src={photoUrl}
-                    alt='Your profile photo'
+                    alt={t('Your profile photo')}
                     className='h-full w-full object-cover object-[center_25%]'
                   />
                 ) : (
@@ -127,12 +129,13 @@ export function ProfileHeader({
             </DropdownMenuTrigger>
             <DropdownMenuContent align='start'>
               <DropdownMenuLabel className='max-w-56 text-xs font-normal text-muted-foreground'>
-                Used on the &ldquo;With photo&rdquo; CV. Cropped to a portrait,
-                visible only to you, and never sent to the AI.
+                {t(
+                  'Used on the “With photo” CV. Cropped to a portrait, visible only to you, and never sent to the AI.'
+                )}
               </DropdownMenuLabel>
               <DropdownMenuItem onSelect={() => input.current?.click()}>
                 <Upload className='me-2 h-4 w-4' />
-                {photoUrl ? 'Change photo' : 'Upload photo'}
+                {photoUrl ? t('Change photo') : t('Upload photo')}
               </DropdownMenuItem>
               {photoUrl && (
                 <DropdownMenuItem
@@ -140,7 +143,7 @@ export function ProfileHeader({
                   onSelect={() => onRemovePhoto()}
                 >
                   <Trash2 className='me-2 h-4 w-4' />
-                  Remove photo
+                  {t('Remove photo')}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -158,8 +161,8 @@ export function ProfileHeader({
           variant='ghost'
           size='icon'
           className='absolute end-3 top-3 rounded-full'
-          title='Edit intro'
-          aria-label='Edit intro'
+          title={t('Edit intro')}
+          aria-label={t('Edit intro')}
           onClick={onEditIntro}
         >
           <Pencil className='h-4 w-4' />
@@ -175,20 +178,22 @@ export function ProfileHeader({
                   className='text-muted-foreground hover:underline'
                   onClick={onEditIntro}
                 >
-                  Add a headline
+                  {t('Add a headline')}
                 </button>
               )}
             </p>
             <p className='mt-1 text-sm text-muted-foreground'>
-              {location || 'No location yet'}
-              {availability && <> · Available: {availability}</>}
+              {location || t('No location yet')}
+              {availability && (
+                <> · {t('Available: {{availability}}', { availability })}</>
+              )}
               {' · '}
               <button
                 type='button'
                 className='font-semibold text-primary hover:underline'
                 onClick={onOpenContact}
               >
-                Contact info
+                {t('Contact info')}
               </button>
             </p>
           </div>
@@ -213,12 +218,12 @@ export function ProfileHeader({
 
         <div className='mt-4 flex flex-wrap gap-2'>
           <Button className='rounded-full' onClick={onImport}>
-            <FileUp className='me-1 h-4 w-4' /> Import from CV
+            <FileUp className='me-1 h-4 w-4' /> {t('Import from CV')}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='outline' className='rounded-full'>
-                <Plus className='me-1 h-4 w-4' /> Add section
+                <Plus className='me-1 h-4 w-4' /> {t('Add section')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='start'>
@@ -227,14 +232,14 @@ export function ProfileHeader({
                   key={s.key}
                   onSelect={() => onAddSection(s.key)}
                 >
-                  {s.label}
+                  {t(s.label)}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
           <Button asChild variant='outline' className='rounded-full'>
             <Link to='/cv-builder'>
-              <Sparkles className='me-1 h-4 w-4' /> Write a tailored CV
+              <Sparkles className='me-1 h-4 w-4' /> {t('Write a tailored CV')}
             </Link>
           </Button>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Contact2, ExternalLink, Loader2, Mail, Phone, StickyNote } from 'lucide-react'
 import { toast } from 'sonner'
@@ -24,7 +25,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div className='flex items-start justify-between gap-3 text-sm'>
       <span className='shrink-0 text-muted-foreground'>{label}</span>
-      <span className='text-right font-medium'>{children}</span>
+      <span className='text-end font-medium'>{children}</span>
     </div>
   )
 }
@@ -48,6 +49,7 @@ interface ContactDetailProps {
 }
 
 export function ContactDetail({ contactId }: ContactDetailProps) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const detailKey = ['contacts', 'detail', contactId]
 
@@ -77,9 +79,9 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: detailKey })
       qc.invalidateQueries({ queryKey: ['contacts'] })
-      toast.success('Note saved')
+      toast.success(t('Note saved'))
     },
-    onError: () => toast.error('Failed to save note'),
+    onError: () => toast.error(t('Failed to save note')),
   })
 
   if (isLoading) return <DetailSkeleton />
@@ -88,7 +90,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
     return (
       <div className='space-y-4'>
         <Panel className='text-center text-sm text-muted-foreground'>
-          We couldn’t find that contact. It may have been deleted.
+          {t('We couldn’t find that contact. It may have been deleted.')}
         </Panel>
       </div>
     )
@@ -108,31 +110,31 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
               <h1 className='truncate text-2xl font-bold tracking-tight'>{contact.fullName}</h1>
               <p className='truncate text-muted-foreground'>
                 {contact.jobTitle}
-                {contact.jobTitle && contact.companyName && ' at '}
+                {contact.jobTitle && contact.companyName && ` ${t('at')} `}
                 {contact.companyName}
               </p>
             </div>
           </div>
           <div className='flex shrink-0 items-center gap-2'>
             <Badge variant='outline' className='text-xs'>
-              {contact.type}
+              {t(contact.type.replace(/([A-Z])/g, ' $1').trim())}
             </Badge>
             <Badge variant={WARMTH_COLORS[contact.warmth] ?? 'secondary'} className='text-xs'>
-              {contact.warmth}
+              {t(contact.warmth)}
             </Badge>
           </div>
         </div>
 
         <div className='space-y-1.5'>
-          {contact.email && <Field label='Email'>{contact.email}</Field>}
-          {contact.phone && <Field label='Phone'>{contact.phone}</Field>}
+          {contact.email && <Field label={t('Email')}>{contact.email}</Field>}
+          {contact.phone && <Field label={t('Phone')}>{contact.phone}</Field>}
         </div>
 
         <div className='flex flex-wrap gap-2 pt-1'>
           {contact.email && (
             <Button variant='outline' size='sm' asChild>
               <a href={`mailto:${contact.email}`}>
-                <Mail className='mr-1.5 size-3.5' /> Email
+                <Mail className='me-1.5 size-3.5' /> {t('Email')}
               </a>
             </Button>
           )}
@@ -140,12 +142,12 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
             <>
               <Button variant='outline' size='sm' asChild>
                 <a href={`tel:${contact.phone}`}>
-                  <Phone className='mr-1.5 size-3.5' /> Call
+                  <Phone className='me-1.5 size-3.5' /> {t('Call')}
                 </a>
               </Button>
               <Button variant='outline' size='sm' asChild>
                 <a href={toWhatsAppUrl(contact.phone)} target='_blank' rel='noopener noreferrer'>
-                  <IconWhatsapp className='mr-1.5 size-3.5' /> WhatsApp
+                  <IconWhatsapp className='me-1.5 size-3.5' /> {t('WhatsApp')}
                 </a>
               </Button>
             </>
@@ -153,7 +155,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
           {contact.linkedInUrl && (
             <Button variant='outline' size='sm' asChild>
               <a href={contact.linkedInUrl} target='_blank' rel='noopener noreferrer'>
-                <ExternalLink className='mr-1.5 size-3.5' /> LinkedIn
+                <ExternalLink className='me-1.5 size-3.5' /> {t('LinkedIn')}
               </a>
             </Button>
           )}
@@ -165,7 +167,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
           <div className='flex size-9 items-center justify-center rounded-xl bg-accent text-primary dark:bg-primary/15 dark:text-primary'>
             <StickyNote className='size-4' />
           </div>
-          <h4 className='text-sm font-semibold'>Notes</h4>
+          <h4 className='text-sm font-semibold'>{t('Notes')}</h4>
         </div>
         <Textarea
           value={currentNotes}
@@ -174,7 +176,7 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
             setNotesTouched(true)
           }}
           rows={5}
-          placeholder='Add a note about this contact...'
+          placeholder={t('Add a note about this contact...')}
           className='resize-none rounded-xl'
           disabled={saveNotes.isPending}
         />
@@ -184,8 +186,8 @@ export function ContactDetail({ contactId }: ContactDetailProps) {
             onClick={() => saveNotes.mutate()}
             disabled={saveNotes.isPending || currentNotes.trim() === (contact.notes ?? '').trim()}
           >
-            {saveNotes.isPending && <Loader2 className='mr-1.5 size-3.5 animate-spin' />}
-            Save note
+            {saveNotes.isPending && <Loader2 className='me-1.5 size-3.5 animate-spin' />}
+            {t('Save note')}
           </Button>
         </div>
       </Panel>

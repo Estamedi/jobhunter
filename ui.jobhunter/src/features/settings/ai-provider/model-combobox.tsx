@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { http } from '@/lib/http'
 import { cn } from '@/lib/utils'
@@ -47,6 +48,7 @@ export function ModelCombobox({
   label: string
   onChange: (model: string) => void
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -89,7 +91,7 @@ export function ModelCombobox({
           <span className={cn('truncate', !value && 'text-muted-foreground')}>
             {value || placeholder}
           </span>
-          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+          <ChevronsUpDown className='ms-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -98,19 +100,19 @@ export function ModelCombobox({
       >
         <Command>
           <CommandInput
-            placeholder='Search or type a model name'
+            placeholder={t('Search or type a model name')}
             value={search}
             onValueChange={setSearch}
           />
           {(data?.problem || isError) && (
             <p className='border-b px-3 py-2 text-xs text-muted-foreground'>
-              {data?.problem ?? 'The model list could not be loaded.'}
+              {data?.problem ?? t('The model list could not be loaded.')}
             </p>
           )}
           <CommandList>
             {isLoading ? (
               <p className='px-3 py-4 text-sm text-muted-foreground'>
-                Loading models…
+                {t('Loading models…')}
               </p>
             ) : (
               <>
@@ -121,11 +123,11 @@ export function ModelCombobox({
                     value={`use ${typed}`}
                     onSelect={() => choose(typed)}
                   >
-                    Use “{typed}”
+                    {t('Use “{{name}}”', { name: typed })}
                   </CommandItem>
                 ) : (
                   <CommandEmpty>
-                    No model matches. Type a name to use it.
+                    {t('No model matches. Type a name to use it.')}
                   </CommandEmpty>
                 )}
                 <CommandGroup>
@@ -135,7 +137,7 @@ export function ModelCombobox({
                       keywords={['default', 'clear']}
                       onSelect={() => choose('')}
                     >
-                      Use the default model ({placeholder})
+                      {t('Use the default model ({{model}})', { model: placeholder })}
                     </CommandItem>
                   )}
                   {models.map((model) => (
@@ -146,7 +148,7 @@ export function ModelCombobox({
                     >
                       <Check
                         className={cn(
-                          'mr-2 h-4 w-4',
+                          'me-2 h-4 w-4',
                           value === model ? 'opacity-100' : 'opacity-0'
                         )}
                       />

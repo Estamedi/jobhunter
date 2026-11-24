@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { FieldDialog, type FieldDef, type FieldValues } from './field-dialog'
@@ -37,7 +38,9 @@ export function ListSection<T extends { id: number }, Dto>({
   // Goes up when the page asks for the "add" dialog to open (the header's Add section menu).
   openAddSignal?: number
 }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
+  const item_ = t(itemLabel)
   // `undefined` = closed, `null` = adding, otherwise editing that item.
   const [editing, setEditing] = useState<T | null | undefined>(undefined)
   // Opens the "add" dialog when the page's signal goes up. Done while rendering, which is how React
@@ -59,25 +62,26 @@ export function ListSection<T extends { id: number }, Dto>({
       editing
         ? api.update(editing.id, toDto(values, editing))
         : api.add(candidateId, toDto(values, null)),
-    onSuccess: () => done(`${title} saved`),
-    onError: () => toast.error(`Failed to save ${itemLabel}`),
+    onSuccess: () => done(t('{{title}} saved', { title: t(title) })),
+    onError: () => toast.error(t('Failed to save {{item}}', { item: item_ })),
   })
 
   const remove = useMutation({
     mutationFn: (id: number) => api.remove(id),
-    onSuccess: () => done(`${title} removed`),
-    onError: () => toast.error(`Failed to delete ${itemLabel}`),
+    onSuccess: () => done(t('{{title}} removed', { title: t(title) })),
+    onError: () =>
+      toast.error(t('Failed to delete {{item}}', { item: item_ })),
   })
 
   return (
     <ProfileCard
       id={`section-${title.toLowerCase()}`}
-      title={title}
-      addLabel={`Add ${itemLabel}`}
+      title={t(title)}
+      addLabel={t('Add {{item}}', { item: item_ })}
       onAdd={() => setEditing(null)}
     >
       {items.length === 0 && (
-        <p className='text-sm text-muted-foreground'>{emptyText}</p>
+        <p className='text-sm text-muted-foreground'>{t(emptyText)}</p>
       )}
 
       <div className='divide-y'>
@@ -91,7 +95,7 @@ export function ListSection<T extends { id: number }, Dto>({
               variant='ghost'
               size='icon'
               className='h-8 w-8 shrink-0 rounded-full'
-              title={`Edit ${itemLabel}`}
+              title={t('Edit {{item}}', { item: item_ })}
               onClick={() => setEditing(item)}
             >
               <Pencil className='h-4 w-4' />
@@ -103,7 +107,11 @@ export function ListSection<T extends { id: number }, Dto>({
       {editing !== undefined && (
         <FieldDialog
           key={editing?.id ?? 'new'}
-          title={editing ? `Edit ${itemLabel}` : `Add ${itemLabel}`}
+          title={
+            editing
+              ? t('Edit {{item}}', { item: item_ })
+              : t('Add {{item}}', { item: item_ })
+          }
           fields={fields}
           initial={editing ? toValues(editing) : null}
           isSaving={save.isPending}

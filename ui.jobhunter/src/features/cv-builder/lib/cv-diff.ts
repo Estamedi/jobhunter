@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import { type CvContent } from '../api'
 
 export interface CvChange {
@@ -28,9 +29,9 @@ function setDiff(before: string[], after: string[]) {
 
 function countSummary(added: number, removed: number, reordered = false) {
   const parts = [
-    added > 0 && `${added} added`,
-    removed > 0 && `${removed} removed`,
-    reordered && 'reordered',
+    added > 0 && i18n.t('{{n}} added', { n: added }),
+    removed > 0 && i18n.t('{{n}} removed', { n: removed }),
+    reordered && i18n.t('reordered'),
   ].filter(Boolean)
   return parts.join(', ')
 }
@@ -58,26 +59,33 @@ function textChange(
   if (norm(before) === norm(after)) return null
   return {
     label,
-    summary: !clean(before) ? 'added' : !clean(after) ? 'removed' : 'rewritten',
+    summary: !clean(before)
+      ? i18n.t('added')
+      : !clean(after)
+        ? i18n.t('removed')
+        : i18n.t('rewritten'),
     added: clean(after) ? [clean(after)] : [],
     removed: clean(before) ? [clean(before)] : [],
   }
 }
 
+const experienceLabel = (role: string, company: string) =>
+  `${i18n.t('Experience')} · ${i18n.t('{{role}} at {{company}}', { role, company })}`
+
 // What changed going from `before` to `after`, section by section, for the version history.
 export function diffCv(before: CvContent, after: CvContent): CvChange[] {
   const changes: (CvChange | null)[] = []
 
-  changes.push(textChange('Headline', before.headline, after.headline))
-  changes.push(textChange('Summary', before.summary, after.summary))
+  changes.push(textChange(i18n.t('Headline'), before.headline, after.headline))
+  changes.push(textChange(i18n.t('Summary'), before.summary, after.summary))
 
   const skillItems = (c: CvContent) =>
     c.skills.flatMap((g) => g.items.map((i) => clean(i)))
-  changes.push(listChange('Skills', skillItems(before), skillItems(after)))
+  changes.push(listChange(i18n.t('Skills'), skillItems(before), skillItems(after)))
 
   changes.push(
     listChange(
-      'Projects',
+      i18n.t('Projects'),
       before.projects.map(
         (p) => `${p.name}${p.description ? ` – ${p.description}` : ''}`
       ),
@@ -94,12 +102,12 @@ export function diffCv(before: CvContent, after: CvContent): CvChange[] {
   const beforeExp = new Map(before.experience.map((e) => [expKey(e), e]))
   const afterExp = new Map(after.experience.map((e) => [expKey(e), e]))
   for (const [key, a] of afterExp) {
-    const label = `Experience · ${a.role} at ${a.company}`
+    const label = experienceLabel(a.role, a.company)
     const b = beforeExp.get(key)
     if (!b) {
       changes.push({
         label,
-        summary: 'entry added',
+        summary: i18n.t('entry added'),
         added: a.bullets.map(clean),
         removed: [],
       })
@@ -110,8 +118,8 @@ export function diffCv(before: CvContent, after: CvContent): CvChange[] {
   for (const [key, b] of beforeExp) {
     if (!afterExp.has(key)) {
       changes.push({
-        label: `Experience · ${b.role} at ${b.company}`,
-        summary: 'entry removed',
+        label: experienceLabel(b.role, b.company),
+        summary: i18n.t('entry removed'),
         added: [],
         removed: b.bullets.map(clean),
       })
@@ -122,24 +130,28 @@ export function diffCv(before: CvContent, after: CvContent): CvChange[] {
     `${e.degree}, ${e.institution}${e.details ? ` – ${e.details}` : ''}`
   changes.push(
     listChange(
-      'Education',
+      i18n.t('Education'),
       before.education.map(eduLabel),
       after.education.map(eduLabel)
     )
   )
 
   changes.push(
-    listChange('Certifications', before.certifications, after.certifications)
+    listChange(
+      i18n.t('Certifications'),
+      before.certifications,
+      after.certifications
+    )
   )
-  changes.push(listChange('Languages', before.languages, after.languages))
-  changes.push(listChange('Links', before.links, after.links))
+  changes.push(listChange(i18n.t('Languages'), before.languages, after.languages))
+  changes.push(listChange(i18n.t('Links'), before.links, after.links))
 
   return changes.filter((c): c is CvChange => c !== null)
 }
 
 // "Skills: 3 added · Summary: rewritten", or a note that nothing differs.
 export function summarizeChanges(changes: CvChange[]) {
-  if (changes.length === 0) return 'No visible difference in the CV content.'
+  if (changes.length === 0) return i18n.t('No visible difference in the CV content.')
   return changes
     .map((c) => `${c.label.split(' · ')[0]}: ${c.summary}`)
     .filter((v, i, all) => all.indexOf(v) === i)

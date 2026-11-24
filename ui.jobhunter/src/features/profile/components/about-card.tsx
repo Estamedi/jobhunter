@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,6 +26,7 @@ function AboutForm({
   onSave: (summary: string) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [text, setText] = useState(summary)
 
   return (
@@ -37,14 +39,16 @@ function AboutForm({
           onSave(text)
         }}
       >
-        <Label htmlFor='about-summary'>About</Label>
+        <Label htmlFor='about-summary'>{t('About')}</Label>
         <Textarea
           id='about-summary'
           rows={10}
           maxLength={SUMMARY_MAX}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder='A short summary of your experience and what you are good at.'
+          placeholder={t(
+            'A short summary of your experience and what you are good at.'
+          )}
         />
         <p className='text-end text-xs text-muted-foreground'>
           {text.length}/{SUMMARY_MAX.toLocaleString()}
@@ -52,10 +56,10 @@ function AboutForm({
       </form>
       <DialogFooter>
         <Button variant='outline' onClick={onClose}>
-          Cancel
+          {t('Cancel')}
         </Button>
         <Button type='submit' form='about-form' disabled={isSaving}>
-          Save
+          {t('Save')}
         </Button>
       </DialogFooter>
     </>
@@ -76,6 +80,7 @@ export function AboutCard({
   // Goes up when the page asks for the edit dialog to open (the checklist's "add an About").
   openEditSignal?: number
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   // Opens the dialog when the signal goes up, adjusted while rendering as React recommends.
   const [seenSignal, setSeenSignal] = useState(openEditSignal)
@@ -90,15 +95,16 @@ export function AboutCard({
         <ExpandableText text={summary} />
       ) : (
         <p className='text-sm text-muted-foreground'>
-          Write a short summary of your experience. It helps your CV and your
-          profile.
+          {t(
+            'Write a short summary of your experience. It helps your CV and your profile.'
+          )}
         </p>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className='max-w-xl'>
           <DialogHeader>
-            <DialogTitle>Edit about</DialogTitle>
+            <DialogTitle>{t('Edit about')}</DialogTitle>
           </DialogHeader>
           {open && (
             <AboutForm

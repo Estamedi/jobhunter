@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { Loader2, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { type JobApplication } from '@/features/applications/api'
@@ -26,6 +27,7 @@ export function WishlistPanel({
   onSelectDraft: (id: number) => void
   onGenerateAll: () => void
 }) {
+  const { t } = useTranslation()
   const draftFor = (applicationId: number) =>
     drafts.find((d) => d.jobApplicationId === applicationId)
 
@@ -37,7 +39,7 @@ export function WishlistPanel({
   return (
     <div className='rounded-md border p-4'>
       <div className='mb-3 flex items-center justify-between gap-2'>
-        <h2 className='font-semibold'>Your wishlist ({applications.length})</h2>
+        <h2 className='font-semibold'>{t('Your wishlist ({{n}})', { n: applications.length })}</h2>
         {pending.length > 0 && (
           <Button
             size='sm'
@@ -46,21 +48,25 @@ export function WishlistPanel({
             onClick={onGenerateAll}
           >
             {isGenerating ? (
-              <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+              <Loader2 className='me-1 h-4 w-4 animate-spin' />
             ) : (
-              <Sparkles className='mr-1 h-4 w-4' />
+              <Sparkles className='me-1 h-4 w-4' />
             )}
             {isGenerating && progress
-              ? `Queuing ${progress.done + 1} of ${progress.total}…`
-              : `Write all (${pending.length})`}
+              ? t('Queuing {{done}} of {{total}}…', {
+                  done: progress.done + 1,
+                  total: progress.total,
+                })
+              : t('Write all ({{n}})', { n: pending.length })}
           </Button>
         )}
       </div>
 
       {applications.length === 0 && (
         <p className='text-sm text-muted-foreground'>
-          No jobs in your wishlist yet. Add jobs to the Wishlist column on the
-          Applications page.
+          {t(
+            'No jobs in your wishlist yet. Add jobs to the Wishlist column on the Applications page.'
+          )}
         </p>
       )}
 
@@ -77,18 +83,18 @@ export function WishlistPanel({
                 <p className='truncate font-medium'>{a.jobRoleTitle}</p>
                 <p className='truncate text-xs text-muted-foreground'>
                   {a.companyName}
-                  {!hasPosting && ' · no job description'}
+                  {!hasPosting && ` · ${t('no job description')}`}
                 </p>
               </div>
               {draft ? (
                 <div className='flex shrink-0 items-center gap-2'>
-                  <Badge variant='secondary'>CV ready</Badge>
+                  <Badge variant='secondary'>{t('CV ready')}</Badge>
                   <Button
                     size='sm'
                     variant='ghost'
                     onClick={() => onSelectDraft(draft.id)}
                   >
-                    View
+                    {t('View')}
                   </Button>
                 </div>
               ) : (
@@ -100,7 +106,7 @@ export function WishlistPanel({
                   asChild
                 >
                   <Link to='/cv-builder' search={{ applicationId: a.id }}>
-                    Write CV
+                    {t('Write CV')}
                   </Link>
                 </Button>
               )}
@@ -111,10 +117,12 @@ export function WishlistPanel({
 
       {progress && !isGenerating && (
         <p className='mt-3 text-xs text-muted-foreground'>
-          Queued {progress.done - progress.failed} of {progress.total} CVs. They
-          are written one after another; see Your drafts.
+          {t(
+            'Queued {{queued}} of {{total}} CVs. They are written one after another; see Your drafts.',
+            { queued: progress.done - progress.failed, total: progress.total }
+          )}
           {progress.failed > 0 &&
-            ` ${progress.failed} could not be queued, try them one by one.`}
+            ` ${t('{{n}} could not be queued, try them one by one.', { n: progress.failed })}`}
         </p>
       )}
     </div>

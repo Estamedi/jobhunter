@@ -1,3 +1,5 @@
+import i18n from '@/i18n'
+
 // The CV photo is cropped to a 3:4 portrait and scaled down in the browser before it is uploaded. The
 // server then only receives a small JPEG, and a phone photo that is stored sideways is turned the right
 // way up when the browser draws it.
@@ -53,7 +55,7 @@ export async function preparePhoto(file: File): Promise<Blob> {
     canvas.width = PHOTO_WIDTH
     canvas.height = PHOTO_HEIGHT
     const context = canvas.getContext('2d')
-    if (!context) throw new Error('Could not prepare the photo')
+    if (!context) throw new Error(i18n.t('Could not prepare the photo'))
     context.fillStyle = '#ffffff'
     context.fillRect(0, 0, PHOTO_WIDTH, PHOTO_HEIGHT)
     context.drawImage(
@@ -73,7 +75,7 @@ export async function preparePhoto(file: File): Promise<Blob> {
         (blob) =>
           blob
             ? resolve(blob)
-            : reject(new Error('Could not prepare the photo')),
+            : reject(new Error(i18n.t('Could not prepare the photo'))),
         'image/jpeg',
         PHOTO_QUALITY
       )

@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
 import { Loader2, Plus, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type JobApplication } from '@/features/applications/api'
@@ -7,17 +8,18 @@ import { isWriting, type CvDraftSummary } from '../api'
 import { WishlistPanel, type BatchProgress } from './wishlist-panel'
 
 function DraftStatusLine({ draft }: { draft: CvDraftSummary }) {
+  const { t } = useTranslation()
   if (isWriting(draft.status)) {
     return (
       <span className='flex items-center gap-1 text-xs text-muted-foreground'>
-        <Loader2 className='h-3 w-3 animate-spin' /> Writing…
+        <Loader2 className='h-3 w-3 animate-spin' /> {t('Writing…')}
       </span>
     )
   }
   if (draft.status === 'Failed') {
     return (
       <span className='text-xs text-destructive'>
-        Could not be written. Open it to try again.
+        {t('Could not be written. Open it to try again.')}
       </span>
     )
   }
@@ -49,16 +51,17 @@ export function DraftsList({
   progress: BatchProgress | null
   onGenerateAll: () => void
 }) {
+  const { t } = useTranslation()
   const empty = !loading && drafts.length === 0
 
   return (
     <div className='grid gap-6 lg:grid-cols-[1fr_360px]'>
       <section className='min-w-0 rounded-md border p-4'>
         <div className='mb-3 flex items-center justify-between gap-2'>
-          <h2 className='font-semibold'>Your drafts</h2>
+          <h2 className='font-semibold'>{t('Your drafts')}</h2>
           {!empty && (
             <Button size='sm' onClick={onNew}>
-              <Plus className='mr-1 h-4 w-4' /> New CV
+              <Plus className='me-1 h-4 w-4' /> {t('New CV')}
             </Button>
           )}
         </div>
@@ -68,10 +71,10 @@ export function DraftsList({
         {empty && (
           <div className='flex flex-col items-center gap-3 rounded-md border border-dashed py-12 text-center'>
             <p className='text-sm text-muted-foreground'>
-              You have no CV drafts yet.
+              {t('You have no CV drafts yet.')}
             </p>
             <Button onClick={onNew}>
-              <Sparkles className='mr-1 h-4 w-4' /> Create your first CV
+              <Sparkles className='me-1 h-4 w-4' /> {t('Create your first CV')}
             </Button>
           </div>
         )}
@@ -82,7 +85,7 @@ export function DraftsList({
               <button
                 type='button'
                 onClick={() => onOpen(d.id)}
-                className='flex w-full flex-col gap-0.5 rounded px-2 py-2.5 text-left hover:bg-muted'
+                className='flex w-full flex-col gap-0.5 rounded px-2 py-2.5 text-start hover:bg-muted'
               >
                 <span className='truncate text-sm font-medium'>{d.title}</span>
                 <DraftStatusLine draft={d} />

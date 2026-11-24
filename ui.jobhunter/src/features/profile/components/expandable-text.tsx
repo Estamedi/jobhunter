@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { needsClamp } from '../lib/profile-summary'
 
 // Text that is cut to three lines with a "see more" toggle when it is long, like LinkedIn. Short text is
@@ -10,6 +11,7 @@ export function ExpandableText({
   text: string
   className?: string
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const long = needsClamp(text)
 
@@ -27,7 +29,7 @@ export function ExpandableText({
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? 'see less' : '…see more'}
+          {open ? t('see less') : t('…see more')}
         </button>
       )}
     </div>

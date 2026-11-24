@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -41,6 +42,7 @@ export function VersionHistoryDialog({
   isRestoring: boolean
   onRestore: (versionId: number) => void
 }) {
+  const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [view, setView] = useState<'changes' | 'full'>('changes')
 
@@ -79,30 +81,31 @@ export function VersionHistoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-h-[90vh] overflow-hidden sm:max-w-6xl'>
         <DialogHeader>
-          <DialogTitle>Version history</DialogTitle>
+          <DialogTitle>{t('Version history')}</DialogTitle>
         </DialogHeader>
         <p className='text-sm text-muted-foreground'>
-          Each version is the CV as it was just before a change replaced it. The
-          last 20 are kept. Restoring one saves your current CV first, so you
-          can undo it.
+          {t(
+            'Each version is the CV as it was just before a change replaced it. The last 20 are kept. Restoring one saves your current CV first, so you can undo it.'
+          )}
         </p>
 
         {isLoading ? (
           <Skeleton className='h-64 w-full' />
         ) : !versions || versions.length === 0 ? (
           <p className='py-8 text-center text-sm text-muted-foreground'>
-            No earlier versions yet. One is saved each time you edit, refine or
-            restore this CV.
+            {t(
+              'No earlier versions yet. One is saved each time you edit, refine or restore this CV.'
+            )}
           </p>
         ) : (
           <div className='grid gap-4 md:grid-cols-[16rem_1fr]'>
-            <ul className='max-h-[60vh] space-y-1 overflow-y-auto pr-1'>
+            <ul className='max-h-[60vh] space-y-1 overflow-y-auto pe-1'>
               {versions.map((v) => (
                 <li key={v.id}>
                   <button
                     type='button'
                     onClick={() => setSelectedId(v.id)}
-                    className={`w-full rounded-md border px-3 py-2 text-left text-sm ${
+                    className={`w-full rounded-md border px-3 py-2 text-start text-sm ${
                       v.id === activeId ? 'border-primary bg-primary/5' : ''
                     }`}
                   >
@@ -123,9 +126,9 @@ export function VersionHistoryDialog({
                   onClick={() => activeId && onRestore(activeId)}
                 >
                   {isRestoring && (
-                    <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                    <Loader2 className='me-1 h-4 w-4 animate-spin' />
                   )}
-                  Restore this version
+                  {t('Restore this version')}
                 </Button>
               </div>
               <div className='inline-flex rounded-md border p-0.5 text-sm'>
@@ -138,7 +141,7 @@ export function VersionHistoryDialog({
                       view === v ? 'bg-primary text-primary-foreground' : ''
                     }`}
                   >
-                    {v === 'changes' ? 'What changed' : 'Full CV'}
+                    {v === 'changes' ? t('What changed') : t('Full CV')}
                   </button>
                 ))}
               </div>
@@ -163,20 +166,20 @@ export function VersionHistoryDialog({
                             – {c.summary}
                           </span>
                         </p>
-                        {c.removed.map((t) => (
+                        {c.removed.map((line) => (
                           <p
-                            key={`r-${t}`}
+                            key={`r-${line}`}
                             className='rounded bg-red-500/10 px-2 py-1 text-red-700 line-through dark:text-red-300'
                           >
-                            {t}
+                            {line}
                           </p>
                         ))}
-                        {c.added.map((t) => (
+                        {c.added.map((line) => (
                           <p
-                            key={`a-${t}`}
+                            key={`a-${line}`}
                             className='rounded bg-green-500/10 px-2 py-1 text-green-700 dark:text-green-300'
                           >
-                            {t}
+                            {line}
                           </p>
                         ))}
                       </div>

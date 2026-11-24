@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -30,6 +31,7 @@ function ContactForm({
   onSave: (values: ContactValues) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [values, setValues] = useState(initial)
   const set = (key: keyof ContactValues, value: string) =>
     setValues((v) => ({ ...v, [key]: value }))
@@ -45,7 +47,7 @@ function ContactForm({
         }}
       >
         <div className='space-y-1'>
-          <Label htmlFor='contact-email'>Email*</Label>
+          <Label htmlFor='contact-email'>{t('Email*')}</Label>
           <Input
             id='contact-email'
             type='email'
@@ -56,49 +58,49 @@ function ContactForm({
           />
         </div>
         <div className='space-y-1'>
-          <Label htmlFor='contact-phone'>Phone</Label>
+          <Label htmlFor='contact-phone'>{t('Phone')}</Label>
           <Input
             id='contact-phone'
             maxLength={50}
             value={values.phone}
             onChange={(e) => set('phone', e.target.value)}
-            placeholder='Ex: (+968) 9221 8568'
+            placeholder={t('Ex: (+968) 9221 8568')}
           />
         </div>
         <div className='space-y-1'>
-          <Label htmlFor='contact-location'>Location</Label>
+          <Label htmlFor='contact-location'>{t('Location')}</Label>
           <Input
             id='contact-location'
             maxLength={200}
             value={values.currentLocation}
             onChange={(e) => set('currentLocation', e.target.value)}
-            placeholder='Ex: Muscat, Oman'
+            placeholder={t('Ex: Muscat, Oman')}
           />
         </div>
         <div className='space-y-1'>
-          <Label htmlFor='contact-availability'>Availability</Label>
+          <Label htmlFor='contact-availability'>{t('Availability')}</Label>
           <Input
             id='contact-availability'
             maxLength={60}
             value={values.availability}
             onChange={(e) => set('availability', e.target.value)}
-            placeholder='Ex: Immediately, or 1 month notice'
+            placeholder={t('Ex: Immediately, or 1 month notice')}
           />
           <p className='text-xs text-muted-foreground'>
-            Shown on the &ldquo;With photo&rdquo; CV template.
+            {t('Shown on the “With photo” CV template.')}
           </p>
         </div>
       </form>
       <DialogFooter>
         <Button variant='outline' onClick={onClose}>
-          Cancel
+          {t('Cancel')}
         </Button>
         <Button
           type='submit'
           form='contact-form'
           disabled={isSaving || !values.email.trim()}
         >
-          Save
+          {t('Save')}
         </Button>
       </DialogFooter>
     </>
@@ -119,13 +121,14 @@ export function ContactDialog({
   isSaving: boolean
   onSave: (values: ContactValues) => void
 }) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-md'>
         <DialogHeader>
-          <DialogTitle>Contact info</DialogTitle>
+          <DialogTitle>{t('Contact info')}</DialogTitle>
           <DialogDescription>
-            These details appear at the top of your CV.
+            {t('These details appear at the top of your CV.')}
           </DialogDescription>
         </DialogHeader>
         {open && (

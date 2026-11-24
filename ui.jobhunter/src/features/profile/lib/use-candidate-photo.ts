@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import i18n from '@/i18n'
 import { profileApi } from '../api'
 
 // A photo as a data URL, which an <img> can use at any time. An object URL would need releasing, and React
@@ -8,7 +9,7 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result))
     reader.onerror = () =>
-      reject(reader.error ?? new Error('Could not read the photo'))
+      reject(reader.error ?? new Error(i18n.t('Could not read the photo')))
     reader.readAsDataURL(blob)
   })
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -53,6 +54,7 @@ export function ExperienceDialog({
   onSave: (dto: SaveExperienceDto) => void
   onDelete: () => void
 }) {
+  const { t } = useTranslation()
   const start = parseYearMonth(experience?.startDate)
   const end = parseYearMonth(experience?.endDate)
 
@@ -100,7 +102,7 @@ export function ExperienceDialog({
       <DialogContent className='max-h-[90vh] max-w-xl overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>
-            {experience ? 'Edit experience' : 'Add experience'}
+            {experience ? t('Edit experience') : t('Add experience')}
           </DialogTitle>
         </DialogHeader>
 
@@ -124,21 +126,21 @@ export function ExperienceDialog({
             })
           }}
         >
-          <p className='text-xs text-muted-foreground'>* Indicates required</p>
+          <p className='text-xs text-muted-foreground'>{t('* Indicates required')}</p>
 
           <div className='space-y-1'>
-            <Label htmlFor='exp-title'>Title*</Label>
+            <Label htmlFor='exp-title'>{t('Title*')}</Label>
             <Input
               id='exp-title'
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder='Ex: Technical Lead'
+              placeholder={t('Ex: Technical Lead')}
             />
           </div>
 
           <div className='space-y-1'>
-            <Label>Employment type</Label>
+            <Label>{t('Employment type')}</Label>
             <Select
               value={employmentType ?? NONE}
               onValueChange={(v) =>
@@ -146,13 +148,13 @@ export function ExperienceDialog({
               }
             >
               <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Please select' />
+                <SelectValue placeholder={t('Please select')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NONE}>Please select</SelectItem>
-                {EMPLOYMENT_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
+                <SelectItem value={NONE}>{t('Please select')}</SelectItem>
+                {EMPLOYMENT_TYPES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {t(o.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -160,13 +162,13 @@ export function ExperienceDialog({
           </div>
 
           <div className='space-y-1'>
-            <Label htmlFor='exp-company'>Company or organization*</Label>
+            <Label htmlFor='exp-company'>{t('Company or organization*')}</Label>
             <Input
               id='exp-company'
               required
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              placeholder='Ex: Acme'
+              placeholder={t('Ex: Acme')}
             />
           </div>
 
@@ -177,12 +179,12 @@ export function ExperienceDialog({
               onCheckedChange={(v) => setIsCurrent(v === true)}
             />
             <Label htmlFor='exp-current' className='font-normal'>
-              I am currently working in this role
+              {t('I am currently working in this role')}
             </Label>
           </div>
 
           <MonthYear
-            label='Start date'
+            label={t('Start date')}
             required
             month={startMonth}
             year={startYear}
@@ -193,7 +195,7 @@ export function ExperienceDialog({
           />
           {!isCurrent && (
             <MonthYear
-              label='End date'
+              label={t('End date')}
               required
               month={endMonth}
               year={endYear}
@@ -205,22 +207,22 @@ export function ExperienceDialog({
           )}
           {endBeforeStart && (
             <p className='text-sm text-destructive'>
-              End date cannot be before the start date.
+              {t('End date cannot be before the start date.')}
             </p>
           )}
 
           <div className='space-y-1'>
-            <Label htmlFor='exp-location'>Location</Label>
+            <Label htmlFor='exp-location'>{t('Location')}</Label>
             <Input
               id='exp-location'
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder='Ex: Muscat, Oman'
+              placeholder={t('Ex: Muscat, Oman')}
             />
           </div>
 
           <div className='space-y-1'>
-            <Label>Location type</Label>
+            <Label>{t('Location type')}</Label>
             <Select
               value={workplaceType ?? NONE}
               onValueChange={(v) =>
@@ -228,13 +230,13 @@ export function ExperienceDialog({
               }
             >
               <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Please select' />
+                <SelectValue placeholder={t('Please select')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NONE}>Please select</SelectItem>
-                {WORKPLACE_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
+                <SelectItem value={NONE}>{t('Please select')}</SelectItem>
+                {WORKPLACE_TYPES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {t(o.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -242,24 +244,24 @@ export function ExperienceDialog({
           </div>
 
           <div className='space-y-1'>
-            <Label htmlFor='exp-description'>Description</Label>
+            <Label htmlFor='exp-description'>{t('Description')}</Label>
             <Textarea
               id='exp-description'
               rows={8}
               maxLength={DESCRIPTION_MAX}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder='• Start each achievement on its own line'
+              placeholder={t('• Start each achievement on its own line')}
             />
-            <p className='text-right text-xs text-muted-foreground'>
+            <p className='text-end text-xs text-muted-foreground'>
               {description.length}/{DESCRIPTION_MAX.toLocaleString()}
             </p>
           </div>
 
           <div className='space-y-2'>
-            <Label>Skills</Label>
+            <Label>{t('Skills')}</Label>
             <p className='text-xs text-muted-foreground'>
-              We recommend adding your top 5 used in this role.
+              {t('We recommend adding your top 5 used in this role.')}
             </p>
             <div className='flex flex-wrap gap-2'>
               {skills.map((s) => (
@@ -270,7 +272,7 @@ export function ExperienceDialog({
                   {s}
                   <button
                     type='button'
-                    aria-label={`Remove ${s}`}
+                    aria-label={t('Remove {{name}}', { name: s })}
                     onClick={() => setSkills(skills.filter((x) => x !== s))}
                   >
                     <X className='h-3 w-3' />
@@ -288,10 +290,10 @@ export function ExperienceDialog({
                     addSkill()
                   }
                 }}
-                placeholder='Add a skill'
+                placeholder={t('Add a skill')}
               />
               <Button type='button' variant='outline' onClick={addSkill}>
-                <Plus className='mr-1 h-4 w-4' /> Add skill
+                <Plus className='me-1 h-4 w-4' /> {t('Add skill')}
               </Button>
             </div>
           </div>
@@ -306,7 +308,7 @@ export function ExperienceDialog({
               disabled={isDeleting}
               onClick={onDelete}
             >
-              Delete
+              {t('Delete')}
             </Button>
           ) : (
             <span />
@@ -316,7 +318,7 @@ export function ExperienceDialog({
             form='experience-form'
             disabled={!canSave || isSaving}
           >
-            Save
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

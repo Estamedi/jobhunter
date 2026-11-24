@@ -1,3 +1,5 @@
+import i18n from '@/i18n'
+
 export interface ProfileGap {
   id:
     | 'skills'
@@ -28,39 +30,39 @@ export function profileGaps(input: {
 }): ProfileGap[] {
   const gaps: ProfileGap[] = []
   if (input.hasPhoto === false) {
-    gaps.push({ id: 'photo', message: 'You have not added a photo yet.' })
+    gaps.push({ id: 'photo', message: i18n.t('You have not added a photo yet.') })
   }
   if (input.headline !== undefined && !input.headline?.trim()) {
-    gaps.push({ id: 'headline', message: 'Your headline is empty.' })
+    gaps.push({ id: 'headline', message: i18n.t('Your headline is empty.') })
   }
   if (input.about !== undefined && !input.about?.trim()) {
-    gaps.push({ id: 'about', message: 'Your About section is empty.' })
+    gaps.push({ id: 'about', message: i18n.t('Your About section is empty.') })
   }
   if (input.experiences === 0) {
-    gaps.push({ id: 'experience', message: 'No experience added yet.' })
+    gaps.push({ id: 'experience', message: i18n.t('No experience added yet.') })
   }
   if (input.educations === 0) {
-    gaps.push({ id: 'education', message: 'No education added yet.' })
+    gaps.push({ id: 'education', message: i18n.t('No education added yet.') })
   }
   if (input.skills === 0) {
-    gaps.push({ id: 'skills', message: 'Your profile has no skills yet.' })
+    gaps.push({ id: 'skills', message: i18n.t('Your profile has no skills yet.') })
   }
   if (!input.email?.trim()) {
     gaps.push({
       id: 'email',
-      message: 'Your email is missing, so the CV header will have none.',
+      message: i18n.t('Your email is missing, so the CV header will have none.'),
     })
   }
   if (!input.phone?.trim()) {
     gaps.push({
       id: 'phone',
-      message: 'Your phone number is missing from the CV header.',
+      message: i18n.t('Your phone number is missing from the CV header.'),
     })
   }
   if (!input.location?.trim()) {
     gaps.push({
       id: 'location',
-      message: 'Your location is missing from the CV header.',
+      message: i18n.t('Your location is missing from the CV header.'),
     })
   }
   return gaps

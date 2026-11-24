@@ -1,12 +1,13 @@
 import { Building2, Gem, Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { type ProfileExperience } from '../api'
 import {
+  MONTHS,
   employmentLabel,
-  formatDuration,
   groupByCompany,
   monthsBetween,
-  roleRange,
+  parseYearMonth,
   workplaceLabel,
 } from '../lib/experience'
 import { ExpandableText } from './expandable-text'
@@ -14,7 +15,30 @@ import { ProfileCard } from './profile-card'
 
 const MAX_SKILLS_SHOWN = 2
 
+// Localised counterparts of the English helpers in lib/experience, which this section can't use directly.
+function useFormatters() {
+  const { t } = useTranslation()
+  const formatDuration = (months: number) => {
+    const years = Math.floor(months / 12)
+    const rest = months % 12
+    const parts: string[] = []
+    if (years > 0)
+      parts.push(`${years} ${years === 1 ? t('yr') : t('yrs')}`)
+    if (rest > 0) parts.push(`${rest} ${rest === 1 ? t('mo') : t('mos')}`)
+    return parts.join(' ')
+  }
+  const monthYear = (value?: string | null) => {
+    const ym = parseYearMonth(value)
+    return ym ? `${t(MONTHS[ym.month - 1].slice(0, 3))} ${ym.year}` : ''
+  }
+  const roleRange = (e: ProfileExperience) =>
+    `${monthYear(e.startDate)} - ${e.isCurrent || !e.endDate ? t('Present') : monthYear(e.endDate)}`
+  const labelOf = (label?: string) => (label ? t(label) : label)
+  return { t, formatDuration, roleRange, labelOf }
+}
+
 function SkillsLine({ skills }: { skills: string[] }) {
+  const { t } = useTranslation()
   if (skills.length === 0) return null
   const shown = skills.slice(0, MAX_SKILLS_SHOWN).join(', ')
   const extra = skills.length - MAX_SKILLS_SHOWN
@@ -23,7 +47,8 @@ function SkillsLine({ skills }: { skills: string[] }) {
       <Gem className='mt-0.5 h-4 w-4 shrink-0 text-muted-foreground' />
       <span>
         {shown}
-        {extra > 0 && `, +${extra} ${extra === 1 ? 'skill' : 'skills'}`}
+        {extra > 0 &&
+          `, +${extra} ${extra === 1 ? t('skill') : t('skills')}`}
       </span>
     </p>
   )
@@ -47,10 +72,11 @@ function Role({
   showCompany: boolean
   onEdit: (role: ProfileExperience) => void
 }) {
+  const { t, formatDuration, roleRange, labelOf } = useFormatters()
   const duration = formatDuration(
     monthsBetween(role.startDate, role.isCurrent ? null : role.endDate)
   )
-  const place = [role.location, workplaceLabel(role.workplaceType)]
+  const place = [role.location, labelOf(workplaceLabel(role.workplaceType))]
     .filter(Boolean)
     .join(' · ')
 
@@ -60,13 +86,15 @@ function Role({
         <p className='font-semibold'>{role.title}</p>
         {showCompany && (
           <p className='text-sm'>
-            {[role.company, employmentLabel(role.employmentType)]
+            {[role.company, labelOf(employmentLabel(role.employmentType))]
               .filter(Boolean)
               .join(' · ')}
           </p>
         )}
         {!showCompany && employmentLabel(role.employmentType) && (
-          <p className='text-sm'>{employmentLabel(role.employmentType)}</p>
+          <p className='text-sm'>
+            {labelOf(employmentLabel(role.employmentType))}
+          </p>
         )}
         <p className='text-sm text-muted-foreground'>
           {roleRange(role)} · {duration}
@@ -83,7 +111,7 @@ function Role({
         variant='ghost'
         size='icon'
         className='h-8 w-8 shrink-0 rounded-full'
-        title='Edit experience'
+        title={t('Edit experience')}
         onClick={() => onEdit(role)}
       >
         <Pencil className='h-4 w-4' />
@@ -101,18 +129,19 @@ export function ExperienceSection({
   onAdd: () => void
   onEdit: (role: ProfileExperience) => void
 }) {
+  const { t, formatDuration, labelOf } = useFormatters()
   const groups = groupByCompany(experiences)
 
   return (
     <ProfileCard
       id='section-experience'
-      title='Experience'
-      addLabel='Add experience'
+      title={t('Experience')}
+      addLabel={t('Add experience')}
       onAdd={onAdd}
     >
       {groups.length === 0 && (
         <p className='text-sm text-muted-foreground'>
-          No experience yet. Add your roles so the CV Writer can use them.
+          {t('No experience yet. Add your roles so the CV Writer can use them.')}
         </p>
       )}
 
@@ -142,7 +171,7 @@ export function ExperienceSection({
                 <p className='mb-3 text-sm text-muted-foreground'>
                   {[
                     group.roles[0].location,
-                    workplaceLabel(group.roles[0].workplaceType),
+                    labelOf(workplaceLabel(group.roles[0].workplaceType)),
                   ]
                     .filter(Boolean)
                     .join(' · ')}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   profileApi,
   type ProfileCertification,
@@ -95,6 +96,7 @@ export function CertificationsSection({
   items: ProfileCertification[]
   openAddSignal?: number
 }) {
+  const { t } = useTranslation()
   return (
     <ListSection<ProfileCertification, SaveCertificationDto>
       title='Licenses & certifications'
@@ -121,8 +123,9 @@ export function CertificationsSection({
           {c.issuer && <p>{c.issuer}</p>}
           {c.issuedDate && (
             <p className='text-muted-foreground'>
-              Issued {formatYear(c.issuedDate)}
-              {c.expiryDate && ` · Expires ${formatYear(c.expiryDate)}`}
+              {t('Issued {{year}}', { year: formatYear(c.issuedDate) })}
+              {c.expiryDate &&
+                ` · ${t('Expires {{year}}', { year: formatYear(c.expiryDate) })}`}
             </p>
           )}
         </>
@@ -159,6 +162,7 @@ export function LanguagesSection({
   items: ProfileLanguage[]
   openAddSignal?: number
 }) {
+  const { t } = useTranslation()
   return (
     <ListSection<ProfileLanguage, SaveLanguageDto>
       title='Languages'
@@ -187,7 +191,7 @@ export function LanguagesSection({
         <>
           <p className='font-semibold'>{l.name}</p>
           <p className='text-muted-foreground'>
-            {languageLabel(l.proficiency)}
+            {t(languageLabel(l.proficiency))}
           </p>
         </>
       )}

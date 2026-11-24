@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Check, Loader2, RefreshCw, TriangleAlert, Wand2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cvBuilderApi, type CvScoreCheck, type CvScoreLocation } from '../api'
@@ -25,6 +26,7 @@ const checkTone = (score: number) =>
       : 'text-red-600 dark:text-red-400'
 
 export function ScoreRing({ score }: { score: number }) {
+  const { t } = useTranslation()
   const radius = 36
   const circumference = 2 * Math.PI * radius
   return (
@@ -53,7 +55,7 @@ export function ScoreRing({ score }: { score: number }) {
       <div className='absolute inset-0 flex flex-col items-center justify-center'>
         <span className='text-2xl leading-none font-semibold'>{score}</span>
         <span className='text-[10px] text-muted-foreground uppercase'>
-          overall
+          {t('overall')}
         </span>
       </div>
     </div>
@@ -71,6 +73,7 @@ function CheckDetail({
   onFix?: (issues: FixIssue[]) => void
   fixing?: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <div className='space-y-2 rounded-md border bg-background p-3 text-sm'>
       <div>
@@ -81,7 +84,7 @@ function CheckDetail({
 
       {check.issues.length === 0 ? (
         <p className='flex items-center gap-2 text-green-600 dark:text-green-400'>
-          <Check className='h-4 w-4' /> Nothing to fix here.
+          <Check className='h-4 w-4' /> {t('Nothing to fix here.')}
         </p>
       ) : (
         <ul className='space-y-3'>
@@ -91,7 +94,7 @@ function CheckDetail({
                 <TriangleAlert className='mt-0.5 h-4 w-4 shrink-0 text-amber-600' />
                 {issue.message}
               </p>
-              <div className='ml-6 flex flex-wrap gap-2'>
+              <div className='ms-6 flex flex-wrap gap-2'>
                 {onShowLines && issue.locations.length > 0 && (
                   <Button
                     variant='outline'
@@ -99,7 +102,7 @@ function CheckDetail({
                     className='h-7 text-xs'
                     onClick={() => onShowLines(issue.locations)}
                   >
-                    Show in CV
+                    {t('Show in CV')}
                   </Button>
                 )}
                 {onFix && isFixable(check.id) && issue.locations.length > 0 && (
@@ -118,16 +121,16 @@ function CheckDetail({
                     }
                   >
                     {fixing ? (
-                      <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                      <Loader2 className='me-1 h-3 w-3 animate-spin' />
                     ) : (
-                      <Wand2 className='mr-1 h-3 w-3' />
+                      <Wand2 className='me-1 h-3 w-3' />
                     )}
-                    {fixing ? 'Fixing…' : 'Fix this'}
+                    {fixing ? t('Fixing…') : t('Fix this')}
                   </Button>
                 )}
               </div>
               {issue.locations.length > 0 && (
-                <ul className='ml-6 space-y-1'>
+                <ul className='ms-6 space-y-1'>
                   {issue.locations.slice(0, 6).map((l, j) => (
                     <li
                       key={j}
@@ -138,7 +141,7 @@ function CheckDetail({
                   ))}
                   {issue.locations.length > 6 && (
                     <li className='text-xs text-muted-foreground'>
-                      and {issue.locations.length - 6} more
+                      {t('and {{n}} more', { n: issue.locations.length - 6 })}
                     </li>
                   )}
                 </ul>
@@ -172,6 +175,7 @@ export function ScorePanel({
   // The ring and headline; a parent that shows the score itself turns this off.
   showSummary?: boolean
 }) {
+  const { t } = useTranslation()
   const [openId, setOpenId] = useState<string | null>(null)
 
   const score = useQuery({
@@ -186,10 +190,10 @@ export function ScorePanel({
   if (score.isError || !score.data) {
     return (
       <div className='space-y-2 rounded-md border p-4 text-sm'>
-        <p className='font-medium'>CV score</p>
-        <p className='text-destructive'>Could not score this CV.</p>
+        <p className='font-medium'>{t('CV score')}</p>
+        <p className='text-destructive'>{t('Could not score this CV.')}</p>
         <Button variant='outline' size='sm' onClick={() => score.refetch()}>
-          Try again
+          {t('Try again')}
         </Button>
       </div>
     )
@@ -206,12 +210,12 @@ export function ScorePanel({
       size='sm'
       onClick={() => score.refetch()}
       disabled={score.isFetching}
-      title='Score this CV again'
+      title={t('Score this CV again')}
     >
       <RefreshCw
-        className={`mr-1 h-4 w-4 ${score.isFetching ? 'animate-spin' : ''}`}
+        className={`me-1 h-4 w-4 ${score.isFetching ? 'animate-spin' : ''}`}
       />
-      Recalculate
+      {t('Recalculate')}
     </Button>
   )
 
@@ -220,14 +224,14 @@ export function ScorePanel({
       size='sm'
       disabled={fixing}
       onClick={() => onFix(fixable)}
-      title='Rewrite every line the score flags, keeping your facts'
+      title={t('Rewrite every line the score flags, keeping your facts')}
     >
       {fixing ? (
-        <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+        <Loader2 className='me-1 h-4 w-4 animate-spin' />
       ) : (
-        <Wand2 className='mr-1 h-4 w-4' />
+        <Wand2 className='me-1 h-4 w-4' />
       )}
-      {fixing ? 'Fixing…' : `Fix all (${fixable.length})`}
+      {fixing ? t('Fixing…') : t('Fix all ({{n}})', { n: fixable.length })}
     </Button>
   )
   const toFix = checks.filter((c) => c.score < 10)
@@ -238,7 +242,7 @@ export function ScorePanel({
       <button
         type='button'
         onClick={() => setOpenId(openId === c.id ? null : c.id)}
-        className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm hover:bg-muted/50 ${
+        className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-start text-sm hover:bg-muted/50 ${
           openId === c.id ? 'border-primary bg-primary/5' : 'border-transparent'
         }`}
       >
@@ -264,14 +268,19 @@ export function ScorePanel({
         <div className='flex items-center gap-4'>
           <ScoreRing score={overall} />
           <div>
-            <p className='font-semibold'>CV score</p>
+            <p className='font-semibold'>{t('CV score')}</p>
             <p className='text-sm text-muted-foreground'>
               {toFix.length === 0
-                ? 'Every check passes.'
-                : `${toFix.length} ${toFix.length === 1 ? 'thing' : 'things'} to fix. Pick one to see the lines.`}
+                ? t('Every check passes.')
+                : t(
+                    toFix.length === 1
+                      ? '{{n}} thing to fix. Pick one to see the lines.'
+                      : '{{n}} things to fix. Pick one to see the lines.',
+                    { n: toFix.length }
+                  )}
             </p>
           </div>
-          <div className='ml-auto flex gap-2'>
+          <div className='ms-auto flex gap-2'>
             {fixAll}
             {recalculate}
           </div>
@@ -287,7 +296,7 @@ export function ScorePanel({
       {toFix.length > 0 && (
         <div className='space-y-1'>
           <p className='text-xs font-medium text-muted-foreground uppercase'>
-            To fix
+            {t('To fix')}
           </p>
           <ul className='space-y-1'>{toFix.map(row)}</ul>
         </div>
@@ -295,7 +304,7 @@ export function ScorePanel({
       {done.length > 0 && (
         <div className='space-y-1'>
           <p className='text-xs font-medium text-muted-foreground uppercase'>
-            Passed
+            {t('Passed')}
           </p>
           <ul className='space-y-1'>{done.map(row)}</ul>
         </div>

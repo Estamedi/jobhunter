@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { isAxiosError } from 'axios'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,14 +41,17 @@ function failureMessage(error: unknown, fallback: string) {
 // One vocabulary for where a provider's key comes from, shared by the provider card and its key field.
 export function statusText(p: ProviderStatus) {
   if (p.source === 'settings') {
-    return p.hint ? `Your key ends in ${p.hint}` : 'Your key'
+    return p.hint
+      ? i18n.t('Your key ends in {{hint}}', { hint: p.hint })
+      : i18n.t('Your key')
   }
-  if (p.source === 'config') return 'Server key'
-  return 'No key'
+  if (p.source === 'config') return i18n.t('Server key')
+  return i18n.t('No key')
 }
 
 // The key field of one provider card: saved and removed on its own.
 export function KeyForm({ provider }: { provider: ProviderStatus }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [key, setKey] = useState('')
   const [shown, setShown] = useState(false)
@@ -61,19 +66,19 @@ export function KeyForm({ provider }: { provider: ProviderStatus }) {
     onSuccess: () => {
       setKey('')
       refresh()
-      toast.success('Key saved')
+      toast.success(t('Key saved'))
     },
     onError: (error) =>
-      toast.error(failureMessage(error, 'Could not save the key')),
+      toast.error(failureMessage(error, t('Could not save the key'))),
   })
 
   const remove = useMutation({
     mutationFn: () => keysApi.remove(provider.name),
     onSuccess: () => {
       refresh()
-      toast.success('Key removed')
+      toast.success(t('Key removed'))
     },
-    onError: () => toast.error('Could not remove the key'),
+    onError: () => toast.error(t('Could not remove the key')),
   })
 
   function submit(event: FormEvent) {
@@ -87,12 +92,13 @@ export function KeyForm({ provider }: { provider: ProviderStatus }) {
     <form
       onSubmit={submit}
       className='space-y-2'
-      aria-label={`${provider.name} API key`}
+      aria-label={t('{{name}} API key', { name: provider.name })}
     >
       {provider.savedKeyUnreadable && (
         <p className='text-sm text-destructive'>
-          The key saved here can no longer be read, so it is not used. Enter it
-          again or remove it.
+          {t(
+            'The key saved here can no longer be read, so it is not used. Enter it again or remove it.'
+          )}
         </p>
       )}
       <div className='flex flex-wrap gap-2'>
@@ -100,10 +106,12 @@ export function KeyForm({ provider }: { provider: ProviderStatus }) {
           <Input
             type={shown ? 'text' : 'password'}
             autoComplete='off'
-            className='pr-10'
-            aria-label={`${provider.name} API key`}
+            className='pe-10'
+            aria-label={t('{{name}} API key', { name: provider.name })}
             placeholder={
-              hasSaved ? 'Enter a new key to replace it' : 'Paste the API key'
+              hasSaved
+                ? t('Enter a new key to replace it')
+                : t('Paste the API key')
             }
             value={key}
             onChange={(e) => setKey(e.target.value)}
@@ -112,8 +120,8 @@ export function KeyForm({ provider }: { provider: ProviderStatus }) {
             type='button'
             variant='ghost'
             size='icon'
-            className='absolute top-0 right-0 h-full w-9 text-muted-foreground'
-            aria-label={shown ? 'Hide key' : 'Show key'}
+            className='absolute top-0 end-0 h-full w-9 text-muted-foreground'
+            aria-label={shown ? t('Hide key') : t('Show key')}
             onClick={() => setShown((v) => !v)}
           >
             {shown ? (
@@ -124,7 +132,7 @@ export function KeyForm({ provider }: { provider: ProviderStatus }) {
           </Button>
         </div>
         <Button type='submit' disabled={!key.trim() || save.isPending}>
-          Save key
+          {t('Save key')}
         </Button>
         {hasSaved && (
           <Button
@@ -133,7 +141,7 @@ export function KeyForm({ provider }: { provider: ProviderStatus }) {
             disabled={remove.isPending}
             onClick={() => remove.mutate()}
           >
-            Remove key
+            {t('Remove key')}
           </Button>
         )}
       </div>

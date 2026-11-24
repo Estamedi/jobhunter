@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cvBuilderApi, type CvScoreLocation, type CvSection } from '../api'
@@ -57,6 +58,7 @@ export function ReviewPanel({
   onFix: (issues: FixIssue[]) => void
   fixing: boolean
 }) {
+  const { t } = useTranslation()
   // Same keys as the two tabs below, so these share their requests instead of repeating them.
   const score = useQuery({
     queryKey: ['cv-draft-score', draftId, lastModified],
@@ -77,28 +79,28 @@ export function ReviewPanel({
     <div className='flex flex-col gap-3'>
       <div className='flex gap-2'>
         <Stat
-          label='Writing'
+          label={t('Writing')}
           value={score.data ? `${score.data.overall}` : '…'}
           note={
             score.data
               ? toFix === 0
-                ? 'every check passes'
-                : `${toFix} to fix`
-              : 'scoring…'
+                ? t('every check passes')
+                : t('{{n}} to fix', { n: toFix })
+              : t('scoring…')
           }
           tone={score.data ? rate(score.data.overall / 100) : undefined}
         />
         <Stat
-          label='Job fit'
+          label={t('Job fit')}
           value={fit && fit.total > 0 ? `${fit.inCv}/${fit.total}` : '–'}
           note={
             !hasJobDescription
-              ? 'no job description'
+              ? t('no job description')
               : fit && fit.total > 0
-                ? 'must-haves in experience'
+                ? t('must-haves in experience')
                 : match.isLoading
-                  ? 'reading the job…'
-                  : 'no must-haves listed'
+                  ? t('reading the job…')
+                  : t('no must-haves listed')
           }
           tone={fit && fit.total > 0 ? rate(fit.inCv / fit.total) : undefined}
         />
@@ -106,8 +108,8 @@ export function ReviewPanel({
 
       <Tabs defaultValue='score'>
         <TabsList className='w-full'>
-          <TabsTrigger value='score'>Writing score</TabsTrigger>
-          <TabsTrigger value='match'>Job match</TabsTrigger>
+          <TabsTrigger value='score'>{t('Writing score')}</TabsTrigger>
+          <TabsTrigger value='match'>{t('Job match')}</TabsTrigger>
         </TabsList>
         <TabsContent value='score'>
           <ScorePanel

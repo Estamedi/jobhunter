@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import {
   type EmploymentType,
   type LanguageProficiency,
@@ -35,11 +36,14 @@ export const MONTHS = [
   'December',
 ]
 
+// Translates at call time, so the label follows the language chosen in the app.
+const tr = (label?: string) => (label ? i18n.t(label) : undefined)
+
 export const employmentLabel = (value?: string | null) =>
-  EMPLOYMENT_TYPES.find((t) => t.value === value)?.label
+  tr(EMPLOYMENT_TYPES.find((t) => t.value === value)?.label)
 
 export const workplaceLabel = (value?: string | null) =>
-  WORKPLACE_TYPES.find((t) => t.value === value)?.label
+  tr(WORKPLACE_TYPES.find((t) => t.value === value)?.label)
 
 // Dates arrive as "YYYY-MM-DD"; the profile is month-precision, so the day is always 01.
 export const toDateString = (year: number, month: number) =>
@@ -53,7 +57,7 @@ export function parseYearMonth(value?: string | null) {
 
 export function formatMonthYear(value?: string | null) {
   const ym = parseYearMonth(value)
-  return ym ? `${MONTHS[ym.month - 1].slice(0, 3)} ${ym.year}` : ''
+  return ym ? `${i18n.t(MONTHS[ym.month - 1].slice(0, 3))} ${ym.year}` : ''
 }
 
 const monthIndex = (value: string) => {
@@ -77,13 +81,13 @@ export function formatDuration(months: number) {
   const years = Math.floor(months / 12)
   const rest = months % 12
   const parts: string[] = []
-  if (years > 0) parts.push(`${years} ${years === 1 ? 'yr' : 'yrs'}`)
-  if (rest > 0) parts.push(`${rest} ${rest === 1 ? 'mo' : 'mos'}`)
+  if (years > 0) parts.push(`${years} ${i18n.t(years === 1 ? 'yr' : 'yrs')}`)
+  if (rest > 0) parts.push(`${rest} ${i18n.t(rest === 1 ? 'mo' : 'mos')}`)
   return parts.join(' ')
 }
 
 export const roleRange = (e: ProfileExperience) =>
-  `${formatMonthYear(e.startDate)} - ${e.isCurrent || !e.endDate ? 'Present' : formatMonthYear(e.endDate)}`
+  `${formatMonthYear(e.startDate)} - ${e.isCurrent || !e.endDate ? i18n.t('Present') : formatMonthYear(e.endDate)}`
 
 export interface CompanyGroup {
   company: string
@@ -149,7 +153,7 @@ export const LANGUAGE_LEVELS: { value: LanguageProficiency; label: string }[] =
   ]
 
 export const languageLabel = (value?: string | null) =>
-  LANGUAGE_LEVELS.find((l) => l.value === value)?.label ?? ''
+  i18n.t(LANGUAGE_LEVELS.find((l) => l.value === value)?.label ?? '')
 
 export const yearToDate = (year?: string | null) =>
   year ? `${year}-01-01` : null

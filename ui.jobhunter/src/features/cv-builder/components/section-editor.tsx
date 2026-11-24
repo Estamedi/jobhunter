@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -46,6 +47,7 @@ export function SectionEditor({
   onSave: (content: CvContent) => void
   onCancel: () => void
 }) {
+  const { t } = useTranslation()
   const has = (s: CvSection) => sections.includes(s)
 
   const [headline, setHeadline] = useState(content.headline)
@@ -106,7 +108,7 @@ export function SectionEditor({
       }}
     >
       {has('headline') && (
-        <Field label='Headline'>
+        <Field label={t('Headline')}>
           <Input
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
@@ -114,7 +116,7 @@ export function SectionEditor({
         </Field>
       )}
       {has('summary') && (
-        <Field label='Summary (use **bold** for emphasis)'>
+        <Field label={t('Summary (use **bold** for emphasis)')}>
           <Textarea
             rows={6}
             value={summary}
@@ -123,7 +125,7 @@ export function SectionEditor({
         </Field>
       )}
       {has('skills') && (
-        <Field label='Skills (one group per line: Category: a, b, c)'>
+        <Field label={t('Skills (one group per line: Category: a, b, c)')}>
           <Textarea
             rows={5}
             value={skills}
@@ -132,7 +134,7 @@ export function SectionEditor({
         </Field>
       )}
       {has('projects') && (
-        <Field label='Projects (one per line: name | description | url)'>
+        <Field label={t('Projects (one per line: name | description | url)')}>
           <Textarea
             rows={4}
             value={projects}
@@ -146,13 +148,13 @@ export function SectionEditor({
           {jobs.map((job, i) => (
             <div key={i} className='space-y-2 rounded-md border p-3'>
               <div className='flex items-center justify-between'>
-                <p className='text-sm font-medium'>Experience {i + 1}</p>
+                <p className='text-sm font-medium'>{t('Experience {{n}}', { n: i + 1 })}</p>
                 <Button
                   type='button'
                   variant='ghost'
                   size='icon'
                   className='h-7 w-7 text-destructive'
-                  title='Remove this role'
+                  title={t('Remove this role')}
                   onClick={() => setJobs((l) => l.filter((_, j) => j !== i))}
                 >
                   <Trash2 className='h-4 w-4' />
@@ -160,28 +162,28 @@ export function SectionEditor({
               </div>
               <div className='grid grid-cols-2 gap-2'>
                 <Input
-                  placeholder='Company'
+                  placeholder={t('Company')}
                   value={job.company}
                   onChange={(e) => patchJob(i, { company: e.target.value })}
                 />
                 <Input
-                  placeholder='Role'
+                  placeholder={t('Role')}
                   value={job.role}
                   onChange={(e) => patchJob(i, { role: e.target.value })}
                 />
                 <Input
-                  placeholder='Location'
+                  placeholder={t('Location')}
                   value={job.location ?? ''}
                   onChange={(e) => patchJob(i, { location: e.target.value })}
                 />
                 <div className='grid grid-cols-2 gap-2'>
                   <Input
-                    placeholder='Start'
+                    placeholder={t('Start')}
                     value={job.startDate ?? ''}
                     onChange={(e) => patchJob(i, { startDate: e.target.value })}
                   />
                   <Input
-                    placeholder='End'
+                    placeholder={t('End')}
                     value={job.endDate ?? ''}
                     onChange={(e) => patchJob(i, { endDate: e.target.value })}
                   />
@@ -189,7 +191,7 @@ export function SectionEditor({
               </div>
               <Textarea
                 rows={5}
-                placeholder='One bullet per line'
+                placeholder={t('One bullet per line')}
                 value={job.bulletsText}
                 onChange={(e) => patchJob(i, { bulletsText: e.target.value })}
               />
@@ -198,7 +200,10 @@ export function SectionEditor({
                   key={h.line}
                   className='text-xs text-amber-700 dark:text-amber-400'
                 >
-                  Line {h.line}: {h.hints.join('; ')}
+                  {t('Line {{line}}: {{hints}}', {
+                    line: h.line,
+                    hints: h.hints.join('; '),
+                  })}
                 </p>
               ))}
             </div>
@@ -214,7 +219,7 @@ export function SectionEditor({
               ])
             }
           >
-            <Plus className='mr-1 h-4 w-4' /> Add role
+            <Plus className='me-1 h-4 w-4' /> {t('Add role')}
           </Button>
         </div>
       )}
@@ -224,13 +229,13 @@ export function SectionEditor({
           {education.map((edu, i) => (
             <div key={i} className='space-y-2 rounded-md border p-3'>
               <div className='flex items-center justify-between'>
-                <p className='text-sm font-medium'>Education {i + 1}</p>
+                <p className='text-sm font-medium'>{t('Education {{n}}', { n: i + 1 })}</p>
                 <Button
                   type='button'
                   variant='ghost'
                   size='icon'
                   className='h-7 w-7 text-destructive'
-                  title='Remove this entry'
+                  title={t('Remove this entry')}
                   onClick={() =>
                     setEducation((l) => l.filter((_, j) => j !== i))
                   }
@@ -240,28 +245,28 @@ export function SectionEditor({
               </div>
               <div className='grid grid-cols-2 gap-2'>
                 <Input
-                  placeholder='Institution'
+                  placeholder={t('Institution')}
                   value={edu.institution}
                   onChange={(e) =>
                     patchEducation(i, { institution: e.target.value })
                   }
                 />
                 <Input
-                  placeholder='Degree'
+                  placeholder={t('Degree')}
                   value={edu.degree}
                   onChange={(e) =>
                     patchEducation(i, { degree: e.target.value })
                   }
                 />
                 <Input
-                  placeholder='Start'
+                  placeholder={t('Start')}
                   value={edu.startDate ?? ''}
                   onChange={(e) =>
                     patchEducation(i, { startDate: e.target.value })
                   }
                 />
                 <Input
-                  placeholder='End'
+                  placeholder={t('End')}
                   value={edu.endDate ?? ''}
                   onChange={(e) =>
                     patchEducation(i, { endDate: e.target.value })
@@ -269,7 +274,7 @@ export function SectionEditor({
                 />
               </div>
               <Input
-                placeholder='Details (optional)'
+                placeholder={t('Details (optional)')}
                 value={edu.details ?? ''}
                 onChange={(e) => patchEducation(i, { details: e.target.value })}
               />
@@ -283,13 +288,13 @@ export function SectionEditor({
               setEducation((l) => [...l, { degree: '', institution: '' }])
             }
           >
-            <Plus className='mr-1 h-4 w-4' /> Add education
+            <Plus className='me-1 h-4 w-4' /> {t('Add education')}
           </Button>
         </div>
       )}
 
       {has('certifications') && (
-        <Field label='Certifications (one per line)'>
+        <Field label={t('Certifications (one per line)')}>
           <Textarea
             rows={3}
             value={certifications}
@@ -298,7 +303,7 @@ export function SectionEditor({
         </Field>
       )}
       {has('languages') && (
-        <Field label='Languages (one per line)'>
+        <Field label={t('Languages (one per line)')}>
           <Textarea
             rows={3}
             value={languages}
@@ -307,7 +312,7 @@ export function SectionEditor({
         </Field>
       )}
       {has('links') && (
-        <Field label='Links (one per line)'>
+        <Field label={t('Links (one per line)')}>
           <Textarea
             rows={3}
             value={links}
@@ -318,10 +323,10 @@ export function SectionEditor({
 
       <div className='flex justify-end gap-2'>
         <Button type='button' variant='outline' onClick={onCancel}>
-          Cancel
+          {t('Cancel')}
         </Button>
         <Button type='submit' disabled={isSaving}>
-          Save changes
+          {t('Save changes')}
         </Button>
       </div>
     </form>

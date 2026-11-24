@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { Plus, MoreHorizontal, Download, Trash2, FileText, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -36,18 +37,20 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 
-function formatFileSize(size: number) {
-  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`
+function formatFileSize(size: number, t: (key: string) => string) {
+  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} ${t('KB')}`
+  return `${(size / (1024 * 1024)).toFixed(1)} ${t('MB')}`
 }
 
 function UploadStatusBadge({ status }: { status: Cv['uploadStatus'] }) {
+  const { t } = useTranslation()
   if (status === 'Uploaded') return null
-  if (status === 'Failed') return <Badge variant='destructive'>Cloud upload failed</Badge>
-  return <Badge variant='secondary'>Uploading to cloud…</Badge>
+  if (status === 'Failed') return <Badge variant='destructive'>{t('Cloud upload failed')}</Badge>
+  return <Badge variant='secondary'>{t('Uploading to cloud…')}</Badge>
 }
 
 function UploadCvForm({ onSubmit }: { onSubmit: (data: { file: File }) => void }) {
+  const { t } = useTranslation()
   const [file, setFile] = useState<File | null>(null)
 
   return (
@@ -62,7 +65,7 @@ function UploadCvForm({ onSubmit }: { onSubmit: (data: { file: File }) => void }
     >
       <LinkedinPdfGuide />
       <div className='space-y-1'>
-        <Label>File *</Label>
+        <Label>{t('File')} *</Label>
         <Input
           type='file'
           accept='.pdf,.doc,.docx'
@@ -77,6 +80,7 @@ function UploadCvForm({ onSubmit }: { onSubmit: (data: { file: File }) => void }
 const PAGE_SIZE = 10
 
 export function Cvs() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState<Cv | null>(null)
@@ -102,22 +106,22 @@ export function Cvs() {
     mutationFn: (data: { file: File }) => cvsApi.upload({ candidateId: candidate!.id, file: data.file }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cvs'] })
-      toast.success('CV uploaded')
+      toast.success(t('CV uploaded'))
       setDialogOpen(false)
       setPage(1)
     },
-    onError: () => toast.error('Failed to upload CV'),
+    onError: () => toast.error(t('Failed to upload CV')),
   })
 
   const remove = useMutation({
     mutationFn: cvsApi.delete,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cvs'] })
-      toast.success('CV deleted')
+      toast.success(t('CV deleted'))
       setDeleting(null)
       if (cvs?.length === 1 && page > 1) setPage(page - 1)
     },
-    onError: () => toast.error('Failed to delete CV'),
+    onError: () => toast.error(t('Failed to delete CV')),
   })
 
   const isLoading = candidateLoading || cvsLoading
@@ -125,7 +129,7 @@ export function Cvs() {
   if (!candidateLoading && !candidate) {
     return (
       <div className='rounded-md border py-12 text-center text-muted-foreground'>
-        No candidate profile found for your account yet.
+        {t('No candidate profile found for your account yet.')}
       </div>
     )
   }
@@ -134,7 +138,7 @@ export function Cvs() {
     <div className='space-y-4'>
       <div className='flex items-center justify-end'>
         <Button onClick={() => setDialogOpen(true)}>
-          <Plus className='h-4 w-4 mr-1' /> Upload CV
+          <Plus className='h-4 w-4 me-1' /> {t('Upload CV')}
         </Button>
       </div>
 
@@ -142,9 +146,9 @@ export function Cvs() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>File</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Uploaded</TableHead>
+              <TableHead>{t('File')}</TableHead>
+              <TableHead>{t('Size')}</TableHead>
+              <TableHead>{t('Uploaded')}</TableHead>
               <TableHead className='w-20' />
             </TableRow>
           </TableHeader>
@@ -156,7 +160,7 @@ export function Cvs() {
             )}
             {!isLoading && cvs?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className='text-center text-muted-foreground py-8'>No CVs uploaded yet.</TableCell>
+                <TableCell colSpan={4} className='text-center text-muted-foreground py-8'>{t('No CVs uploaded yet.')}</TableCell>
               </TableRow>
             )}
             {cvs?.map((cv) => (
@@ -168,7 +172,7 @@ export function Cvs() {
                     <UploadStatusBadge status={cv.uploadStatus} />
                   </div>
                 </TableCell>
-                <TableCell className='text-sm text-muted-foreground'>{formatFileSize(cv.fileSizeBytes)}</TableCell>
+                <TableCell className='text-sm text-muted-foreground'>{formatFileSize(cv.fileSizeBytes, t)}</TableCell>
                 <TableCell className='text-sm text-muted-foreground'>{format(new Date(cv.uploadedDate), 'MMM d, yyyy')}</TableCell>
                 <TableCell>
                   <div className='flex items-center justify-end gap-1'>
@@ -176,27 +180,28 @@ export function Cvs() {
                       variant='ghost'
                       size='icon'
                       className='h-8 w-8'
-                      title='View'
+                      title={t('View')}
+                      aria-label={t('View')}
                       onClick={() => viewCvFile(cv)}
                     >
                       <Eye className='h-4 w-4' />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' size='icon' className='h-8 w-8'>
+                        <Button variant='ghost' size='icon' className='h-8 w-8' aria-label={t('Actions')}>
                           <MoreHorizontal className='h-4 w-4' />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align='end'>
                         <DropdownMenuItem onClick={() => viewCvFile(cv)}>
-                          <Eye className='h-4 w-4 mr-2' /> View
+                          <Eye className='h-4 w-4 me-2' /> {t('View')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => downloadCvFile(cv)}>
-                          <Download className='h-4 w-4 mr-2' /> Download
+                          <Download className='h-4 w-4 me-2' /> {t('Download')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className='text-destructive' onClick={() => setDeleting(cv)}>
-                          <Trash2 className='h-4 w-4 mr-2' /> Delete
+                          <Trash2 className='h-4 w-4 me-2' /> {t('Delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -211,7 +216,12 @@ export function Cvs() {
       {total > 0 && (
         <div className='flex items-center justify-between'>
           <p className='text-sm text-muted-foreground'>
-            Page {page} of {totalPages} ({total} {total === 1 ? 'CV' : 'CVs'})
+            {t('Page {{page}} of {{totalPages}} ({{total}} {{unit}})', {
+              page,
+              totalPages,
+              total,
+              unit: total === 1 ? t('CV') : t('CVs'),
+            })}
           </p>
           <div className='flex items-center gap-2'>
             <Button
@@ -220,7 +230,7 @@ export function Cvs() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
             >
-              <ChevronLeft className='h-4 w-4 mr-1' /> Previous
+              <ChevronLeft className='h-4 w-4 me-1 rtl:rotate-180' /> {t('Previous')}
             </Button>
             <Button
               variant='outline'
@@ -228,7 +238,7 @@ export function Cvs() {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
             >
-              Next <ChevronRight className='h-4 w-4 ml-1' />
+              {t('Next')} <ChevronRight className='h-4 w-4 ms-1 rtl:rotate-180' />
             </Button>
           </div>
         </div>
@@ -237,13 +247,13 @@ export function Cvs() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className='max-w-lg'>
           <DialogHeader>
-            <DialogTitle>Upload CV</DialogTitle>
+            <DialogTitle>{t('Upload CV')}</DialogTitle>
           </DialogHeader>
           <UploadCvForm onSubmit={(data) => upload.mutate(data)} />
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button variant='outline' onClick={() => setDialogOpen(false)}>{t('Cancel')}</Button>
             <Button type='submit' form='cv-upload-form' disabled={upload.isPending}>
-              Upload
+              {t('Upload')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -252,10 +262,10 @@ export function Cvs() {
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title='Delete CV'
-        desc={`Are you sure you want to delete "${deleting?.fileName}"? This cannot be undone.`}
+        title={t('Delete CV')}
+        desc={t('Are you sure you want to delete "{{name}}"? This cannot be undone.', { name: deleting?.fileName })}
         destructive
-        confirmText='Delete'
+        confirmText={t('Delete')}
         isLoading={remove.isPending}
         handleConfirm={() => deleting && remove.mutate(deleting.id)}
       />

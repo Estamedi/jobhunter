@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, FileText, Loader2, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const STEPS = [
   'Uploading your CV',
@@ -13,6 +14,7 @@ const STEPS = [
 const STEP_MS = 5000
 
 export function ImportProgress({ fileName }: { fileName?: string }) {
+  const { t } = useTranslation()
   const [active, setActive] = useState(0)
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function ImportProgress({ fileName }: { fileName?: string }) {
           <motion.span
             key={i}
             className='absolute text-primary'
-            style={{ top: `${15 + i * 25}%`, right: `${8 + i * 6}%` }}
+            style={{ top: `${15 + i * 25}%`, insetInlineEnd: `${8 + i * 6}%` }}
             animate={{ opacity: [0, 1, 0], scale: [0.6, 1.1, 0.6] }}
             transition={{
               duration: 2,
@@ -57,11 +59,12 @@ export function ImportProgress({ fileName }: { fileName?: string }) {
       </div>
 
       <div className='text-center'>
-        <p className='font-semibold'>Analyzing your CV…</p>
+        <p className='font-semibold'>{t('Analyzing your CV…')}</p>
         <p className='text-sm text-muted-foreground'>
-          {fileName ? `${fileName} · ` : ''}This usually takes about half a
-          minute. It is read in the background, so you can close this window and
-          pick it up again later.
+          {fileName ? `${fileName} · ` : ''}
+          {t(
+            'This usually takes about half a minute. It is read in the background, so you can close this window and pick it up again later.'
+          )}
         </p>
       </div>
 
@@ -108,7 +111,7 @@ export function ImportProgress({ fileName }: { fileName?: string }) {
                   )}
                 </AnimatePresence>
               </span>
-              <span className={current ? 'font-medium' : ''}>{label}</span>
+              <span className={current ? 'font-medium' : ''}>{t(label)}</span>
             </li>
           )
         })}

@@ -2,11 +2,17 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { getCookie, setCookie } from '@/lib/cookies'
 import { fa } from './fa'
-import { faApplications } from './fa-applications'
-import { faApplicationsBoard } from './fa-applications-board'
-import { faApplicationsDetail } from './fa-applications-detail'
-import { faApplicationsDialogs } from './fa-applications-dialogs'
-import { faCommon } from './fa-common'
+
+// Every ./fa-*.ts file contributes a dictionary; no manual registration needed.
+const faModules = import.meta.glob<Record<string, Record<string, string>>>(
+  './fa-*.ts',
+  { eager: true }
+)
+const faAll: Record<string, string> = Object.assign(
+  {},
+  fa,
+  ...Object.values(faModules).flatMap((m) => Object.values(m))
+)
 
 export type Language = 'en' | 'fa'
 
@@ -38,14 +44,7 @@ function initialLanguage(): Language {
 void i18n.use(initReactI18next).init({
   lng: initialLanguage(),
   fallbackLng: 'en',
-  resources: { en: { translation: {} }, fa: { translation: {
-        ...fa,
-        ...faCommon,
-        ...faApplications,
-        ...faApplicationsBoard,
-        ...faApplicationsDialogs,
-        ...faApplicationsDetail,
-      } } },
+  resources: { en: { translation: {} }, fa: { translation: faAll } },
   keySeparator: false,
   nsSeparator: false,
   interpolation: { escapeValue: false },

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,6 +26,7 @@ function IntroForm({
   onSave: (fullName: string, headline: string) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState(fullName)
   const [head, setHead] = useState(headline)
 
@@ -39,7 +41,7 @@ function IntroForm({
         }}
       >
         <div className='space-y-1'>
-          <Label htmlFor='intro-name'>Full name*</Label>
+          <Label htmlFor='intro-name'>{t('Full name')}*</Label>
           <Input
             id='intro-name'
             required
@@ -49,13 +51,13 @@ function IntroForm({
           />
         </div>
         <div className='space-y-1'>
-          <Label htmlFor='intro-headline'>Headline</Label>
+          <Label htmlFor='intro-headline'>{t('Headline')}</Label>
           <Input
             id='intro-headline'
             maxLength={HEADLINE_MAX}
             value={head}
             onChange={(e) => setHead(e.target.value)}
-            placeholder='Ex: Software engineer | 13+ years exp'
+            placeholder={t('Ex: Software engineer | 13+ years exp')}
           />
           <p className='text-end text-xs text-muted-foreground'>
             {head.length}/{HEADLINE_MAX}
@@ -64,14 +66,14 @@ function IntroForm({
       </form>
       <DialogFooter>
         <Button variant='outline' onClick={onClose}>
-          Cancel
+          {t('Cancel')}
         </Button>
         <Button
           type='submit'
           form='intro-form'
           disabled={isSaving || !name.trim()}
         >
-          Save
+          {t('Save')}
         </Button>
       </DialogFooter>
     </>
@@ -95,11 +97,12 @@ export function IntroDialog({
   isSaving: boolean
   onSave: (fullName: string, headline: string) => void
 }) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-lg'>
         <DialogHeader>
-          <DialogTitle>Edit intro</DialogTitle>
+          <DialogTitle>{t('Edit intro')}</DialogTitle>
         </DialogHeader>
         {open && (
           <IntroForm

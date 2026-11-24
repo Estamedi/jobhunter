@@ -1,3 +1,5 @@
+import i18n from '@/i18n'
+
 // How the candidate knows a skill. Matches the backend SkillEvidenceLevel; no level means "not set".
 export const SKILL_EVIDENCE_LEVELS = [
   { value: 'Worked', label: 'Used at work', hint: 'Used in a real job' },
@@ -16,5 +18,6 @@ export const MAX_SKILL_NOTE_LENGTH = 300
 // The short label shown next to a skill. Nothing for a skill with no level, so existing skills look as before.
 export function skillLevelLabel(level?: string | null): string | null {
   if (!level) return null
-  return SKILL_EVIDENCE_LEVELS.find((l) => l.value === level)?.label ?? null
+  const label = SKILL_EVIDENCE_LEVELS.find((l) => l.value === level)?.label
+  return label ? i18n.t(label) : null
 }

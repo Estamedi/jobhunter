@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { candidatesApi } from '@/features/candidates/api'
@@ -40,6 +41,7 @@ import { currentRole, latestSchool } from './lib/profile-summary'
 import { useCandidatePhoto } from './lib/use-candidate-photo'
 
 export function Profile() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   // `undefined` = closed, `null` = adding a new experience, otherwise editing that one.
   const [editing, setEditing] = useState<ProfileExperience | null | undefined>(
@@ -97,9 +99,9 @@ export function Profile() {
     onSuccess: () => {
       refresh()
       qc.invalidateQueries({ queryKey: ['candidates'] })
-      toast.success('Profile updated')
+      toast.success(t('Profile updated'))
     },
-    onError: () => toast.error('Failed to update profile'),
+    onError: () => toast.error(t('Failed to update profile')),
   })
 
   const saveExperience = useMutation({
@@ -110,9 +112,9 @@ export function Profile() {
     onSuccess: () => {
       refresh()
       setEditing(undefined)
-      toast.success('Experience saved')
+      toast.success(t('Experience saved'))
     },
-    onError: () => toast.error('Failed to save experience'),
+    onError: () => toast.error(t('Failed to save experience')),
   })
 
   const removeExperience = useMutation({
@@ -120,9 +122,9 @@ export function Profile() {
     onSuccess: () => {
       refresh()
       setEditing(undefined)
-      toast.success('Experience deleted')
+      toast.success(t('Experience deleted'))
     },
-    onError: () => toast.error('Failed to delete experience'),
+    onError: () => toast.error(t('Failed to delete experience')),
   })
 
   const { url: photoUrl, isLoading: photoLoading } = useCandidatePhoto(
@@ -132,20 +134,20 @@ export function Profile() {
   const savePhoto = useMutation({
     mutationFn: async (file: File) => {
       if (!isPhotoFile(file))
-        throw new Error('Choose a JPEG, PNG or WebP picture.')
+        throw new Error(t('Choose a JPEG, PNG or WebP picture.'))
       if (file.size > MAX_PHOTO_INPUT_BYTES)
-        throw new Error('That picture is too large (15 MB at most).')
+        throw new Error(t('That picture is too large (15 MB at most).'))
       await profileApi.savePhoto(candidate!.id, await preparePhoto(file))
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidate-photo', candidate?.id] })
-      toast.success('Photo saved')
+      toast.success(t('Photo saved'))
     },
     onError: (error) =>
       toast.error(
         error instanceof Error && error.message
           ? error.message
-          : 'Failed to save the photo'
+          : t('Failed to save the photo')
       ),
   })
 
@@ -153,9 +155,9 @@ export function Profile() {
     mutationFn: () => profileApi.deletePhoto(candidate!.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidate-photo', candidate?.id] })
-      toast.success('Photo removed')
+      toast.success(t('Photo removed'))
     },
-    onError: () => toast.error('Failed to remove the photo'),
+    onError: () => toast.error(t('Failed to remove the photo')),
   })
 
   const saveContact = useMutation({
@@ -170,9 +172,9 @@ export function Profile() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidates'] })
-      toast.success('Contact info updated')
+      toast.success(t('Contact info updated'))
     },
-    onError: () => toast.error('Failed to update contact info'),
+    onError: () => toast.error(t('Failed to update contact info')),
   })
 
   const saveEducation = useMutation({
@@ -183,9 +185,9 @@ export function Profile() {
     onSuccess: () => {
       refresh()
       setEditingEducation(undefined)
-      toast.success('Education saved')
+      toast.success(t('Education saved'))
     },
-    onError: () => toast.error('Failed to save education'),
+    onError: () => toast.error(t('Failed to save education')),
   })
 
   const removeEducation = useMutation({
@@ -193,9 +195,9 @@ export function Profile() {
     onSuccess: () => {
       refresh()
       setEditingEducation(undefined)
-      toast.success('Education deleted')
+      toast.success(t('Education deleted'))
     },
-    onError: () => toast.error('Failed to delete education'),
+    onError: () => toast.error(t('Failed to delete education')),
   })
 
   const addSkill = useMutation({
@@ -213,26 +215,26 @@ export function Profile() {
         v.note
       ),
     onSuccess: refresh,
-    onError: () => toast.error('Failed to add skill'),
+    onError: () => toast.error(t('Failed to add skill')),
   })
 
   const updateSkill = useMutation({
     mutationFn: (v: { id: number; dto: SaveSkillDto }) =>
       profileApi.updateSkill(v.id, v.dto),
     onSuccess: refresh,
-    onError: () => toast.error('Failed to update skill'),
+    onError: () => toast.error(t('Failed to update skill')),
   })
 
   const removeSkill = useMutation({
     mutationFn: (id: number) => profileApi.deleteSkill(id),
     onSuccess: refresh,
-    onError: () => toast.error('Failed to remove skill'),
+    onError: () => toast.error(t('Failed to remove skill')),
   })
 
   if (!candidateLoading && !candidate) {
     return (
       <div className='rounded-md border py-12 text-center text-muted-foreground'>
-        No candidate profile found for your account yet.
+        {t('No candidate profile found for your account yet.')}
       </div>
     )
   }
@@ -425,8 +427,8 @@ export function Profile() {
             setImportOpen(false)
             toast.success(
               added === 1
-                ? 'Imported 1 experience'
-                : `Imported ${added} experiences`
+                ? t('Imported 1 experience')
+                : t('Imported {{n}} experiences', { n: added })
             )
           }}
         />

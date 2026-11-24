@@ -1,3 +1,5 @@
+import i18n from '@/i18n'
+
 // The CV templates the server can render. Every one has the same single-column layout and section order;
 // they differ in colours and spacing. An id the server does not know is drawn as the classic look.
 export const CV_TEMPLATES = [
@@ -59,5 +61,7 @@ export function templateLook(id?: string | null): TemplateLook {
 }
 
 export function templateLabel(id?: string | null): string {
-  return CV_TEMPLATES.find((t) => t.id === id)?.label ?? CV_TEMPLATES[0].label
+  return i18n.t(
+    CV_TEMPLATES.find((t) => t.id === id)?.label ?? CV_TEMPLATES[0].label
+  )
 }
