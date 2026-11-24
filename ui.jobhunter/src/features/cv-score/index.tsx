@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 import { candidatesApi } from '@/features/candidates/api'
 import { cvBuilderApi } from '@/features/cv-builder/api'
@@ -16,6 +17,7 @@ const scoreTone = (score: number) =>
 
 // Every generated CV with its score, best first to fix last: pick one to see what costs it points.
 export function CvScore() {
+  const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
   const { data: candidates, isLoading: candidateLoading } = useQuery({
@@ -49,11 +51,10 @@ export function CvScore() {
   if (drafts.length === 0) {
     return (
       <div className='rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground'>
-        No CVs to score yet.{' '}
+        {t('No CVs to score yet.')}{' '}
         <Link to='/cv-builder' className='underline'>
-          Write one in the CV Writer
+          {t('Write one in the CV Writer')}
         </Link>
-        .
       </div>
     )
   }
@@ -68,7 +69,7 @@ export function CvScore() {
               <button
                 type='button'
                 onClick={() => setSelectedId(d.id)}
-                className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm hover:bg-muted/50 ${
+                className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-start text-sm hover:bg-muted/50 ${
                   d.id === active?.id ? 'border-primary bg-primary/5' : ''
                 }`}
               >
@@ -98,7 +99,7 @@ export function CvScore() {
           <div className='flex items-center justify-between gap-2'>
             <h2 className='font-semibold'>{active.title}</h2>
             <Link to='/cv-builder' className='text-sm underline'>
-              Open the CV Writer to fix it
+              {t('Open the CV Writer to fix it')}
             </Link>
           </div>
           <ScorePanel draftId={active.id} lastModified={active.lastModified} />
