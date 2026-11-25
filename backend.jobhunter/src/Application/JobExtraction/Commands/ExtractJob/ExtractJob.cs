@@ -6,7 +6,7 @@ namespace backend.jobhunter.Application.JobExtraction.Commands.ExtractJob;
 [Authorize]
 public record ExtractJobCommand(string Url, string Title, string? JsonLd, string Text) : IRequest<ExtractedJobDto>;
 
-public class ExtractJobCommandHandler(IApplicationDbContext context, IJobExtractionAiService aiService)
+public class ExtractJobCommandHandler(IApplicationDbContext context, IJobExtractionQueue queue, IUser user)
     : IRequestHandler<ExtractJobCommand, ExtractedJobDto>
 {
     public async Task<ExtractedJobDto> Handle(ExtractJobCommand request, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ public class ExtractJobCommandHandler(IApplicationDbContext context, IJobExtract
             };
         }
 
-        return await aiService.ExtractAsync(
-            new JobPageContent(request.Url, request.Title, request.JsonLd, request.Text), cancellationToken);
+        return await queue.ExtractAsync(
+            user.Id!, new JobPageContent(request.Url, request.Title, request.JsonLd, request.Text), cancellationToken);
     }
 }

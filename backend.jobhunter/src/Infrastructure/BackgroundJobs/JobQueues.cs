@@ -7,6 +7,7 @@ public static class JobQueues
     public const string ProfileImport = "profile-import";
     public const string CvUpload = "cv-upload";
     public const string Email = "email";
+    public const string JobExtraction = "job-extraction";
 
-    public static readonly string[] All = [CvGeneration, ProfileImport, CvUpload, Email, "default"];
+    public static readonly string[] All = [CvGeneration, ProfileImport, CvUpload, Email, JobExtraction, "default"];
 }

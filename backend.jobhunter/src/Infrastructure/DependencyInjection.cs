@@ -128,6 +128,9 @@ public static class DependencyInjection
 
         builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
         builder.Services.AddTransient<IJobExtractionAiService, AiJobExtractionService>();
+        builder.Services.AddSingleton<backend.jobhunter.Infrastructure.JobExtraction.JobExtractionQueue>();
+        builder.Services.AddSingleton<IJobExtractionQueue>(sp => sp.GetRequiredService<backend.jobhunter.Infrastructure.JobExtraction.JobExtractionQueue>());
+        builder.Services.AddTransient<backend.jobhunter.Infrastructure.JobExtraction.JobExtractionWorker>();
         builder.Services.Configure<LangfuseOptions>(builder.Configuration.GetSection("Langfuse"));
         builder.Services.PostConfigure<LangfuseOptions>(o => o.Environment = builder.Environment.EnvironmentName.ToLowerInvariant());
         builder.Services.AddSingleton<LangfuseTelemetry>();
