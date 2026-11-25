@@ -32,21 +32,25 @@ const statCards = [
   {
     label: 'Interviewing',
     value: 'interviewing',
+    status: 'Interview',
     icon: Users,
   },
   {
     label: 'Applied',
     value: 'applied',
+    status: 'Applied',
     icon: FileText,
   },
   {
     label: 'Wishlist',
     value: 'wishlist',
+    status: 'Wishlist',
     icon: Heart,
   },
   {
     label: 'Offer',
     value: 'offer',
+    status: 'Offer',
     icon: Trophy,
   },
 ] as const
@@ -132,6 +136,7 @@ export function CrmDashboard() {
             label={t(stat.label)}
             value={values[stat.value]}
             icon={stat.icon}
+            status={stat.status}
           />
         ))}
       </section>
@@ -177,12 +182,19 @@ function StatCard({
   label,
   value,
   icon: Icon,
+  status,
 }: {
   label: string
   value: number
   icon: ElementType
+  status: string
 }) {
   return (
+    <Link
+      to='/applications'
+      search={{ status }}
+      className='block rounded-[10px] transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-tapinti-primary'
+    >
     <Card className='h-[58px] gap-0 rounded-[10px] border-tapinti-border bg-tapinti-surface px-4 py-3 text-tapinti-foreground shadow-none'>
       <div className='flex h-full items-center justify-between gap-3'>
         <div className='flex items-center gap-2.5'>
@@ -196,6 +208,7 @@ function StatCard({
         <span className='text-xl leading-7 font-bold'>{value}</span>
       </div>
     </Card>
+    </Link>
   )
 }
 

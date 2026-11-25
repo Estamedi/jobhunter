@@ -1,4 +1,4 @@
-import { Fragment, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -80,10 +80,10 @@ function weekGroup(a: JobApplication): string {
   return 'Earlier'
 }
 
-export function Applications() {
+export function Applications({ initialStatus }: { initialStatus?: string } = {}) {
   const { t } = useTranslation()
   const qc = useQueryClient()
-  const [filters, setFilters] = useState<ApplicationFilters>(DEFAULT_FILTERS)
+  const [filters, setFilters] = useState<ApplicationFilters>({ ...DEFAULT_FILTERS, status: initialStatus })
   const [page, setPage] = useState(1)
   const [showRejected, setShowRejected] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -140,6 +140,14 @@ export function Applications() {
     mutationFn: ({ id, status }: { id: number; status: string }) => applicationsApi.updateStatus(id, status),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['applications'] }); toast.success(t('Status updated')) },
   })
+
+  useEffect(() => {
+    if (initialStatus) {
+      setShowRejected(false)
+      setPage(1)
+      setFilters((f) => ({ ...f, status: initialStatus }))
+    }
+  }, [initialStatus])
 
   function showView(view: 'active' | 'all' | string) {
     setShowRejected(view === 'all')
