@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import axios from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
+import i18n from '@/i18n'
 import { Loader2, UserPlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import i18n from '@/i18n'
 import { IconGoogle } from '@/assets/brand-icons'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
@@ -23,7 +23,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { authApi } from '@/features/auth/api'
-import { getGoogleIdToken } from '@/features/auth/google-identity'
+import {
+  getGoogleIdToken,
+  preloadGoogleIdentity,
+} from '@/features/auth/google-identity'
 import { getAuthErrorMessage } from '@/features/auth/lib/auth-error'
 
 const formSchema = z
@@ -57,6 +60,10 @@ export function SignUpForm({
   const navigate = useNavigate()
   const { auth } = useAuthStore()
 
+  useEffect(() => {
+    preloadGoogleIdentity()
+  }, [])
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -84,7 +91,10 @@ export function SignUpForm({
       })
     } catch (err) {
       toast.error(
-        getAuthErrorMessage(err, t('Failed to create account. Please try again.'))
+        getAuthErrorMessage(
+          err,
+          t('Failed to create account. Please try again.')
+        )
       )
     } finally {
       setIsLoading(false)
@@ -134,8 +144,13 @@ export function SignUpForm({
       await loadCurrentUser('')
       toast.success(t('Signed up with Google.'))
       navigate({ to: '/', replace: true })
-    } catch {
-      toast.error(t('Failed to sign up with Google. Please try again.'))
+    } catch (err) {
+      // Google errors (blocked or cancelled popup) carry a translated reason; server errors do not.
+      toast.error(
+        !axios.isAxiosError(err) && err instanceof Error && err.message
+          ? err.message
+          : t('Failed to sign up with Google. Please try again.')
+      )
     } finally {
       setIsGoogleLoading(false)
     }
@@ -152,7 +167,7 @@ export function SignUpForm({
           variant='outline'
           type='button'
           // Google brand button: fixed colors per theme so it never inherits the green theme accent.
-          className='mx-auto h-14 w-full max-w-xs rounded-2xl border-2 shadow-md border-[#747775] bg-white text-base font-bold text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1f1f21] dark:hover:text-[#E3E3E3]'
+          className='mx-auto h-14 w-full max-w-xs rounded-2xl border-2 border-[#747775] bg-white text-base font-bold text-[#1F1F1F] shadow-md hover:bg-[#F2F2F2] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1f1f21] dark:hover:text-[#E3E3E3]'
           disabled={isLoading || isGoogleLoading}
           onClick={onGoogleSignUp}
         >
