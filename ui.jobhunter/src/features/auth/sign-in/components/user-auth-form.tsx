@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { authApi } from '@/features/auth/api'
+import { EmbeddedBrowserNotice } from '@/features/auth/embedded-browser-notice'
 import {
   getGoogleIdToken,
   preloadGoogleIdentity,
@@ -171,6 +172,7 @@ export function UserAuthForm({
         className={cn('grid gap-3', className)}
         {...props}
       >
+        <EmbeddedBrowserNotice />
         <Button
           variant='outline'
           type='button'

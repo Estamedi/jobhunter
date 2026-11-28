@@ -60,6 +60,8 @@ export const faAuth: Record<string, string> = {
   'Google sign-in popup was blocked. Please tap the button again.':
     'پنجره ورود گوگل مسدود شد. لطفاً دوباره روی دکمه بزنید.',
   'Google sign-in was cancelled.': 'ورود با گوگل لغو شد.',
+  'Google sign-in does not work in this app’s built-in browser. Open this page in Safari or Chrome.':
+    'ورود با گوگل در مرورگر داخلی این برنامه کار نمی‌کند. این صفحه را در Safari یا Chrome باز کنید.',
   // Sign up
   'Start your job search workspace': 'فضای کاری جست‌وجوی شغل خود را بسازید',
   'Create an account, upload your CV, and keep every application, company, interview, and follow-up organized from day one.':
